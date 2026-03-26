@@ -1,0 +1,18 @@
+cmake_minimum_required(VERSION 4.1)
+project(sparsepc CXX)
+
+message(STATUS "Using openMP")
+find_package(OpenMP REQUIRED) 
+if(OpenMP_CXX_FOUND)
+	link_libraries(OpenMP::OpenMP_CXX)
+endif()
+
+add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+add_compile_definitions(_SILENCE_ALL_CXX23_DEPRECATION_WARNINGS)
+
+message(STATUS "Using Eigen3")
+include_directories(${PROJECT_SOURCE_DIR}/include "$ENV{EIGEN3_INCLUDE_DIR}")
+
+# Add the subdirectories
+add_subdirectory(examples)
+add_subdirectory(python)
