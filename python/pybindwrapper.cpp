@@ -10,14 +10,18 @@
 
 PYBIND11_MODULE(sparsepc, mainmodule)
 {
-    mainmodule.doc() = "sparsepc sparse modeling module.";
+#ifdef SPARSEPC_VERSION
+    mainmodule.attr("__version__") = SPARSEPC_MACRO_STRINGIFY(SPARSEPC_VERSION);
+#else
+    mainmodule.attr("__version__") = "dev";
+#endif
 
-    auto m = mainmodule.def_submodule("linearmodel", "Linear model module.");
+    mainmodule.doc() = "sparsepc sparse modeling module.";
 
     using Index = sparsepc::Index;
 
     using ComponentState = sparsepc::ComponentState;
-    pybind11::enum_<ComponentState>(m, "ComponentState", pybind11::arithmetic(), "State of a candidate component")
+    pybind11::enum_<ComponentState>(mainmodule, "ComponentState", pybind11::arithmetic(), "State of a candidate component")
         .value("Validated", ComponentState::Validated, "Validated component")
         .value("Unvalidated", ComponentState::Unvalidated, "Still candidate component")
         .value("Unknown", ComponentState::Unknown, "Neither validated nor candidate")
@@ -25,7 +29,7 @@ PYBIND11_MODULE(sparsepc, mainmodule)
 
     using Vectord = sparsepc::Vector<double>;
     using Componentd = sparsepc::Component<double>;
-    pybind11::class_<Componentd>(m, "Componentd")
+    pybind11::class_<Componentd>(mainmodule, "Componentd")
         .def(pybind11::init<>())
         .def(pybind11::init<Index>(), pybind11::arg("n"))
         .def(pybind11::init<double, Vectord>(), 
@@ -36,22 +40,54 @@ PYBIND11_MODULE(sparsepc, mainmodule)
         .def_readwrite("vector", &Componentd::vector)
         .def_readwrite("q", &Componentd::q);
 
-    m.def("toMatrixd", &sparsepc::toMatrix<double>,
+    mainmodule.def("toMatrixd", &sparsepc::toMatrix<double>,
         pybind11::arg("components"));
 
     using EigenSolverd = sparsepc::EigenSolver<double>;
     using EigenSolverParamd = EigenSolverd::Param;
-    pybind11::class_<EigenSolverParamd>(m, "EigenSolverParamd")
+    pybind11::class_<EigenSolverParamd>(mainmodule, "EigenSolverParamd")
         .def(pybind11::init<double, unsigned int>(),
             pybind11::arg("epsilon") = 1e-4,
             pybind11::arg("maximumNumberOfIterations") = 1000000U)
         .def_readonly("epsilon", &EigenSolverParamd::epsilon)
         .def_readonly("maximumNumberOfIterations", &EigenSolverParamd::maximumNumberOfIterations);
 
-    pybind11::class_<EigenSolverd>(m, "EigenSolverd")
+    pybind11::class_<EigenSolverd>(mainmodule, "EigenSolverd")
         .def(pybind11::init<EigenSolverParamd>(), pybind11::arg("param") = EigenSolverParamd{})
         .def("maximumValue", &EigenSolverd::maximumValue, pybind11::arg("sigma"))
         .def("maximumValueElement", &EigenSolverd::maximumValueElement, pybind11::arg("sigma"));
+
+    using Vectorf = sparsepc::Vector<float>;
+    using Componentf = sparsepc::Component<float>;
+    pybind11::class_<Componentf>(mainmodule, "Componentf")
+        .def(pybind11::init<>())
+        .def(pybind11::init<Index>(), pybind11::arg("n"))
+        .def(pybind11::init<float, Vectorf>(),
+            pybind11::arg("value"),
+            pybind11::arg("vector"))
+        .def_readwrite("state", &Componentf::state)
+        .def_readwrite("value", &Componentf::value)
+        .def_readwrite("vector", &Componentf::vector)
+        .def_readwrite("q", &Componentf::q);
+
+    mainmodule.def("toMatrixf", &sparsepc::toMatrix<float>,
+        pybind11::arg("components"));
+
+    using EigenSolverf = sparsepc::EigenSolver<float>;
+    using EigenSolverParamf = EigenSolverf::Param;
+    pybind11::class_<EigenSolverParamf>(mainmodule, "EigenSolverParamf")
+        .def(pybind11::init<float, unsigned int>(),
+            pybind11::arg("epsilon") = 1e-4f,
+            pybind11::arg("maximumNumberOfIterations") = 1000000U)
+        .def_readonly("epsilon", &EigenSolverParamf::epsilon)
+        .def_readonly("maximumNumberOfIterations", &EigenSolverParamf::maximumNumberOfIterations);
+
+    pybind11::class_<EigenSolverf>(mainmodule, "EigenSolverf")
+        .def(pybind11::init<EigenSolverParamf>(), pybind11::arg("param") = EigenSolverParamf{})
+        .def("maximumValue", &EigenSolverf::maximumValue, pybind11::arg("sigma"))
+        .def("maximumValueElement", &EigenSolverf::maximumValueElement, pybind11::arg("sigma"));
+
+    auto m = mainmodule.def_submodule("linearmodel", "Linear model module.");
 
     using BackwardGspcad = sparsepc::linearmodel::BackwardGspca<double>;
     using BackwardGspcaParamd = BackwardGspcad::Param;
@@ -75,7 +111,12 @@ PYBIND11_MODULE(sparsepc, mainmodule)
         .def(pybind11::init<BackwardGspcaParamd>(),
             pybind11::arg("param"))
         .def("run", &BackwardGspcad::run,
-            pybind11::arg("sigma"));
+            pybind11::arg("sigma"))
+        .def_static("computeNextComponentCandidates", 
+            &BackwardGspcad::computeNextComponentCandidates,
+            pybind11::arg("sigma"), 
+            pybind11::arg("param"),
+            pybind11::arg("validatedComponents") = std::vector<Componentd>{});
 
     using ForwardGspcad = sparsepc::linearmodel::ForwardGspca<double>;
     using ForwardGspcaParamd = ForwardGspcad::Param;
@@ -99,7 +140,12 @@ PYBIND11_MODULE(sparsepc, mainmodule)
         .def(pybind11::init<ForwardGspcaParamd>(),
             pybind11::arg("param"))
         .def("run", &ForwardGspcad::run,
-            pybind11::arg("sigma"));
+            pybind11::arg("sigma"))
+        .def_static("computeNextComponentCandidates",
+            &ForwardGspcad::computeNextComponentCandidates,
+            pybind11::arg("sigma"),
+            pybind11::arg("param"),
+            pybind11::arg("validatedComponents") = std::vector<Componentd>{});
 
     using ParallelGspcad = sparsepc::linearmodel::ParallelGspca<double>;
     using ParallelGspcaParamd = ParallelGspcad::Param;
@@ -125,7 +171,12 @@ PYBIND11_MODULE(sparsepc, mainmodule)
         .def(pybind11::init<ParallelGspcaParamd>(),
             pybind11::arg("param"))
         .def("run", &ParallelGspcad::run,
-            pybind11::arg("sigma"));
+            pybind11::arg("sigma"))
+        .def_static("computeNextComponentCandidates",
+            &ParallelGspcad::computeNextComponentCandidates,
+            pybind11::arg("sigma"),
+            pybind11::arg("param"),
+            pybind11::arg("validatedComponents") = std::vector<Componentd>{});
 
     using Dcad = sparsepc::linearmodel::Dca<double>;
     using DcaParamd = Dcad::Param;
@@ -154,37 +205,12 @@ PYBIND11_MODULE(sparsepc, mainmodule)
         .def(pybind11::init<DcaParamd>(),
             pybind11::arg("param"))
         .def("run", &Dcad::run,
-            pybind11::arg("sigma"));
-
-    using Vectorf = sparsepc::Vector<float>;
-    using Componentf = sparsepc::Component<float>;
-    pybind11::class_<Componentf>(m, "Componentf")
-        .def(pybind11::init<>())
-        .def(pybind11::init<Index>(), pybind11::arg("n"))
-        .def(pybind11::init<float, Vectorf>(),
-            pybind11::arg("value"),
-            pybind11::arg("vector"))
-        .def_readwrite("state", &Componentf::state)
-        .def_readwrite("value", &Componentf::value)
-        .def_readwrite("vector", &Componentf::vector)
-        .def_readwrite("q", &Componentf::q);
-
-    m.def("toMatrixf", &sparsepc::toMatrix<float>,
-        pybind11::arg("components"));
-
-    using EigenSolverf = sparsepc::EigenSolver<float>;
-    using EigenSolverParamf = EigenSolverf::Param;
-    pybind11::class_<EigenSolverParamf>(m, "EigenSolverParamf")
-        .def(pybind11::init<float, unsigned int>(),
-            pybind11::arg("epsilon") = 1e-4f,
-            pybind11::arg("maximumNumberOfIterations") = 1000000U)
-        .def_readonly("epsilon", &EigenSolverParamf::epsilon)
-        .def_readonly("maximumNumberOfIterations", &EigenSolverParamf::maximumNumberOfIterations);
-
-    pybind11::class_<EigenSolverf>(m, "EigenSolverf")
-        .def(pybind11::init<EigenSolverParamf>(), pybind11::arg("param") = EigenSolverParamf{})
-        .def("maximumValue", &EigenSolverf::maximumValue, pybind11::arg("sigma"))
-        .def("maximumValueElement", &EigenSolverf::maximumValueElement, pybind11::arg("sigma"));
+            pybind11::arg("sigma"))
+        .def_static("computeNextComponentCandidates",
+            &Dcad::computeNextComponentCandidates,
+            pybind11::arg("sigma"),
+            pybind11::arg("param"),
+            pybind11::arg("validatedComponents") = std::vector<Componentd>{});
 
     using BackwardGspcaf = sparsepc::linearmodel::BackwardGspca<float>;
     using BackwardGspcaParamf = BackwardGspcaf::Param;
@@ -208,7 +234,12 @@ PYBIND11_MODULE(sparsepc, mainmodule)
         .def(pybind11::init<BackwardGspcaParamf>(),
             pybind11::arg("param"))
         .def("run", &BackwardGspcaf::run,
-            pybind11::arg("sigma"));
+            pybind11::arg("sigma"))
+        .def_static("computeNextComponentCandidates",
+            &BackwardGspcaf::computeNextComponentCandidates,
+            pybind11::arg("sigma"),
+            pybind11::arg("param"),
+            pybind11::arg("validatedComponents") = std::vector<Componentf>{});
 
     using ForwardGspcaf = sparsepc::linearmodel::ForwardGspca<float>;
     using ForwardGspcaParamf = ForwardGspcaf::Param;
@@ -232,7 +263,12 @@ PYBIND11_MODULE(sparsepc, mainmodule)
         .def(pybind11::init<ForwardGspcaParamf>(),
             pybind11::arg("param"))
         .def("run", &ForwardGspcaf::run,
-            pybind11::arg("sigma"));
+            pybind11::arg("sigma"))
+        .def_static("computeNextComponentCandidates",
+            &ForwardGspcaf::computeNextComponentCandidates,
+            pybind11::arg("sigma"),
+            pybind11::arg("param"),
+            pybind11::arg("validatedComponents") = std::vector<Componentf>{});
 
     using ParallelGspcaf = sparsepc::linearmodel::ParallelGspca<float>;
     using ParallelGspcaParamf = ParallelGspcaf::Param;
@@ -258,7 +294,12 @@ PYBIND11_MODULE(sparsepc, mainmodule)
         .def(pybind11::init<ParallelGspcaParamf>(),
             pybind11::arg("param"))
         .def("run", &ParallelGspcaf::run,
-            pybind11::arg("sigma"));
+            pybind11::arg("sigma"))
+        .def_static("computeNextComponentCandidates",
+            &ParallelGspcaf::computeNextComponentCandidates,
+            pybind11::arg("sigma"),
+            pybind11::arg("param"),
+            pybind11::arg("validatedComponents") = std::vector<Componentf>{});
 
     using Dcaf = sparsepc::linearmodel::Dca<float>;
     using DcaParamf = Dcaf::Param;
@@ -287,11 +328,10 @@ PYBIND11_MODULE(sparsepc, mainmodule)
         .def(pybind11::init<DcaParamf>(),
             pybind11::arg("param"))
         .def("run", &Dcaf::run,
-            pybind11::arg("sigma"));
-
-#ifdef SPARSEPC_VERSION
-    mainmodule.attr("__version__") = SPARSEPC_MACRO_STRINGIFY(SPARSEPC_VERSION);
-#else
-    mainmodule.attr("__version__") = "dev";
-#endif
+            pybind11::arg("sigma"))
+        .def_static("computeNextComponentCandidates",
+            &Dcaf::computeNextComponentCandidates,
+            pybind11::arg("sigma"),
+            pybind11::arg("param"),
+            pybind11::arg("validatedComponents") = std::vector<Componentf>{});
 }
