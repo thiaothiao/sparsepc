@@ -54,6 +54,7 @@ if runBackward:
             validatedComponents = np.array(validatedComponents))
         
         print(sparsepc.toMatrixd(candidates))
+        
         iCandidate = None
         while True:
             try:
@@ -69,5 +70,4 @@ if runBackward:
 
         validatedComponents.append(candidates[iCandidate]);
 
-    print("\n*** Backward GSPCA variance + components ***\n")
     print(sparsepc.toMatrixd(np.array(validatedComponents)))
