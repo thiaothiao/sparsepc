@@ -32,7 +32,7 @@ class SPCAWidget(QWidget):
         inputs_layout = QVBoxLayout()
         self.inputs_widget.setLayout(inputs_layout)
         
-        self.pca_action_widget = QGroupBox("PCAs")
+        self.pca_action_widget = QGroupBox("Process sparse pcs")
         pca_action_layout = QVBoxLayout()
         self.pca_action_widget.setLayout(pca_action_layout)
 
@@ -43,7 +43,18 @@ class SPCAWidget(QWidget):
 
         self.SparsityLevelSlider = QSlider(Qt.Orientation.Horizontal)
         pca_action_layout.addWidget(self.SparsityLevelSlider)
+
+        self.clear_sparse_candidates_button = QPushButton('Clear sparse candidates')
+        pca_action_layout.addWidget(self.clear_sparse_candidates_button)
+
+        self.clear_sparse_candidates_button.clicked.connect(self.on_clear_sparse_candidates)
         
+        self.pin_candidate_checkbox = QCheckBox('Pin candidate')
+
+        pca_action_layout.addWidget(self.pin_candidate_checkbox)
+
+        self.pin_candidate_checkbox.stateChanged.connect(self.box_changed)
+
         inputs_layout.addWidget(self.pca_action_widget)
 
         inputs_layout.addStretch(1)
@@ -111,6 +122,21 @@ class SPCAWidget(QWidget):
     def on_compute_sparse_candidates(self):
         self.candidates = self.spca.computeCandidates()
 
+    def on_clear_sparse_candidates(self):
+        if self.spc_plot_data[0] is not None:
+            self.plot_widget.removeItem(self.spc_plot_data[0])
+
+        self.spc_plot_data[0] = None
+        self.candidates = None
+
+    def box_changed(self):
+        return
+        if self.pin_candidate_checkbox.isChecked():
+            self.spc_plot_data.append(None)
+        else:
+            removed_element = self.spc_plot_data.pop()
+            #self.state[i] = self.check_boxes[i].isChecked()
+                
     def update_plot(self, iCandidate):
         # if iCandidate > 1:
         #     pass
