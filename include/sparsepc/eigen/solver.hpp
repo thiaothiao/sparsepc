@@ -219,6 +219,15 @@ namespace sparsepc
             }
         }
 
+        // preferring non negative max values. <<rectify>> u s signs
+        Index idx = static_cast<Index>(-1);
+        u.cwiseAbs().maxCoeff(&idx);
+
+        if(u[idx] < static_cast<Scalar>(0))
+        {
+            u *=  static_cast<Scalar>(-1);
+        }
+
         return eigenElement;
     } 
 
@@ -262,6 +271,16 @@ namespace sparsepc
         Eigen::SelfAdjointEigenSolver<Matrix<Scalar>> selfAdjointEigenSolver(sigma);
         eigenElement.value = selfAdjointEigenSolver.eigenvalues()[n - 1];
         eigenElement.vector = selfAdjointEigenSolver.eigenvectors().col(n - 1);// Why not use move!!!
+
+        // preferring non negative max values. <<rectify>> u s signs
+        auto& u = eigenElement.vector;
+        Index idx = static_cast<Index>(-1);
+        u.cwiseAbs().maxCoeff(&idx);
+
+        if(u[idx] < static_cast<Scalar>(0))
+        {
+            u *=  static_cast<Scalar>(-1);
+        }
 
         return eigenElement;
     }
