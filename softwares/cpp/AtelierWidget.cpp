@@ -23,9 +23,8 @@ void AtelierWidget::drawPCs()
 {
     constexpr std::string_view version = SPARSEPC_MACRO_STRINGIFY(SPARSEPC_VERSION);
 
-    using Scalar = double;
-    using Matrix = sparsepc::Matrix<Scalar>;
-    using Vector = sparsepc::Vector<Scalar>;
+    using Matrix = sparsepc::Matrix<double>;
+    using Vector = sparsepc::Vector<double>;
     using Index = sparsepc::Index;
 
     const auto n = m_Sigma.cols();
@@ -35,13 +34,13 @@ void AtelierWidget::drawPCs()
     const Index k2 = 13;
 
     //std::cout << "\nStarting backward run.\n";
-    using BackwardGspca = sparsepc::linearmodel::BackwardGspca<Scalar>;
+    using BackwardGspca = sparsepc::linearmodel::BackwardGspca<double>;
 
     const BackwardGspca::Param param{ {k0, k1, k2} };
 
     const auto sparseEigenElements = BackwardGspca{ param }.run(m_Sigma);
 
-    //std::cout << sparsepc::toMatrix<Scalar>(sparseEigenElements) << "\n";
+    //std::cout << sparsepc::toMatrix<double>(sparseEigenElements) << "\n";
 
     JKQTPDatastore* ds = m_Plotter->getDatastore();
 
@@ -52,7 +51,6 @@ void AtelierWidget::drawPCs()
     //'blue', 'orange', 'limegreen'
 
     m_PCGraphs.reserve(n);
-    m_SPCGraphs.reserve(n);
     for (int j=0; j<sparseEigenElements.size(); ++j)
     {
         const auto& element = sparseEigenElements[j];
@@ -62,7 +60,7 @@ void AtelierWidget::drawPCs()
         QString curveName = QString("PC") + formattedPCNumberStr;
         size_t column = ds->addColumn(n, curveName);
 
-        ds->setAll(column, static_cast<Scalar>(0));
+        ds->setAll(column, static_cast<double>(0));
 
         for (int i=0; i<n; ++i)
         {
@@ -95,8 +93,8 @@ void AtelierWidget::drawPCs()
     //m_Plotter->getYAxis()->setAxisLabel("magnitudes");
 
     // 4. set the maximum size of the plot to 0..100% and 0..256
-    m_Plotter->setAbsoluteX(static_cast<Scalar>(0), static_cast<Scalar>(n-1));
-    m_Plotter->setAbsoluteY(static_cast<Scalar>(-1), static_cast<Scalar>(1));
+    m_Plotter->setAbsoluteX(static_cast<double>(0), static_cast<double>(n-1));
+    m_Plotter->setAbsoluteY(static_cast<double>(-1), static_cast<double>(1));
 
     // ... and scale plot automatically
     m_Plotter->zoomToFit(true, false);
@@ -108,25 +106,30 @@ void AtelierWidget::drawPCs()
 
 void AtelierWidget::onAddNewSparseComponent()
 {
-    if(!m_Candidates.empty())
-    {// validate current delcted sparse component
-        m_Candidates.back()[m_ICandidates.back()].state = sparsepc::ComponentState::Validated;
-        m_ValidatedComponents.push_back(m_Candidates.back()[m_ICandidates.back()]);// TODO use std::move
+    if(!m_MyClasses.empty())
+    {// validate current selected sparse component
+        auto& candidates = m_MyClasses.back().candidates;
+        const auto iCandidate = m_MyClasses.back().iCandidate;
+        candidates[iCandidate].state = sparsepc::ComponentState::Validated;
+        m_ValidatedComponents.push_back(candidates[iCandidate]);// TODO use std::move
     }
 
-    using Scalar = double;
-    using BackwardGspca = sparsepc::linearmodel::BackwardGspca<Scalar>;
-    using Component = sparsepc::Component<Scalar>;
+    using BackwardGspca = sparsepc::linearmodel::BackwardGspca<double>;
+    using Component = sparsepc::Component<double>;
     using ComponentsContainer = std::vector<Component>;
 
     const BackwardGspca::Param param{ {1} };
 
-    m_ICandidates.push_back(-1);
+    m_MyClasses.push_back({});// Why not emplace_back
 
-    m_Candidates.push_back(BackwardGspca::computeNextComponentCandidates(
-        m_Sigma, param.modelParams[0], m_ValidatedComponents));
+    auto& myClass = m_MyClasses.back();
 
-    for(auto& candidate: m_Candidates.back())
+    myClass.iCandidate = -1;
+
+    myClass.candidates = BackwardGspca::computeNextComponentCandidates(
+        m_Sigma, param.modelParams[0], m_ValidatedComponents);
+
+    for(auto& candidate: myClass.candidates)
     {
         candidate.state = sparsepc::ComponentState::Unvalidated;
     }
@@ -135,40 +138,39 @@ void AtelierWidget::onAddNewSparseComponent()
 
     const int initialICandidate = n/2;
 
-    const auto& element = m_Candidates.back()[initialICandidate-1];
-
-    JKQTPDatastore* ds = m_Plotter->getDatastore();
-
-    m_SPCGraphs.push_back(new JKQTPXYLineGraph(m_Plotter));
-    auto& graph = m_SPCGraphs.back();
+    const auto& element = myClass.candidates[initialICandidate-1];
 
     QString formattedValueStr = QString::number(element.value, 'f', 2);
     QString formattedPCNumberStr = QString::number(m_ValidatedComponents.size());
     QString curveName = QString("SPC") + formattedPCNumberStr;
-    size_t column = ds->addColumn(n, curveName);
-    m_SPCColumns.push_back(column);
 
-    ds->setAll(column, static_cast<Scalar>(0));
+    JKQTPDatastore* ds = m_Plotter->getDatastore();
+
+    myClass.sPCColumn = ds->addColumn(n, curveName);
+
+    ds->setAll(myClass.sPCColumn, static_cast<double>(0));
 
     for (int i=0; i<n; ++i)
     {
-        ds->inc(column, i, element.vector[i]);
+        ds->inc(myClass.sPCColumn, i, element.vector[i]);
     }
 
-    graph->setTitle(curveName + ": " + formattedValueStr);
+    myClass.sPCGraph = new JKQTPXYLineGraph(m_Plotter);
 
-    QColor col = m_Colors[m_ValidatedComponents.size()];
-    graph->setColor(col);
-    //col.setAlphaF(0.125f);
-    //graph->setFillColor(col);
+    myClass.sPCGraph->setTitle(curveName + ": " + formattedValueStr);
 
-    graph->setLineStyle(Qt::DotLine); // Sets to dotted
-    graph->setLineWidth(2);
+    myClass.color = m_Colors[m_ValidatedComponents.size()];
+    myClass.sPCGraph->setColor(myClass.color);
+    //myClass.color.setAlphaF(0.125f);
+    //myClass.sPCGraph->setFillColor(myClass.color);
 
-    graph->setXColumn(m_ColumnX);
-    graph->setYColumn(column);
+    myClass.sPCGraph->setLineStyle(Qt::DotLine);
+    myClass.sPCGraph->setLineWidth(2);
 
-    m_Plotter->addGraph(graph);
+    myClass.sPCGraph->setXColumn(m_ColumnX);
+    myClass.sPCGraph->setYColumn(myClass.sPCColumn);
+
+    m_Plotter->addGraph(myClass.sPCGraph);
 
     if( m_SparsityLevelSlider->value() != initialICandidate+1 )
     {
@@ -182,26 +184,20 @@ void AtelierWidget::onAddNewSparseComponent()
 
 void AtelierWidget::onRemoveLastSparseComponentButton()
 {
-    if(m_Candidates.empty())
+    if(m_MyClasses.empty())
     {
         return;
     }
 
-    m_Plotter->deleteGraph(m_SPCGraphs.back(), true);
-    m_SPCGraphs.pop_back();
-
-    JKQTPDatastore* ds = m_Plotter->getDatastore();
-    ds->deleteColumn(m_SPCColumns.back(), true);
-
-    m_SPCColumns.pop_back();
+    m_Plotter->deleteGraph(m_MyClasses.back().sPCGraph, true);
+    m_Plotter->getDatastore()->deleteColumn(m_MyClasses.back().sPCColumn, true);
 
     m_ValidatedComponents.pop_back();
-    m_Candidates.pop_back();
-    m_ICandidates.pop_back();
+    m_MyClasses.pop_back();
 
-    if(!m_ICandidates.empty())
+    if(!m_MyClasses.empty())
     {
-        m_SparsityLevelSlider->setValue(m_ICandidates.back()+1);
+        m_SparsityLevelSlider->setValue(m_MyClasses.back().iCandidate + 1);
     }
 
     m_Plotter->redrawPlot();
@@ -209,60 +205,52 @@ void AtelierWidget::onRemoveLastSparseComponentButton()
 
 void AtelierWidget::updatePlot(int value)
 {
-    using Scalar = double;
-
-    if (m_Candidates.empty())
+    if (m_MyClasses.empty())
     {
         return;
     }
 
-    const auto n = m_Sigma.cols();
+    auto& myClass = m_MyClasses.back();
 
-    m_ICandidates.back() = value-1;
+    myClass.iCandidate = value-1;
 
-    const auto& element = m_Candidates.back()[m_ICandidates.back()];
+    const auto& candidate = myClass.candidates[myClass.iCandidate];
 
     JKQTPDatastore* ds = m_Plotter->getDatastore();
 
-    if(!m_SPCGraphs.empty())
-    {// just update plot data
-        size_t column = m_SPCColumns.back();
-        ds->setAll(column, static_cast<Scalar>(0));
+    ds->setAll(myClass.sPCColumn, static_cast<double>(0));
 
-        for (int i=0; i<n; ++i)
-        {
-            ds->inc(column, i, element.vector[i]);
-        }
-
-        auto& graph = m_SPCGraphs.back();
-
-        QString formattedValueStr = QString::number(element.value, 'f', 2);
-        QString formattedPCNumberStr = QString::number(m_ValidatedComponents.size());
-        QString curveName = QString("SPC") + formattedPCNumberStr;
-
-        graph->setTitle(curveName + ": " + formattedValueStr);
-
-        m_Plotter->redrawPlot();
+    const int n = candidate.vector.size();
+    for (int i=0; i<n; ++i)
+    {
+        ds->inc(myClass.sPCColumn, i, candidate.vector[i]);
     }
+
+    QString formattedValueStr = QString::number(candidate.value, 'f', 2);
+    QString formattedPCNumberStr = QString::number(m_ValidatedComponents.size());
+    QString curveName = QString("SPC") + formattedPCNumberStr;
+
+    myClass.sPCGraph->setTitle(curveName + ": " + formattedValueStr);
+
+    m_Plotter->redrawPlot();
 }
 
 AtelierWidget::AtelierWidget(QWidget* parent)
-    : QWidget(parent)
+    : QWidget(parent), m_Sigma{}, m_ValidatedComponents{},
+    m_MyClasses{}, m_PCGraphs{}, m_Plotter{nullptr},
+    m_SparsityLevelSlider{nullptr}, m_Colors{}
 {
-    using Scalar = double;
-    using Matrix = sparsepc::Matrix<Scalar>;
-    using Vector = sparsepc::Vector<Scalar>;
+    using Matrix = sparsepc::Matrix<double>;
+    using Vector = sparsepc::Vector<double>;
     using Index = sparsepc::Index;
 
-    m_Sigma = sparsepc::linearmodel::pitprops<Scalar>();
+    m_Sigma = sparsepc::linearmodel::pitprops<double>();
     const auto n = m_Sigma.cols();
 
     m_ValidatedComponents.reserve(n);
-    m_Candidates.reserve(n);
-    m_ICandidates.reserve(n);
+    m_MyClasses.reserve(n);
 
     auto* layout = new QVBoxLayout(this);
-    //setLayout(layout);
 
     // plot
     auto* plotGroupbox = new QGroupBox(this);
@@ -282,9 +270,7 @@ AtelierWidget::AtelierWidget(QWidget* parent)
     m_SparsityLevelSlider = new QSlider(Qt::Orientation::Horizontal, this);
     sliderGoupboxLayout->addWidget(m_SparsityLevelSlider);
 
-    const auto mini = 1;
-    const auto maxi = n;
-    m_SparsityLevelSlider->setRange(mini, maxi);
+    m_SparsityLevelSlider->setRange(1, n);
 
     // processings
     auto* processingsGoupbox = new QGroupBox(this);
@@ -312,5 +298,3 @@ AtelierWidget::AtelierWidget(QWidget* parent)
 
     drawPCs();
 }
-
-

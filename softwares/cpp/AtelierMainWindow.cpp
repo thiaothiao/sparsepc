@@ -9,5 +9,4 @@ AtelierMainWindow::AtelierMainWindow(QWidget *parent)
     this->setMinimumSize(640, 500);
     auto* main_widget = new AtelierWidget(this);
     this->setCentralWidget(main_widget);
-
 }

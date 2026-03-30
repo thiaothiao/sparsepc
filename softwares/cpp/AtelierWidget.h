@@ -14,6 +14,27 @@
 
 #include "sparsepc/core.hpp"
 
+struct MyClass final
+{
+    MyClass()
+        :iCandidate{-1}, sPCColumn{0}, candidates{},
+        sPCGraph{nullptr}, color{}
+    {
+    }
+
+    MyClass(const MyClass&) = default;
+    MyClass& operator=(const MyClass&) = default;
+
+    MyClass(MyClass&&) = default;
+    MyClass& operator=(MyClass&&) = default;
+
+    int iCandidate;
+    std::size_t sPCColumn;
+    std::vector<sparsepc::Component<double>> candidates;
+    JKQTPXYLineGraph* sPCGraph;
+    QColor color;
+};
+
 class AtelierWidget : public QWidget
 {
     Q_OBJECT
@@ -30,18 +51,15 @@ public slots:
 
 private:
     sparsepc::Matrix<double> m_Sigma;
-    size_t m_ColumnX = 0;
-    //int m_ICandidate = -1;
-    std::vector<int> m_ICandidates;
-    std::vector<size_t> m_SPCColumns;
-    std::vector<std::vector<sparsepc::Component<double>>> m_Candidates;
+    std::size_t m_ColumnX;
     std::vector<sparsepc::Component<double>> m_ValidatedComponents;
-    JKQTPlotter* m_Plotter=nullptr;
-    QSlider* m_SparsityLevelSlider=nullptr;
-    QVector<JKQTPXYLineGraph*> m_PCGraphs;//JKQTPFilledCurveXGraph
-    QVector<JKQTPXYLineGraph*> m_SPCGraphs;
+    std::vector<MyClass> m_MyClasses;
+    std::vector<JKQTPXYLineGraph*> m_PCGraphs;
+
+    JKQTPlotter* m_Plotter;
+    QSlider* m_SparsityLevelSlider;
+
     QVector<QColor> m_Colors;
-    QTimer m_DataTimer;
 };
 
 #endif //SPARSEPC_ATELIER_WIDGET_HPP
