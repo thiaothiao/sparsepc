@@ -170,7 +170,14 @@ void AtelierWidget::onAddNewSparseComponent()
 
     m_Plotter->addGraph(graph);
 
-    m_SparsityLevelSlider->setValue(initialICandidate+1);
+    if( m_SparsityLevelSlider->value() != initialICandidate+1 )
+    {
+        m_SparsityLevelSlider->setValue(initialICandidate+1);
+    }
+    else
+    {
+        updatePlot(initialICandidate+1);
+    }
 }
 
 void AtelierWidget::onRemoveLastSparseComponentButton()
