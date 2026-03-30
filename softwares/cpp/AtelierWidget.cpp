@@ -44,7 +44,7 @@ void AtelierWidget::drawStandardPCs()
     m_Colors.push_back(QColorConstants::Svg::limegreen);//QColor("green"));;
     //'blue', 'orange', 'limegreen'
 
-    QString colorString =
+    const QString colorString =
         QString("rgb(%1, %2, %3)").arg(m_Colors[0].red()).arg(m_Colors[0].green()).arg(m_Colors[0].blue());
 
     m_SparsityLevelSlider->setStyleSheet(
@@ -164,7 +164,7 @@ void AtelierWidget::onAddNewSparseComponent()
     //myClass.color.setAlphaF(0.125f);
     //myClass.sPCGraph->setFillColor(myClass.color);
 
-    QString colorString =
+    const QString colorString =
         QString("rgb(%1, %2, %3)").arg(myClass.color.red()).arg(myClass.color.green()).arg(myClass.color.blue());
 
     m_SparsityLevelSlider->setStyleSheet(
@@ -203,6 +203,14 @@ void AtelierWidget::onRemoveLastSparseComponentButton()
 
     if(!m_MyClasses.empty())
     {
+        const QString colorString =
+            QString("rgb(%1, %2, %3)").arg(m_MyClasses.back()
+            .color.red()).arg(m_MyClasses.back().color.green())
+            .arg(m_MyClasses.back().color.blue());
+
+        m_SparsityLevelSlider->setStyleSheet(
+            "QSlider::handle:horizontal { background: " + colorString + "; }");
+
         m_SparsityLevelSlider->setValue(m_MyClasses.back().iCandidate + 1);
     }
 
