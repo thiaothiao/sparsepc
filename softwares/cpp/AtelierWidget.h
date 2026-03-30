@@ -2,6 +2,7 @@
 #define SPARSEPC_ATELIER_WIDGET_HPP
 
 #include <vector>
+#include <functional>
 
 #include <QWidget>
 #include <QSlider>
@@ -53,7 +54,7 @@ public slots:
 private:
     sparsepc::Matrix<double> m_Sigma;
     std::size_t m_ColumnX;
-    std::vector<sparsepc::Component<double>> m_ValidatedComponents;
+    std::vector<std::reference_wrapper<sparsepc::Component<double>>> m_ValidatedComponents;
     std::vector<MyClass> m_MyClasses;
     std::vector<JKQTPXYLineGraph*> m_PCGraphs;
 
