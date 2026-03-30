@@ -39,10 +39,11 @@ void AtelierWidget::drawStandardPCs()
     JKQTPDatastore* ds = m_Plotter->getDatastore();
 
     m_Colors.reserve(sparseEigenElements.size());
-    m_Colors.push_back(QColorConstants::Svg::blue);//QColor("blue"));
-    m_Colors.push_back(QColorConstants::Svg::orange);//QColor("red"));
-    m_Colors.push_back(QColorConstants::Svg::limegreen);//QColor("green"));;
-    //'blue', 'orange', 'limegreen'
+    m_Colors.push_back(QColorConstants::Svg::blue);
+    m_Colors.push_back(QColorConstants::Svg::orange);
+    m_Colors.push_back(QColorConstants::Svg::limegreen);
+    m_Colors.push_back(QColorConstants::Svg::plum);
+    m_Colors.push_back(QColorConstants::Svg::cyan);
 
     const QString colorString =
         QString("rgb(%1, %2, %3)").arg(m_Colors[0].red()).arg(m_Colors[0].green()).arg(m_Colors[0].blue());
@@ -198,8 +199,15 @@ void AtelierWidget::onRemoveLastSparseComponentButton()
     m_Plotter->deleteGraph(m_MyClasses.back().sPCGraph, true);
     m_Plotter->getDatastore()->deleteColumn(m_MyClasses.back().sPCColumn, true);
 
-    m_ValidatedComponents.pop_back();
-    m_MyClasses.pop_back();
+    if(!m_ValidatedComponents.empty())
+    {
+        m_ValidatedComponents.pop_back();
+    }
+
+    if(!m_MyClasses.empty())
+    {
+        m_MyClasses.pop_back();
+    }
 
     if(!m_MyClasses.empty())
     {
