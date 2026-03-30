@@ -25,19 +25,20 @@ void drawPCs();
 
 public slots:
     void onAddNewSparseComponent();
-    void updatePlot(int iCandidate);
-    void onClearSparseCandidates();
+    void updatePlot(int value);
+    void onRemoveLastSparseComponentButton();
 
 private:
     sparsepc::Matrix<double> m_Sigma;
     size_t m_ColumnX = 0;
-    int m_ICandidate = -1;
+    //int m_ICandidate = -1;
+    std::vector<int> m_ICandidates;
     std::vector<size_t> m_SPCColumns;
-    std::vector<sparsepc::Component<double>> m_Candidates;
+    std::vector<std::vector<sparsepc::Component<double>>> m_Candidates;
     std::vector<sparsepc::Component<double>> m_ValidatedComponents;
     JKQTPlotter* m_Plotter=nullptr;
     QSlider* m_SparsityLevelSlider=nullptr;
-    QVector<JKQTPXYLineGraph*> m_PCGraphs;
+    QVector<JKQTPXYLineGraph*> m_PCGraphs;//JKQTPFilledCurveXGraph
     QVector<JKQTPXYLineGraph*> m_SPCGraphs;
     QVector<QColor> m_Colors;
     QTimer m_DataTimer;

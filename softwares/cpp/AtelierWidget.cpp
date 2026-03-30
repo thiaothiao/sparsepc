@@ -58,7 +58,7 @@ void AtelierWidget::drawPCs()
         const auto& element = sparseEigenElements[j];
 
         QString formattedValueStr = QString::number(element.value, 'f', 2);
-        QString formattedPCNumberStr = QString::number(j+1);
+        QString formattedPCNumberStr = QString::number(j);
         QString curveName = QString("PC") + formattedPCNumberStr;
         size_t column = ds->addColumn(n, curveName);
 
@@ -110,7 +110,8 @@ void AtelierWidget::onAddNewSparseComponent()
 {
     if(!m_Candidates.empty())
     {// validate current delcted sparse component
-        m_ValidatedComponents.push_back(m_Candidates[m_ICandidate]);// TODO use std::move
+        m_Candidates.back()[m_ICandidates.back()].state = sparsepc::ComponentState::Validated;
+        m_ValidatedComponents.push_back(m_Candidates.back()[m_ICandidates.back()]);// TODO use std::move
     }
 
     using Scalar = double;
@@ -120,10 +121,12 @@ void AtelierWidget::onAddNewSparseComponent()
 
     const BackwardGspca::Param param{ {1} };
 
-    m_Candidates = BackwardGspca::computeNextComponentCandidates(
-            m_Sigma, param.modelParams[0], m_ValidatedComponents);
+    m_ICandidates.push_back(-1);
 
-    for(auto& candidate: m_Candidates)
+    m_Candidates.push_back(BackwardGspca::computeNextComponentCandidates(
+        m_Sigma, param.modelParams[0], m_ValidatedComponents));
+
+    for(auto& candidate: m_Candidates.back())
     {
         candidate.state = sparsepc::ComponentState::Unvalidated;
     }
@@ -132,7 +135,7 @@ void AtelierWidget::onAddNewSparseComponent()
 
     const int initialICandidate = n/2;
 
-    const auto& element = m_Candidates[initialICandidate];
+    const auto& element = m_Candidates.back()[initialICandidate-1];
 
     JKQTPDatastore* ds = m_Plotter->getDatastore();
 
@@ -140,7 +143,7 @@ void AtelierWidget::onAddNewSparseComponent()
     auto& graph = m_SPCGraphs.back();
 
     QString formattedValueStr = QString::number(element.value, 'f', 2);
-    QString formattedPCNumberStr = QString::number(m_ValidatedComponents.size()+1);
+    QString formattedPCNumberStr = QString::number(m_ValidatedComponents.size());
     QString curveName = QString("SPC") + formattedPCNumberStr;
     size_t column = ds->addColumn(n, curveName);
     m_SPCColumns.push_back(column);
@@ -167,32 +170,37 @@ void AtelierWidget::onAddNewSparseComponent()
 
     m_Plotter->addGraph(graph);
 
-    //m_Plotter->redrawPlot();
-    //updatePlot(n-1);
-    m_SparsityLevelSlider->setValue(initialICandidate);
+    m_SparsityLevelSlider->setValue(initialICandidate+1);
 }
 
-void AtelierWidget::onClearSparseCandidates()
+void AtelierWidget::onRemoveLastSparseComponentButton()
 {
     if(m_Candidates.empty())
     {
         return;
     }
 
-    m_Plotter->deleteGraph(m_SPCGraphs.back());
+    m_Plotter->deleteGraph(m_SPCGraphs.back(), true);
     m_SPCGraphs.pop_back();
 
     JKQTPDatastore* ds = m_Plotter->getDatastore();
-    ds->deleteColumn(m_SPCColumns.back(), false);
+    ds->deleteColumn(m_SPCColumns.back(), true);
 
     m_SPCColumns.pop_back();
 
-    m_Candidates.clear();
+    m_ValidatedComponents.pop_back();
+    m_Candidates.pop_back();
+    m_ICandidates.pop_back();
+
+    if(!m_ICandidates.empty())
+    {
+        m_SparsityLevelSlider->setValue(m_ICandidates.back()+1);
+    }
 
     m_Plotter->redrawPlot();
 }
 
-void AtelierWidget::updatePlot(int iCandidate)
+void AtelierWidget::updatePlot(int value)
 {
     using Scalar = double;
 
@@ -203,9 +211,9 @@ void AtelierWidget::updatePlot(int iCandidate)
 
     const auto n = m_Sigma.cols();
 
-    m_ICandidate = iCandidate;
+    m_ICandidates.back() = value-1;
 
-    const auto& element = m_Candidates[m_ICandidate];
+    const auto& element = m_Candidates.back()[m_ICandidates.back()];
 
     JKQTPDatastore* ds = m_Plotter->getDatastore();
 
@@ -222,7 +230,7 @@ void AtelierWidget::updatePlot(int iCandidate)
         auto& graph = m_SPCGraphs.back();
 
         QString formattedValueStr = QString::number(element.value, 'f', 2);
-        QString formattedPCNumberStr = QString::number(m_ValidatedComponents.size()+1);
+        QString formattedPCNumberStr = QString::number(m_ValidatedComponents.size());
         QString curveName = QString("SPC") + formattedPCNumberStr;
 
         graph->setTitle(curveName + ": " + formattedValueStr);
@@ -243,44 +251,33 @@ AtelierWidget::AtelierWidget(QWidget* parent)
     const auto n = m_Sigma.cols();
 
     m_ValidatedComponents.reserve(n);
+    m_Candidates.reserve(n);
+    m_ICandidates.reserve(n);
 
     auto* layout = new QVBoxLayout(this);
     //setLayout(layout);
 
-    /************************/
+    // plot
     auto* plotGroupbox = new QGroupBox(this);
     layout->addWidget(plotGroupbox);
-
     auto* plotGroupboxLayout = new QHBoxLayout(plotGroupbox);
-    /**************************/
-
     m_Plotter = new JKQTPlotter(this);
     m_Plotter->setWindowTitle("Plotter!!!!");
     m_Plotter->setPlotUpdateEnabled(true);
-
     JKQTPDatastore* datastore = m_Plotter->getDatastore();
-
     m_ColumnX = datastore->addLinearColumn(n, 0, n-1, "xi");
-
     plotGroupboxLayout->addWidget(m_Plotter);
 
     // slider
     auto* sliderGoupbox = new QGroupBox(this);
     layout->addWidget(sliderGoupbox);
-
     auto* sliderGoupboxLayout = new QHBoxLayout(sliderGoupbox);
-
     m_SparsityLevelSlider = new QSlider(Qt::Orientation::Horizontal, this);
     sliderGoupboxLayout->addWidget(m_SparsityLevelSlider);
 
     const auto mini = 1;
-    const auto maxi = n-1;
+    const auto maxi = n;
     m_SparsityLevelSlider->setRange(mini, maxi);
-
-    //sliderGoupbox->setLayout(sliderGoupboxLayout);
-
-    QObject::connect(m_SparsityLevelSlider, &QSlider::valueChanged,
-                     this, &AtelierWidget::updatePlot);
 
     // processings
     auto* processingsGoupbox = new QGroupBox(this);
@@ -290,23 +287,22 @@ AtelierWidget::AtelierWidget(QWidget* parent)
 
     auto* addNewSparseComponentButton
         = new QPushButton("Add new\n sparse component", this);
-
     processingsGoupboxLayout->addWidget(addNewSparseComponentButton);
 
+    auto* removeLastSparseComponentButton =
+        new QPushButton("Remove last\n sparse component", this);
+    processingsGoupboxLayout->addWidget(removeLastSparseComponentButton);
+
+    // connect
+    QObject::connect(m_SparsityLevelSlider, &QSlider::valueChanged,
+                     this, &AtelierWidget::updatePlot);
     QObject::connect(addNewSparseComponentButton, &QPushButton::clicked,
                      this, &AtelierWidget::onAddNewSparseComponent);
-
-    auto* clearSparseCandidatesButton = new QPushButton("Remove last\n sparse component", this);
-    processingsGoupboxLayout->addWidget(clearSparseCandidatesButton);
+    QObject::connect(removeLastSparseComponentButton, &QPushButton::clicked,
+                     this, &AtelierWidget::onRemoveLastSparseComponentButton);
 
     processingsGoupboxLayout->addStretch(1);
 
-    //processingsGoupbox->setLayout(processingsGoupboxLayout);
-
-    //QObject::connect(clearSparseCandidatesButton, &QPushButton::clicked,
-    //                 this, &AtelierWidget::onClearSparseCandidates);
-
-    //drawPCs<JKQTPFilledCurveXGraph>(plotX);
     drawPCs();
 }
 
