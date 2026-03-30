@@ -93,16 +93,6 @@ void AtelierWidget::drawPCs()
     // 5. set axis labels
     //m_Plotter->getXAxis()->setAxisLabel("features");
     //m_Plotter->getYAxis()->setAxisLabel("magnitudes");
-    //JKQTPCoordinateAxis *xAxis = m_Plotter->getXAxis();
-    //xAxis->setTickMode()
-    //xAxis->clearAxisTickLabels();
-
-    // Add custom labels at specific data points
-    //for(int j=0; j<n; ++j)
-    //{
-    //    xAxis->addAxisTickLabel(static_cast<Scalar>(j), QString::number(j));
-    //    //xAxis-
-    //}
 
     // 4. set the maximum size of the plot to 0..100% and 0..256
     m_Plotter->setAbsoluteX(static_cast<Scalar>(0), static_cast<Scalar>(n-1));
@@ -116,11 +106,11 @@ void AtelierWidget::drawPCs()
     //plot.show();
 }
 
-void AtelierWidget::onComputeSparseCandidates()
+void AtelierWidget::onAddNewSparseComponent()
 {
     if(!m_Candidates.empty())
-    {
-        return;
+    {// validate current delcted sparse component
+        m_ValidatedComponents.push_back(m_Candidates[m_ICandidate]);// TODO use std::move
     }
 
     using Scalar = double;
@@ -137,6 +127,49 @@ void AtelierWidget::onComputeSparseCandidates()
     {
         candidate.state = sparsepc::ComponentState::Unvalidated;
     }
+
+    const auto n = m_Sigma.cols();
+
+    const int initialICandidate = n/2;
+
+    const auto& element = m_Candidates[initialICandidate];
+
+    JKQTPDatastore* ds = m_Plotter->getDatastore();
+
+    m_SPCGraphs.push_back(new JKQTPXYLineGraph(m_Plotter));
+    auto& graph = m_SPCGraphs.back();
+
+    QString formattedValueStr = QString::number(element.value, 'f', 2);
+    QString formattedPCNumberStr = QString::number(m_ValidatedComponents.size()+1);
+    QString curveName = QString("SPC") + formattedPCNumberStr;
+    size_t column = ds->addColumn(n, curveName);
+    m_SPCColumns.push_back(column);
+
+    ds->setAll(column, static_cast<Scalar>(0));
+
+    for (int i=0; i<n; ++i)
+    {
+        ds->inc(column, i, element.vector[i]);
+    }
+
+    graph->setTitle(curveName + ": " + formattedValueStr);
+
+    QColor col = m_Colors[m_ValidatedComponents.size()];
+    graph->setColor(col);
+    //col.setAlphaF(0.125f);
+    //graph->setFillColor(col);
+
+    graph->setLineStyle(Qt::DotLine); // Sets to dotted
+    graph->setLineWidth(2);
+
+    graph->setXColumn(m_ColumnX);
+    graph->setYColumn(column);
+
+    m_Plotter->addGraph(graph);
+
+    //m_Plotter->redrawPlot();
+    //updatePlot(n-1);
+    m_SparsityLevelSlider->setValue(initialICandidate);
 }
 
 void AtelierWidget::onClearSparseCandidates()
@@ -170,7 +203,9 @@ void AtelierWidget::updatePlot(int iCandidate)
 
     const auto n = m_Sigma.cols();
 
-    const auto& element = m_Candidates[iCandidate];
+    m_ICandidate = iCandidate;
+
+    const auto& element = m_Candidates[m_ICandidate];
 
     JKQTPDatastore* ds = m_Plotter->getDatastore();
 
@@ -187,47 +222,13 @@ void AtelierWidget::updatePlot(int iCandidate)
         auto& graph = m_SPCGraphs.back();
 
         QString formattedValueStr = QString::number(element.value, 'f', 2);
-        QString formattedPCNumberStr = QString::number(1);
+        QString formattedPCNumberStr = QString::number(m_ValidatedComponents.size()+1);
         QString curveName = QString("SPC") + formattedPCNumberStr;
 
         graph->setTitle(curveName + ": " + formattedValueStr);
 
         m_Plotter->redrawPlot();
-        return;
     }
-
-    m_SPCGraphs.push_back(new JKQTPXYLineGraph(m_Plotter));
-    auto& graph = m_SPCGraphs.back();
-
-    QString formattedValueStr = QString::number(element.value, 'f', 2);
-    QString formattedPCNumberStr = QString::number(1);
-    QString curveName = QString("SPC") + formattedPCNumberStr;
-    size_t column = ds->addColumn(n, curveName);
-    m_SPCColumns.push_back(column);
-
-    ds->setAll(column, static_cast<Scalar>(0));
-
-    for (int i=0; i<n; ++i)
-    {
-        ds->inc(column, i, element.vector[i]);
-    }
-
-    graph->setTitle(curveName + ": " + formattedValueStr);
-
-    QColor col = m_Colors[0];
-    graph->setColor(col);
-    //col.setAlphaF(0.125f);
-    //graph->setFillColor(col);
-
-    graph->setLineStyle(Qt::DotLine); // Sets to dotted
-    graph->setLineWidth(2);
-
-    graph->setXColumn(m_ColumnX);
-    graph->setYColumn(column);
-
-    m_Plotter->addGraph(graph);
-
-    m_Plotter->redrawPlot();
 }
 
 AtelierWidget::AtelierWidget(QWidget* parent)
@@ -269,16 +270,16 @@ AtelierWidget::AtelierWidget(QWidget* parent)
 
     auto* sliderGoupboxLayout = new QHBoxLayout(sliderGoupbox);
 
-    auto* sparsityLevelSlider = new QSlider(Qt::Orientation::Horizontal, this);
-    sliderGoupboxLayout->addWidget(sparsityLevelSlider);
+    m_SparsityLevelSlider = new QSlider(Qt::Orientation::Horizontal, this);
+    sliderGoupboxLayout->addWidget(m_SparsityLevelSlider);
 
     const auto mini = 1;
     const auto maxi = n-1;
-    sparsityLevelSlider->setRange(mini, maxi);
+    m_SparsityLevelSlider->setRange(mini, maxi);
 
     //sliderGoupbox->setLayout(sliderGoupboxLayout);
 
-    QObject::connect(sparsityLevelSlider, &QSlider::valueChanged,
+    QObject::connect(m_SparsityLevelSlider, &QSlider::valueChanged,
                      this, &AtelierWidget::updatePlot);
 
     // processings
@@ -287,13 +288,13 @@ AtelierWidget::AtelierWidget(QWidget* parent)
 
     auto* processingsGoupboxLayout = new QHBoxLayout(processingsGoupbox);
 
-    auto* computeSparseCandidatesButton
+    auto* addNewSparseComponentButton
         = new QPushButton("Add new\n sparse component", this);
 
-    processingsGoupboxLayout->addWidget(computeSparseCandidatesButton);
+    processingsGoupboxLayout->addWidget(addNewSparseComponentButton);
 
-    QObject::connect(computeSparseCandidatesButton, &QPushButton::clicked,
-                     this, &AtelierWidget::onComputeSparseCandidates);
+    QObject::connect(addNewSparseComponentButton, &QPushButton::clicked,
+                     this, &AtelierWidget::onAddNewSparseComponent);
 
     auto* clearSparseCandidatesButton = new QPushButton("Remove last\n sparse component", this);
     processingsGoupboxLayout->addWidget(clearSparseCandidatesButton);
@@ -302,8 +303,8 @@ AtelierWidget::AtelierWidget(QWidget* parent)
 
     //processingsGoupbox->setLayout(processingsGoupboxLayout);
 
-    QObject::connect(clearSparseCandidatesButton, &QPushButton::clicked,
-                     this, &AtelierWidget::onClearSparseCandidates);
+    //QObject::connect(clearSparseCandidatesButton, &QPushButton::clicked,
+    //                 this, &AtelierWidget::onClearSparseCandidates);
 
     //drawPCs<JKQTPFilledCurveXGraph>(plotX);
     drawPCs();
