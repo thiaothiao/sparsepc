@@ -25,12 +25,14 @@ void drawPCs();
 public slots:
     void onComputeSparseCandidates();
     void updatePlot(int iCandidate);
+    void onClearSparseCandidates();
 
 private:
     sparsepc::Matrix<double> m_Sigma;
     size_t m_ColumnX = 0;
     std::vector<size_t> m_SPCColumns;
     std::vector<sparsepc::Component<double>> m_Candidates;
+    std::vector<sparsepc::Component<double>> m_ValidatedComponents;
     JKQTPlotter* m_Plotter=nullptr;
     QVector<JKQTPXYLineGraph*> m_PCGraphs;
     QVector<JKQTPXYLineGraph*> m_SPCGraphs;

@@ -6,6 +6,7 @@
 #include <QGroupBox>
 #include <QPushButton>
 #include <QSlider>
+#include <QFrame>
 
 #include <QColor>//Constants>
 
@@ -68,6 +69,8 @@ void AtelierWidget::drawPCs()
             ds->inc(column, i, element.vector[i]);
         }
 
+        //JKQTPXYScatterGraph
+        //JKQTPXYLineGraph
         m_PCGraphs.push_back(new JKQTPXYLineGraph(m_Plotter));
         auto& graph = m_PCGraphs.back();
 
@@ -88,8 +91,18 @@ void AtelierWidget::drawPCs()
     }
 
     // 5. set axis labels
-    m_Plotter->getXAxis()->setAxisLabel("features");
-    m_Plotter->getYAxis()->setAxisLabel("magnitudes");
+    //m_Plotter->getXAxis()->setAxisLabel("features");
+    //m_Plotter->getYAxis()->setAxisLabel("magnitudes");
+    //JKQTPCoordinateAxis *xAxis = m_Plotter->getXAxis();
+    //xAxis->setTickMode()
+    //xAxis->clearAxisTickLabels();
+
+    // Add custom labels at specific data points
+    //for(int j=0; j<n; ++j)
+    //{
+    //    xAxis->addAxisTickLabel(static_cast<Scalar>(j), QString::number(j));
+    //    //xAxis-
+    //}
 
     // 4. set the maximum size of the plot to 0..100% and 0..256
     m_Plotter->setAbsoluteX(static_cast<Scalar>(0), static_cast<Scalar>(n-1));
@@ -105,6 +118,11 @@ void AtelierWidget::drawPCs()
 
 void AtelierWidget::onComputeSparseCandidates()
 {
+    if(!m_Candidates.empty())
+    {
+        return;
+    }
+
     using Scalar = double;
     using BackwardGspca = sparsepc::linearmodel::BackwardGspca<Scalar>;
     using Component = sparsepc::Component<Scalar>;
@@ -112,13 +130,33 @@ void AtelierWidget::onComputeSparseCandidates()
 
     const BackwardGspca::Param param{ {1} };
 
-    ComponentsContainer validatedComponents;
-    validatedComponents.reserve(param.nbComponents);
-
     m_Candidates = BackwardGspca::computeNextComponentCandidates(
-            m_Sigma, param.modelParams[0], validatedComponents);
-    //std::cout << "AAAAA AAA" << "\n";
-    //std::cout << sparsepc::toMatrix<Scalar>(m_Candidates) << "\n";
+            m_Sigma, param.modelParams[0], m_ValidatedComponents);
+
+    for(auto& candidate: m_Candidates)
+    {
+        candidate.state = sparsepc::ComponentState::Unvalidated;
+    }
+}
+
+void AtelierWidget::onClearSparseCandidates()
+{
+    if(m_Candidates.empty())
+    {
+        return;
+    }
+
+    m_Plotter->deleteGraph(m_SPCGraphs.back());
+    m_SPCGraphs.pop_back();
+
+    JKQTPDatastore* ds = m_Plotter->getDatastore();
+    ds->deleteColumn(m_SPCColumns.back(), false);
+
+    m_SPCColumns.pop_back();
+
+    m_Candidates.clear();
+
+    m_Plotter->redrawPlot();
 }
 
 void AtelierWidget::updatePlot(int iCandidate)
@@ -203,7 +241,19 @@ AtelierWidget::AtelierWidget(QWidget* parent)
     m_Sigma = sparsepc::linearmodel::pitprops<Scalar>();
     const auto n = m_Sigma.cols();
 
-    m_Plotter = new JKQTPlotter();
+    m_ValidatedComponents.reserve(n);
+
+    auto* layout = new QVBoxLayout(this);
+    //setLayout(layout);
+
+    /************************/
+    auto* plotGroupbox = new QGroupBox(this);
+    layout->addWidget(plotGroupbox);
+
+    auto* plotGroupboxLayout = new QHBoxLayout(plotGroupbox);
+    /**************************/
+
+    m_Plotter = new JKQTPlotter(this);
     m_Plotter->setWindowTitle("Plotter!!!!");
     m_Plotter->setPlotUpdateEnabled(true);
 
@@ -211,39 +261,49 @@ AtelierWidget::AtelierWidget(QWidget* parent)
 
     m_ColumnX = datastore->addLinearColumn(n, 0, n-1, "xi");
 
-    auto* layout = new QHBoxLayout(this);
-    setLayout(layout);
+    plotGroupboxLayout->addWidget(m_Plotter);
 
-    auto* processingToolsWidget = new QWidget(this);
-    layout->addWidget(processingToolsWidget);
+    // slider
+    auto* sliderGoupbox = new QGroupBox(this);
+    layout->addWidget(sliderGoupbox);
 
-    auto* processingToolsWidgetLayout = new QVBoxLayout();
-    processingToolsWidget->setLayout(processingToolsWidgetLayout);
+    auto* sliderGoupboxLayout = new QHBoxLayout(sliderGoupbox);
 
-    auto* processingsGoupbox = new QGroupBox("Process sparse pcs", this);
-    processingToolsWidgetLayout->addWidget(processingsGoupbox);
+    auto* sparsityLevelSlider = new QSlider(Qt::Orientation::Horizontal, this);
+    sliderGoupboxLayout->addWidget(sparsityLevelSlider);
 
-    auto* processingsGoupboxLayout = new QVBoxLayout();
-    processingsGoupbox->setLayout(processingsGoupboxLayout);
+    const auto mini = 1;
+    const auto maxi = n-1;
+    sparsityLevelSlider->setRange(mini, maxi);
+
+    //sliderGoupbox->setLayout(sliderGoupboxLayout);
+
+    QObject::connect(sparsityLevelSlider, &QSlider::valueChanged,
+                     this, &AtelierWidget::updatePlot);
+
+    // processings
+    auto* processingsGoupbox = new QGroupBox(this);
+    layout->addWidget(processingsGoupbox);
+
+    auto* processingsGoupboxLayout = new QHBoxLayout(processingsGoupbox);
 
     auto* computeSparseCandidatesButton
-        = new QPushButton("Compute sparse candidates", this);
+        = new QPushButton("Add new\n sparse component", this);
 
     processingsGoupboxLayout->addWidget(computeSparseCandidatesButton);
 
     QObject::connect(computeSparseCandidatesButton, &QPushButton::clicked,
                      this, &AtelierWidget::onComputeSparseCandidates);
 
-    auto* sparsityLevelSlider = new QSlider(Qt::Orientation::Horizontal, this);
-    processingsGoupboxLayout->addWidget(sparsityLevelSlider);
-    const auto mini = 1;
-    const auto maxi = n-1;
-    sparsityLevelSlider->setRange(mini, maxi);
+    auto* clearSparseCandidatesButton = new QPushButton("Remove last\n sparse component", this);
+    processingsGoupboxLayout->addWidget(clearSparseCandidatesButton);
 
-    QObject::connect(sparsityLevelSlider, &QSlider::valueChanged,
-                     this, &AtelierWidget::updatePlot);
+    processingsGoupboxLayout->addStretch(1);
 
-    layout->addWidget(m_Plotter);
+    //processingsGoupbox->setLayout(processingsGoupboxLayout);
+
+    QObject::connect(clearSparseCandidatesButton, &QPushButton::clicked,
+                     this, &AtelierWidget::onClearSparseCandidates);
 
     //drawPCs<JKQTPFilledCurveXGraph>(plotX);
     drawPCs();
