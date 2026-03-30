@@ -1,10 +1,12 @@
-#include "AtelierMainWindow.h"
+#include "sparsepc/version.hpp"
 
+#include "AtelierMainWindow.h"
 #include "AtelierWidget.h"
 
 AtelierMainWindow::AtelierMainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
+    constexpr std::string_view version = SPARSEPC_MACRO_STRINGIFY(SPARSEPC_VERSION);
     this->setWindowTitle("SPARSELY- SPARse principal component SElector LIghtweight software");
     this->setMinimumSize(640, 500);
     auto* main_widget = new AtelierWidget(this);

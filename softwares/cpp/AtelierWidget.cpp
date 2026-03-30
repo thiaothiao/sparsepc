@@ -6,23 +6,17 @@
 #include <QGroupBox>
 #include <QPushButton>
 #include <QSlider>
-#include <QFrame>
+#include <QLabel>
 
-#include <QColor>//Constants>
-
+#include <QColor>
 #include <QString>
 
-#include <QApplication>
-
-#include "sparsepc/version.hpp"
 #include "sparsepc/core.hpp"
 #include "simu.hpp"
 #include <Eigen/Dense>
 
-void AtelierWidget::drawPCs()
+void AtelierWidget::drawStandardPCs()
 {
-    constexpr std::string_view version = SPARSEPC_MACRO_STRINGIFY(SPARSEPC_VERSION);
-
     using Matrix = sparsepc::Matrix<double>;
     using Vector = sparsepc::Vector<double>;
     using Index = sparsepc::Index;
@@ -267,10 +261,13 @@ AtelierWidget::AtelierWidget(QWidget* parent)
     auto* sliderGoupbox = new QGroupBox(this);
     layout->addWidget(sliderGoupbox);
     auto* sliderGoupboxLayout = new QHBoxLayout(sliderGoupbox);
+    auto* sliderlabel = new QLabel("1", this);
     m_SparsityLevelSlider = new QSlider(Qt::Orientation::Horizontal, this);
+    sliderGoupboxLayout->addWidget(sliderlabel);
     sliderGoupboxLayout->addWidget(m_SparsityLevelSlider);
 
     m_SparsityLevelSlider->setRange(1, n);
+    m_SparsityLevelSlider->setSingleStep(1);
 
     // processings
     auto* processingsGoupbox = new QGroupBox(this);
@@ -288,13 +285,16 @@ AtelierWidget::AtelierWidget(QWidget* parent)
 
     // connect
     QObject::connect(m_SparsityLevelSlider, &QSlider::valueChanged,
-                     this, &AtelierWidget::updatePlot);
+        this, [sliderlabel](int value){sliderlabel->setText(QString::number(value));});
+
+    QObject::connect(m_SparsityLevelSlider, &QSlider::valueChanged,
+        this, &AtelierWidget::updatePlot);
     QObject::connect(addNewSparseComponentButton, &QPushButton::clicked,
-                     this, &AtelierWidget::onAddNewSparseComponent);
+        this, &AtelierWidget::onAddNewSparseComponent);
     QObject::connect(removeLastSparseComponentButton, &QPushButton::clicked,
-                     this, &AtelierWidget::onRemoveLastSparseComponentButton);
+        this, &AtelierWidget::onRemoveLastSparseComponentButton);
 
     processingsGoupboxLayout->addStretch(1);
 
-    drawPCs();
+    drawStandardPCs();
 }

@@ -4,9 +4,10 @@
 #include <vector>
 
 #include <QWidget>
+#include <QSlider>
 #include <QTimer>
 #include <QColor>
-#include <QSlider>
+#include <QVector>
 
 #include "jkqtplotter/jkqtplotter.h"
 #include "jkqtplotter/graphs/jkqtpfilledcurve.h"
@@ -42,7 +43,7 @@ class AtelierWidget : public QWidget
 public:
     AtelierWidget(QWidget* parent = nullptr);
 
-void drawPCs();
+void drawStandardPCs();
 
 public slots:
     void onAddNewSparseComponent();
