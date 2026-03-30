@@ -44,6 +44,12 @@ void AtelierWidget::drawStandardPCs()
     m_Colors.push_back(QColorConstants::Svg::limegreen);//QColor("green"));;
     //'blue', 'orange', 'limegreen'
 
+    QString colorString =
+        QString("rgb(%1, %2, %3)").arg(m_Colors[0].red()).arg(m_Colors[0].green()).arg(m_Colors[0].blue());
+
+    m_SparsityLevelSlider->setStyleSheet(
+        "QSlider::handle:horizontal { background: " + colorString + "; }");
+
     m_PCGraphs.reserve(n);
     for (int j=0; j<sparseEigenElements.size(); ++j)
     {
@@ -73,8 +79,8 @@ void AtelierWidget::drawStandardPCs()
         //col.setAlphaF(0.125f);
         //graph->setFillColor(col);
 
-        //graph->setLineStyle(Qt::DotLine); // Sets to dotted
-        graph->setLineWidth(2);
+        graph->setLineStyle(Qt::DotLine);
+        graph->setLineWidth(1);
 
         graph->setXColumn(m_ColumnX);
         graph->setYColumn(column);
@@ -158,7 +164,13 @@ void AtelierWidget::onAddNewSparseComponent()
     //myClass.color.setAlphaF(0.125f);
     //myClass.sPCGraph->setFillColor(myClass.color);
 
-    myClass.sPCGraph->setLineStyle(Qt::DotLine);
+    QString colorString =
+        QString("rgb(%1, %2, %3)").arg(myClass.color.red()).arg(myClass.color.green()).arg(myClass.color.blue());
+
+    m_SparsityLevelSlider->setStyleSheet(
+        "QSlider::handle:horizontal { background: " + colorString + "; }");
+
+    //myClass.sPCGraph->setLineStyle(Qt::DotLine);
     myClass.sPCGraph->setLineWidth(2);
 
     myClass.sPCGraph->setXColumn(m_ColumnX);
