@@ -43,8 +43,6 @@ void AtelierWidget::drawStandardPCs()
 
     const auto sparseEigenElements = BackwardGspcaa{ param }.run(m_Sigma);
 
-    //std::cout << sparsepc::toMatrix<double>(sparseEigenElements) << "\n";
-
     JKQTPDatastore* ds = m_Plotter->getDatastore();
 
     m_Colors.reserve(sparseEigenElements.size());
@@ -53,9 +51,6 @@ void AtelierWidget::drawStandardPCs()
     m_Colors.push_back(QColorConstants::Svg::plum);
     m_Colors.push_back(QColorConstants::Svg::cyan);
     m_Colors.push_back(QColorConstants::Svg::magenta);
-
-    const QString colorString =
-        QString("rgb(%1, %2, %3)").arg(m_Colors[0].red()).arg(m_Colors[0].green()).arg(m_Colors[0].blue());
 
     m_PCGraphs.reserve(n);
     for (int j=0; j<sparseEigenElements.size(); ++j)
@@ -136,6 +131,8 @@ void AtelierWidget::onAddNewSparseComponent()
     const QString colorString =
         QString("rgb(%1, %2, %3)").arg(myClass.color.red()).arg(myClass.color.green()).arg(myClass.color.blue());
 
+    m_ProgressBarGroupBox->setStyleSheet("QGroupBox::title { color: "+ colorString + "; }");
+
     const auto n = m_Sigma.cols();
 
     m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(m_ProgressBarGroupBox);// why not set current index
@@ -156,6 +153,8 @@ void AtelierWidget::onAddNewSparseComponent()
         using namespace std::chrono_literals;
         std::this_thread::sleep_for(1000ms);
     }
+
+    m_SliderGroupBox->setStyleSheet("QGroupBox::title { color: "+ colorString + "; }");
 
     m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(m_SliderGroupBox);// why not set current index
 
@@ -235,7 +234,14 @@ void AtelierWidget::onRemoveLastSparseComponentButton()
             .color.red()).arg(m_MyClasses.back().color.green())
             .arg(m_MyClasses.back().color.blue());
 
+        m_SliderGroupBox->setStyleSheet("QGroupBox::title { color: "+ colorString + "; }");
+
         m_Slider->setValue(m_MyClasses.back().iCandidate + 1);
+    }
+    else
+    {
+        m_SliderGroupBox->setStyleSheet("");
+        m_ProgressBarGroupBox->setStyleSheet("");
     }
 
     m_Plotter->redrawPlot();
@@ -368,7 +374,7 @@ AtelierWidget::AtelierWidget(QWidget* parent)
 
     processingsGoupboxLayout->addWidget(methodGroupBox);
 
-    auto* actionGroupBox = new QGroupBox("Sparse component processings", this);
+    auto* actionGroupBox = new QGroupBox("Sparse component", this);
     auto* actionGroupBoxLayout = new QHBoxLayout(actionGroupBox);
 
     processingsGoupboxLayout->addWidget(actionGroupBox);
