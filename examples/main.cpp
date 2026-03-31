@@ -146,7 +146,7 @@ int main()
         for (Index j = 0; j < param.nbComponents; ++j)
         {
             auto candidates = Dca::computeNextComponentCandidates(
-                sigma, param.modelParams[j], validatedComponents);
+                sigma, param.modelParams[j], validatedComponents, nullptr);
 
             std::cout << sparsepc::toMatrix<Scalar>(candidates) << "\n";
 
@@ -182,7 +182,7 @@ int main()
         for (Index j = 0; j < param.nbComponents; ++j)
         {
             auto candidates = ForwardGspca::computeNextComponentCandidates(
-                sigma, param.modelParams[j], validatedComponents);
+                sigma, param.modelParams[j], validatedComponents, nullptr);
 
             std::cout << sparsepc::toMatrix<Scalar>(candidates) << "\n";
 
@@ -219,7 +219,7 @@ int main()
         for (Index j = 0; j < param.nbComponents; ++j)
         {
             auto candidates = BackwardGspca::computeNextComponentCandidates(
-                sigma, param.modelParams[j], validatedComponents);
+                sigma, param.modelParams[j], validatedComponents, nullptr);
 
             std::cout << sparsepc::toMatrix<Scalar>(candidates) << "\n";
 

@@ -66,15 +66,15 @@ namespace sparsepc
 
             template<class ComponentType>
             static auto computeNextComponentCandidates(const Matrix<Scalar>& sigma, 
-                const ModelParam& param, const std::vector<ComponentType>& validatedComponents = {},
-                ProgressBar* progressBar=nullptr);
+                const ModelParam& param, const std::vector<ComponentType>& validatedComponents,
+                ProgressBar* progressBar);
 
         private:
             const Param m_Param;
 
             static auto computeComponentCandidates(const Matrix<Scalar>& sigma, const ModelParam& param,
-                const Matrix<Scalar>& deflatedSigma, const Matrix<Scalar>& B = {},
-                ProgressBar* progressBar=nullptr);
+                const Matrix<Scalar>& deflatedSigma, const Matrix<Scalar>& B,
+                ProgressBar* progressBar);
         };
 
         template <SparsePCModelLike ModelImplementationType>
@@ -163,7 +163,7 @@ namespace sparsepc
 
             if(validatedComponents.empty())
             {
-                return SparsePC::computeComponentCandidates(sigma, param, sigma);
+                return SparsePC::computeComponentCandidates(sigma, param, sigma, {}, progressBar);
             }
 
             Matrix B = Matrix::Identity(n, n);
@@ -186,7 +186,7 @@ namespace sparsepc
                     * inverseQ) * inverseQ.transpose();
             }
 
-            return SparsePC::computeComponentCandidates(sigma, param, inverse * B * sigma * B, B);
+            return SparsePC::computeComponentCandidates(sigma, param, inverse * B * sigma * B, B, progressBar);
         }
     }
 }
