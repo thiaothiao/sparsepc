@@ -74,7 +74,7 @@ void AtelierWidget::drawStandardPCs()
 
         QString formattedValueStr = QString::number(element.value, 'f', 2);
         QString formattedPCNumberStr = QString::number(j);
-        QString curveName = QString("PC") + formattedPCNumberStr;
+        QString curveName = QString("pc") + formattedPCNumberStr;
         size_t column = ds->addColumn(n, curveName);
 
         ds->setAll(column, static_cast<double>(0));
@@ -212,7 +212,7 @@ void AtelierWidget::onAddNewSparseComponent()
 
     QString formattedValueStr = QString::number(element.value, 'f', 2);
     QString formattedPCNumberStr = QString::number(m_ValidatedComponents.size());
-    QString curveName = QString("SPC") + formattedPCNumberStr;
+    QString curveName = QString("spc") + formattedPCNumberStr;
 
     JKQTPDatastore* ds = m_Plotter->getDatastore();
 
@@ -315,7 +315,7 @@ void AtelierWidget::updatePlot(int value)
 
     QString formattedValueStr = QString::number(candidate.value, 'f', 2);
     QString formattedPCNumberStr = QString::number(m_ValidatedComponents.size());
-    QString curveName = QString("SPC") + formattedPCNumberStr;
+    QString curveName = QString("spc") + formattedPCNumberStr;
 
     myClass.sPCGraph->setTitle(curveName + ": " + formattedValueStr);
 
