@@ -48,11 +48,11 @@ void AtelierWidget::drawStandardPCs()
     JKQTPDatastore* ds = m_Plotter->getDatastore();
 
     m_Colors.reserve(sparseEigenElements.size());
-    m_Colors.push_back(QColorConstants::Svg::blue);
     m_Colors.push_back(QColorConstants::Svg::orange);
     m_Colors.push_back(QColorConstants::Svg::limegreen);
     m_Colors.push_back(QColorConstants::Svg::plum);
     m_Colors.push_back(QColorConstants::Svg::cyan);
+    m_Colors.push_back(QColorConstants::Svg::magenta);
 
     const QString colorString =
         QString("rgb(%1, %2, %3)").arg(m_Colors[0].red()).arg(m_Colors[0].green()).arg(m_Colors[0].blue());
