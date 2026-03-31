@@ -12,17 +12,19 @@
 #include "sparsepc/utils/matrix.hpp"
 #include "sparsepc/eigen/solver.hpp"
 #include "sparsepc/generic/solver.hpp"
+#include "sparsepc/progress/bar.hpp"
 
 namespace sparsepc
 {
     namespace linearmodel
     {
-        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType>
+        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
         class DcaModel final
         {
         public:
             using Scalar = ScalarType;
             using EigenSolver = EigenSolverType;
+            using ProgressBar = ProgressBarType;
 
             struct Param final
             {
@@ -60,7 +62,7 @@ namespace sparsepc
 
             auto run(const Matrix<Scalar>& sigma, const Component<Scalar>& guess = {}) const;
 
-            static auto runAll(const Matrix<Scalar>& sigma, const Param& param);
+            static auto runAll(const Matrix<Scalar>& sigma, const Param& param, ProgressBar* progressBar);
 
             struct PrimalSolution
             {
@@ -134,15 +136,16 @@ namespace sparsepc
             const Param m_Param;
         };
 
-        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType>
-        inline auto DcaModel<ScalarType, EigenSolverType>::objectiveValue(const Matrix<Scalar>& sigma,
-            const PrimalSolution& solution, double t) const
+        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
+        inline auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::objectiveValue(
+            const Matrix<Scalar>& sigma, const PrimalSolution& solution, double t) const
         {
             return -(solution.x.transpose() * sigma * solution.x).value() - t * solution.u.squaredNorm();
         }
 
-        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType>
-        auto DcaModel<ScalarType, EigenSolverType>::run(const Matrix<Scalar>& sigma, const Component<Scalar>& guess) const
+        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
+        auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::run(
+            const Matrix<Scalar>& sigma, const Component<Scalar>& guess) const
         {
             using Component = Component<Scalar>;
 
@@ -220,9 +223,9 @@ namespace sparsepc
             return component;
         }
 
-        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType>
-        auto DcaModel<ScalarType, EigenSolverType>::runAll(const Matrix<Scalar>& sigma,
-            const Param& param)
+        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
+        auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::runAll(const Matrix<Scalar>& sigma,
+            const Param& param, ProgressBar* progressBar)
         {
             using Component = Component<Scalar>;
             using ComponentsContainer = std::vector<Component>;
@@ -242,7 +245,7 @@ namespace sparsepc
 #pragma omp parallel for
             for (Index k = 1; k < n; ++k)
             {
-                components[k-1] = DcaModel<Scalar, EigenSolver>{
+                components[k-1] = DcaModel<Scalar, EigenSolver, ProgressBar>{
                     Param{ k, param.eigenSolver, param.t, param.tolerance, param.maximumNumberOfIterations, param.zero }
                 }.run(sigma, components.back());
             }
@@ -250,14 +253,15 @@ namespace sparsepc
             return components;
         }
 
-        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType>
-        inline auto DcaModel<ScalarType, EigenSolverType>::dual(const Matrix<Scalar>& sigma, const PrimalSolution& solution, double t) const
+        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
+        inline auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::dual(
+            const Matrix<Scalar>& sigma, const PrimalSolution& solution, double t) const
         {
             return DualSolution{sigma * solution.x, t * solution.u};
         }
 
-        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType>
-        auto DcaModel<ScalarType, EigenSolverType>::kktCandidate(const Vector<Scalar>& q, const Vector<Scalar>& y, Scalar r) const
+        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
+        auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::kktCandidate(const Vector<Scalar>& q, const Vector<Scalar>& y, Scalar r) const
         {
             const auto zero = m_Param.zero;
             const auto k = m_Param.k;
@@ -307,8 +311,8 @@ namespace sparsepc
             return solution;
         }
 
-        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType>
-        auto DcaModel<ScalarType, EigenSolverType>::computePhir(const Vector<Scalar>& y,
+        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
+        auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::computePhir(const Vector<Scalar>& y,
             Scalar r, const PrimalSolution& solution) const
         {
             const auto zero = m_Param.zero;
@@ -324,8 +328,8 @@ namespace sparsepc
             return std::pair<Scalar, Scalar>{phir, rhs};
         }
 
-        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType>
-        auto DcaModel<ScalarType, EigenSolverType>::primal([[maybe_unused]] const Matrix<Scalar>& sigma,
+        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
+        auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::primal([[maybe_unused]] const Matrix<Scalar>& sigma,
             const DualSolution& dualSolution) const
         {
             const auto zero = m_Param.zero;
@@ -520,7 +524,7 @@ namespace sparsepc
         }
 
         template<std::floating_point ScalarType>
-        using Dca = SparsePC<DcaModel<ScalarType, EigenSolver<ScalarType>>>;
+        using Dca = SparsePC<DcaModel<ScalarType, EigenSolver<ScalarType>, DummyProgressBar>>;
     }
 }
 #endif //SPARSEPC_DCA_SOLVER_HPP

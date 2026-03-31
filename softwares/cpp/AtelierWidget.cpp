@@ -1,68 +1,83 @@
 #include "AtelierWidget.h"
 
+#include <thread>
+
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QGridLayout>
+#include <QStackedLayout>
 #include <QGroupBox>
 #include <QPushButton>
 #include <QSlider>
-#include <QFrame>
+#include <QLabel>
+#include <QProgressBar>
+#include <QGraphicsOpacityEffect>
 
-#include <QColor>//Constants>
-
+#include <QColor>
 #include <QString>
 
-#include <QApplication>
-
-#include "sparsepc/version.hpp"
 #include "sparsepc/core.hpp"
 #include "simu.hpp"
 #include <Eigen/Dense>
 
-void AtelierWidget::drawPCs()
+namespace
 {
-    constexpr std::string_view version = SPARSEPC_MACRO_STRINGIFY(SPARSEPC_VERSION);
+    enum class SpcaMethod : std::uint8_t
+    {
+        DCA = 0U,
+        FGSPCA,  //ForwardGSPCA
+        BGSPCA   // BackwardGSPA
+    };
 
-    using Scalar = double;
-    using Matrix = sparsepc::Matrix<Scalar>;
-    using Vector = sparsepc::Vector<Scalar>;
+    //std::cout << "\nStarting backward run.\n";
+    using BackwardGSPA = sparsepc::linearmodel::SparsePC<
+        sparsepc::linearmodel::BackwardGspcaModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
+
+    using ForwardGSPCA = sparsepc::linearmodel::SparsePC<
+        sparsepc::linearmodel::ForwardGspcaModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
+
+    using DCA = sparsepc::linearmodel::SparsePC<
+        sparsepc::linearmodel::DcaModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
+}
+
+Q_DECLARE_METATYPE(SpcaMethod)
+
+void AtelierWidget::drawStandardPCs()
+{
+    using Matrix = sparsepc::Matrix<double>;
+    using Vector = sparsepc::Vector<double>;
     using Index = sparsepc::Index;
 
     const auto n = m_Sigma.cols();
 
-    const Index k0 = 13;
-    const Index k1 = 13;
-    const Index k2 = 13;
+    const Index k0 = n;
+    const Index k1 = n;
+    const Index k2 = n;
 
-    //std::cout << "\nStarting backward run.\n";
-    using BackwardGspca = sparsepc::linearmodel::BackwardGspca<Scalar>;
+    const DCA::Param param{ {k0, k1, k2} };
 
-    const BackwardGspca::Param param{ {k0, k1, k2} };
-
-    const auto sparseEigenElements = BackwardGspca{ param }.run(m_Sigma);
-
-    //std::cout << sparsepc::toMatrix<Scalar>(sparseEigenElements) << "\n";
+    const auto sparseEigenElements = DCA{ param }.run(m_Sigma);
 
     JKQTPDatastore* ds = m_Plotter->getDatastore();
 
     m_Colors.reserve(sparseEigenElements.size());
-    m_Colors.push_back(QColorConstants::Svg::blue);//QColor("blue"));
-    m_Colors.push_back(QColorConstants::Svg::orange);//QColor("red"));
-    m_Colors.push_back(QColorConstants::Svg::limegreen);//QColor("green"));;
-    //'blue', 'orange', 'limegreen'
+    m_Colors.push_back(QColorConstants::Svg::orange);
+    m_Colors.push_back(QColorConstants::Svg::limegreen);
+    m_Colors.push_back(QColorConstants::Svg::plum);
+    m_Colors.push_back(QColorConstants::Svg::cyan);
+    m_Colors.push_back(QColorConstants::Svg::magenta);
 
     m_PCGraphs.reserve(n);
-    m_SPCGraphs.reserve(n);
     for (int j=0; j<sparseEigenElements.size(); ++j)
     {
         const auto& element = sparseEigenElements[j];
 
         QString formattedValueStr = QString::number(element.value, 'f', 2);
-        QString formattedPCNumberStr = QString::number(j+1);
-        QString curveName = QString("PC") + formattedPCNumberStr;
+        QString formattedPCNumberStr = QString::number(j);
+        QString curveName = QString("pc") + formattedPCNumberStr;
         size_t column = ds->addColumn(n, curveName);
 
-        ds->setAll(column, static_cast<Scalar>(0));
+        ds->setAll(column, static_cast<double>(0));
 
         for (int i=0; i<n; ++i)
         {
@@ -81,8 +96,8 @@ void AtelierWidget::drawPCs()
         //col.setAlphaF(0.125f);
         //graph->setFillColor(col);
 
-        //graph->setLineStyle(Qt::DotLine); // Sets to dotted
-        graph->setLineWidth(2);
+        graph->setLineStyle(Qt::DotLine);
+        graph->setLineWidth(1);
 
         graph->setXColumn(m_ColumnX);
         graph->setYColumn(column);
@@ -93,20 +108,10 @@ void AtelierWidget::drawPCs()
     // 5. set axis labels
     //m_Plotter->getXAxis()->setAxisLabel("features");
     //m_Plotter->getYAxis()->setAxisLabel("magnitudes");
-    //JKQTPCoordinateAxis *xAxis = m_Plotter->getXAxis();
-    //xAxis->setTickMode()
-    //xAxis->clearAxisTickLabels();
-
-    // Add custom labels at specific data points
-    //for(int j=0; j<n; ++j)
-    //{
-    //    xAxis->addAxisTickLabel(static_cast<Scalar>(j), QString::number(j));
-    //    //xAxis-
-    //}
 
     // 4. set the maximum size of the plot to 0..100% and 0..256
-    m_Plotter->setAbsoluteX(static_cast<Scalar>(0), static_cast<Scalar>(n-1));
-    m_Plotter->setAbsoluteY(static_cast<Scalar>(-1), static_cast<Scalar>(1));
+    m_Plotter->setAbsoluteX(static_cast<double>(0), static_cast<double>(n-1));
+    m_Plotter->setAbsoluteY(static_cast<double>(-1), static_cast<double>(1));
 
     // ... and scale plot automatically
     m_Plotter->zoomToFit(true, false);
@@ -116,197 +121,330 @@ void AtelierWidget::drawPCs()
     //plot.show();
 }
 
-void AtelierWidget::onComputeSparseCandidates()
+void AtelierWidget::onAddNewSparseComponent()
 {
-    if(!m_Candidates.empty())
-    {
-        return;
+    if(!m_MyClasses.empty())
+    {// validate current selected sparse component
+        auto& candidates = m_MyClasses.back().candidates;
+        const auto iCandidate = m_MyClasses.back().iCandidate;
+        candidates[iCandidate].state = sparsepc::ComponentState::Validated;
+        m_ValidatedComponents.push_back(candidates[iCandidate]);// TODO use std::move
     }
 
-    using Scalar = double;
-    using BackwardGspca = sparsepc::linearmodel::BackwardGspca<Scalar>;
-    using Component = sparsepc::Component<Scalar>;
+    using Component = sparsepc::Component<double>;
     using ComponentsContainer = std::vector<Component>;
 
-    const BackwardGspca::Param param{ {1} };
+    m_MyClasses.push_back({});// Why not emplace_back
 
-    m_Candidates = BackwardGspca::computeNextComponentCandidates(
-            m_Sigma, param.modelParams[0], m_ValidatedComponents);
+    auto& myClass = m_MyClasses.back();
 
-    for(auto& candidate: m_Candidates)
+    myClass.iCandidate = -1;
+
+    myClass.color = m_Colors[m_ValidatedComponents.size()];
+    const QString colorString =
+        QString("rgb(%1, %2, %3)").arg(myClass.color.red()).arg(myClass.color.green()).arg(myClass.color.blue());
+
+    m_ProgressBarGroupBox->setStyleSheet("QGroupBox::title { color: "+ colorString + "; }");
+
+    const auto n = m_Sigma.cols();
+
+    m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(m_ProgressBarGroupBox);// why not set current index
+
+    m_ProgressBar->setValue(0);
+
+    const auto method = m_MethodComboBox->currentData().value<SpcaMethod>();
+    switch (method)
+    {
+    case SpcaMethod::DCA:
+    {
+        const DCA::Param param{ {1} };
+        myClass.candidates = DCA::computeNextComponentCandidates(
+            m_Sigma, param.modelParams[0], m_ValidatedComponents, m_ProgressBar);
+        break;
+    }
+    case SpcaMethod::BGSPCA:
+    {
+        const BackwardGSPA::Param param{ {1} };
+        myClass.candidates = BackwardGSPA::computeNextComponentCandidates(
+            m_Sigma, param.modelParams[0], m_ValidatedComponents, m_ProgressBar);
+        break;
+    }
+    case SpcaMethod::FGSPCA:
+    {
+        const ForwardGSPCA::Param param{ {1} };
+        myClass.candidates = ForwardGSPCA::computeNextComponentCandidates(
+            m_Sigma, param.modelParams[0], m_ValidatedComponents, m_ProgressBar);
+        break;
+    }
+    default:
+    {
+        const DCA::Param param{ {1} };
+        myClass.candidates = DCA::computeNextComponentCandidates(
+            m_Sigma, param.modelParams[0], m_ValidatedComponents, m_ProgressBar);
+        break;
+    }
+    }
+
+    {
+        using namespace std::chrono_literals;
+        std::this_thread::sleep_for(2000ms);
+    }
+
+    m_ProgressBar->setValue(n);
+
+    {
+        using namespace std::chrono_literals;
+        std::this_thread::sleep_for(1000ms);
+    }
+
+    m_SliderGroupBox->setStyleSheet("QGroupBox::title { color: "+ colorString + "; }");
+
+    m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(m_SliderGroupBox);// why not set current index
+
+    for(auto& candidate: myClass.candidates)
     {
         candidate.state = sparsepc::ComponentState::Unvalidated;
     }
-}
 
-void AtelierWidget::onClearSparseCandidates()
-{
-    if(m_Candidates.empty())
-    {
-        return;
-    }
+    const int initialICandidate = n/2;
 
-    m_Plotter->deleteGraph(m_SPCGraphs.back());
-    m_SPCGraphs.pop_back();
-
-    JKQTPDatastore* ds = m_Plotter->getDatastore();
-    ds->deleteColumn(m_SPCColumns.back(), false);
-
-    m_SPCColumns.pop_back();
-
-    m_Candidates.clear();
-
-    m_Plotter->redrawPlot();
-}
-
-void AtelierWidget::updatePlot(int iCandidate)
-{
-    using Scalar = double;
-
-    if (m_Candidates.empty())
-    {
-        return;
-    }
-
-    const auto n = m_Sigma.cols();
-
-    const auto& element = m_Candidates[iCandidate];
-
-    JKQTPDatastore* ds = m_Plotter->getDatastore();
-
-    if(!m_SPCGraphs.empty())
-    {// just update plot data
-        size_t column = m_SPCColumns.back();
-        ds->setAll(column, static_cast<Scalar>(0));
-
-        for (int i=0; i<n; ++i)
-        {
-            ds->inc(column, i, element.vector[i]);
-        }
-
-        auto& graph = m_SPCGraphs.back();
-
-        QString formattedValueStr = QString::number(element.value, 'f', 2);
-        QString formattedPCNumberStr = QString::number(1);
-        QString curveName = QString("SPC") + formattedPCNumberStr;
-
-        graph->setTitle(curveName + ": " + formattedValueStr);
-
-        m_Plotter->redrawPlot();
-        return;
-    }
-
-    m_SPCGraphs.push_back(new JKQTPXYLineGraph(m_Plotter));
-    auto& graph = m_SPCGraphs.back();
+    const auto& element = myClass.candidates[initialICandidate-1];
 
     QString formattedValueStr = QString::number(element.value, 'f', 2);
-    QString formattedPCNumberStr = QString::number(1);
-    QString curveName = QString("SPC") + formattedPCNumberStr;
-    size_t column = ds->addColumn(n, curveName);
-    m_SPCColumns.push_back(column);
+    QString formattedPCNumberStr = QString::number(m_ValidatedComponents.size());
+    QString curveName = QString("spc") + formattedPCNumberStr;
 
-    ds->setAll(column, static_cast<Scalar>(0));
+    JKQTPDatastore* ds = m_Plotter->getDatastore();
+
+    myClass.sPCColumn = ds->addColumn(n, curveName);
+
+    ds->setAll(myClass.sPCColumn, static_cast<double>(0));
 
     for (int i=0; i<n; ++i)
     {
-        ds->inc(column, i, element.vector[i]);
+        ds->inc(myClass.sPCColumn, i, element.vector[i]);
     }
 
-    graph->setTitle(curveName + ": " + formattedValueStr);
+    myClass.sPCGraph = new JKQTPXYLineGraph(m_Plotter);
 
-    QColor col = m_Colors[0];
-    graph->setColor(col);
-    //col.setAlphaF(0.125f);
-    //graph->setFillColor(col);
+    myClass.sPCGraph->setTitle(curveName + ": " + formattedValueStr);
 
-    graph->setLineStyle(Qt::DotLine); // Sets to dotted
-    graph->setLineWidth(2);
+    myClass.sPCGraph->setColor(myClass.color);
+    //myClass.color.setAlphaF(0.125f);
+    //myClass.sPCGraph->setFillColor(myClass.color);
 
-    graph->setXColumn(m_ColumnX);
-    graph->setYColumn(column);
+    myClass.sPCGraph->setLineWidth(2);
 
-    m_Plotter->addGraph(graph);
+    myClass.sPCGraph->setXColumn(m_ColumnX);
+    myClass.sPCGraph->setYColumn(myClass.sPCColumn);
+
+    m_Plotter->addGraph(myClass.sPCGraph);
+
+    if( m_Slider->value() != initialICandidate+1 )
+    {
+        m_Slider->setValue(initialICandidate+1);
+    }
+    else
+    {
+        updatePlot(initialICandidate+1);
+    }
+}
+
+void AtelierWidget::onRemoveLastSparseComponentButton()
+{
+    if(m_MyClasses.empty())
+    {
+        return;
+    }
+
+    m_Plotter->deleteGraph(m_MyClasses.back().sPCGraph, true);
+    m_Plotter->getDatastore()->deleteColumn(m_MyClasses.back().sPCColumn, true);
+
+    if(!m_ValidatedComponents.empty())
+    {
+        m_ValidatedComponents.pop_back();
+    }
+
+    if(!m_MyClasses.empty())
+    {
+        m_MyClasses.pop_back();
+    }
+
+    if(!m_MyClasses.empty())
+    {
+        const QString colorString =
+            QString("rgb(%1, %2, %3)").arg(m_MyClasses.back()
+            .color.red()).arg(m_MyClasses.back().color.green())
+            .arg(m_MyClasses.back().color.blue());
+
+        m_SliderGroupBox->setStyleSheet("QGroupBox::title { color: "+ colorString + "; }");
+
+        m_Slider->setValue(m_MyClasses.back().iCandidate + 1);
+    }
+    else
+    {
+        m_SliderGroupBox->setStyleSheet("");
+        m_ProgressBarGroupBox->setStyleSheet("");
+    }
 
     m_Plotter->redrawPlot();
 }
 
-AtelierWidget::AtelierWidget(QWidget* parent)
-    : QWidget(parent)
+void AtelierWidget::updatePlot(int value)
 {
-    using Scalar = double;
-    using Matrix = sparsepc::Matrix<Scalar>;
-    using Vector = sparsepc::Vector<Scalar>;
+    if (m_MyClasses.empty())
+    {
+        return;
+    }
+
+    auto& myClass = m_MyClasses.back();
+
+    myClass.iCandidate = value-1;
+
+    const auto& candidate = myClass.candidates[myClass.iCandidate];
+
+    JKQTPDatastore* ds = m_Plotter->getDatastore();
+
+    ds->setAll(myClass.sPCColumn, static_cast<double>(0));
+
+    const int n = candidate.vector.size();
+    for (int i=0; i<n; ++i)
+    {
+        ds->inc(myClass.sPCColumn, i, candidate.vector[i]);
+    }
+
+    QString formattedValueStr = QString::number(candidate.value, 'f', 2);
+    QString formattedPCNumberStr = QString::number(m_ValidatedComponents.size());
+    QString curveName = QString("spc") + formattedPCNumberStr;
+
+    myClass.sPCGraph->setTitle(curveName + ": " + formattedValueStr);
+
+    m_Plotter->redrawPlot();
+}
+void AtelierWidget::updateSliderTitle(int value)
+{
+    m_SliderGroupBox->setTitle(QString::number(value));
+}
+
+void AtelierWidget::updateProgressBarTitle(int value)
+{
+    const auto minValue = static_cast<double>(m_ProgressBar->minimum());
+    const auto maxValue = static_cast<double>(m_ProgressBar->maximum());
+    const auto percentage = static_cast<int>( (value - minValue) * 100.0 / (maxValue - minValue));
+    m_ProgressBarGroupBox->setTitle(QString::number(percentage));
+}
+
+AtelierWidget::AtelierWidget(QWidget* parent)
+    : QWidget(parent), m_Sigma{}, m_ValidatedComponents{},
+    m_MyClasses{}, m_PCGraphs{}, m_Plotter{nullptr},
+    m_SliderGroupBox{nullptr}, m_ProgressBarGroupBox{nullptr},
+    m_Slider{nullptr}, m_ProgressBar{nullptr},
+    m_SliderOrProgressBarWidgetStackedLayout{nullptr},
+    m_MethodComboBox{nullptr}, m_Colors{}
+{
+    using Matrix = sparsepc::Matrix<double>;
+    using Vector = sparsepc::Vector<double>;
     using Index = sparsepc::Index;
 
-    m_Sigma = sparsepc::linearmodel::pitprops<Scalar>();
+    m_Sigma = sparsepc::linearmodel::pitprops<double>();
     const auto n = m_Sigma.cols();
 
     m_ValidatedComponents.reserve(n);
+    m_MyClasses.reserve(n);
 
-    auto* layout = new QVBoxLayout(this);
-    //setLayout(layout);
+    auto* layout = new QGridLayout(this);
 
-    /************************/
+    // plot
     auto* plotGroupbox = new QGroupBox(this);
-    layout->addWidget(plotGroupbox);
-
+    layout->addWidget(plotGroupbox, 0, 0);
     auto* plotGroupboxLayout = new QHBoxLayout(plotGroupbox);
-    /**************************/
-
     m_Plotter = new JKQTPlotter(this);
     m_Plotter->setWindowTitle("Plotter!!!!");
     m_Plotter->setPlotUpdateEnabled(true);
-
     JKQTPDatastore* datastore = m_Plotter->getDatastore();
-
     m_ColumnX = datastore->addLinearColumn(n, 0, n-1, "xi");
-
     plotGroupboxLayout->addWidget(m_Plotter);
 
     // slider
-    auto* sliderGoupbox = new QGroupBox(this);
-    layout->addWidget(sliderGoupbox);
+    auto* sliderOrProgressWidget = new QWidget(this);
+    layout->addWidget(sliderOrProgressWidget, 1, 0);
 
-    auto* sliderGoupboxLayout = new QHBoxLayout(sliderGoupbox);
+    m_SliderOrProgressBarWidgetStackedLayout = new QStackedLayout(sliderOrProgressWidget);
+    m_SliderOrProgressBarWidgetStackedLayout->setStackingMode(QStackedLayout::StackOne);
 
-    auto* sparsityLevelSlider = new QSlider(Qt::Orientation::Horizontal, this);
-    sliderGoupboxLayout->addWidget(sparsityLevelSlider);
+    m_SliderGroupBox = new QGroupBox("1", this);
+    auto* sliderGroupBoxLayout = new QHBoxLayout(m_SliderGroupBox);
 
-    const auto mini = 1;
-    const auto maxi = n-1;
-    sparsityLevelSlider->setRange(mini, maxi);
+    m_Slider = new QSlider(Qt::Orientation::Horizontal, this);
 
-    //sliderGoupbox->setLayout(sliderGoupboxLayout);
+    sliderGroupBoxLayout->addWidget(m_Slider);
 
-    QObject::connect(sparsityLevelSlider, &QSlider::valueChanged,
-                     this, &AtelierWidget::updatePlot);
+    m_SliderOrProgressBarWidgetStackedLayout->addWidget(m_SliderGroupBox);
+
+    m_Slider->setRange(1, n);
+    m_Slider->setSingleStep(1);
+
+    m_ProgressBarGroupBox = new QGroupBox("0%", this);
+    auto* progressBarGroupBoxLayout = new QHBoxLayout(m_ProgressBarGroupBox);
+
+    m_SliderOrProgressBarWidgetStackedLayout->addWidget(m_ProgressBarGroupBox);
+
+    m_ProgressBar = new QProgressBar(this);
+    progressBarGroupBoxLayout->addWidget(m_ProgressBar);
+
+    m_ProgressBar->setRange(0, n);
+    m_ProgressBar->setValue(0);
+    m_ProgressBar->setTextVisible(false);
 
     // processings
     auto* processingsGoupbox = new QGroupBox(this);
-    layout->addWidget(processingsGoupbox);
+    layout->addWidget(processingsGoupbox, 2, 0);
+
+    layout->setRowStretch(0, 12);
+    layout->setRowStretch(1, 1);
+    layout->setRowStretch(2, 1);
 
     auto* processingsGoupboxLayout = new QHBoxLayout(processingsGoupbox);
 
-    auto* computeSparseCandidatesButton
-        = new QPushButton("Add new\n sparse component", this);
+    auto* methodGroupBox = new QGroupBox("Method", this);
+    auto* methodGroupBoxLayout = new QHBoxLayout(methodGroupBox);
 
-    processingsGoupboxLayout->addWidget(computeSparseCandidatesButton);
+    m_MethodComboBox = new QComboBox(this);
+    m_MethodComboBox->addItem("Dca", QVariant::fromValue(SpcaMethod::DCA));
+    m_MethodComboBox->addItem("Forward Gspca", QVariant::fromValue(SpcaMethod::FGSPCA));
+    m_MethodComboBox->addItem("Backward Gspca", QVariant::fromValue(SpcaMethod::BGSPCA));
 
-    QObject::connect(computeSparseCandidatesButton, &QPushButton::clicked,
-                     this, &AtelierWidget::onComputeSparseCandidates);
+    methodGroupBoxLayout->addWidget(m_MethodComboBox);
 
-    auto* clearSparseCandidatesButton = new QPushButton("Remove last\n sparse component", this);
-    processingsGoupboxLayout->addWidget(clearSparseCandidatesButton);
+    processingsGoupboxLayout->addWidget(methodGroupBox);
+
+    auto* actionGroupBox = new QGroupBox("Sparse component", this);
+    auto* actionGroupBoxLayout = new QHBoxLayout(actionGroupBox);
+
+    processingsGoupboxLayout->addWidget(actionGroupBox);
+
+    auto* addNewSparseComponentButton
+        = new QPushButton("Add new", this);
+    actionGroupBoxLayout->addWidget(addNewSparseComponentButton);
+
+    auto* removeLastSparseComponentButton =
+        new QPushButton("Remove last", this);
+    actionGroupBoxLayout->addWidget(removeLastSparseComponentButton);
+
+    // connect
+
+    QObject::connect(m_ProgressBar, &QProgressBar::valueChanged,
+        this, &AtelierWidget::updateProgressBarTitle);
+    QObject::connect(m_Slider, &QSlider::valueChanged,
+        this, &AtelierWidget::updateSliderTitle);
+    QObject::connect(m_Slider, &QSlider::valueChanged,
+        this, &AtelierWidget::updatePlot);
+    QObject::connect(addNewSparseComponentButton, &QPushButton::clicked,
+        this, &AtelierWidget::onAddNewSparseComponent);
+    QObject::connect(removeLastSparseComponentButton, &QPushButton::clicked,
+        this, &AtelierWidget::onRemoveLastSparseComponentButton);
 
     processingsGoupboxLayout->addStretch(1);
 
-    //processingsGoupbox->setLayout(processingsGoupboxLayout);
-
-    QObject::connect(clearSparseCandidatesButton, &QPushButton::clicked,
-                     this, &AtelierWidget::onClearSparseCandidates);
-
-    //drawPCs<JKQTPFilledCurveXGraph>(plotX);
-    drawPCs();
+    drawStandardPCs();
 }
-
-

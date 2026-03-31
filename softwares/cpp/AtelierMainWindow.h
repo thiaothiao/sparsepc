@@ -8,7 +8,7 @@ class AtelierMainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    AtelierMainWindow(QWidget *parent = Q_NULLPTR);
+    AtelierMainWindow(QWidget *parent = nullptr);
 };
 
 #endif //SPARSEPC_ATELIER_MAINWINDOW_HPP

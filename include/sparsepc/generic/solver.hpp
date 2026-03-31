@@ -7,6 +7,7 @@
 #include <utility>
 #include <future>
 #include <limits>
+#include <functional>
 #include <concepts>
 
 #include "SparsePC/utils/matrix.hpp"
@@ -24,7 +25,8 @@ namespace sparsepc
 
             {
                 ModelImplementationType::runAll(Matrix<typename ModelImplementationType::Scalar>{},
-                    typename ModelImplementationType::Param{})
+                    typename ModelImplementationType::Param{},
+                        static_cast<typename ModelImplementationType::ProgressBar*>(nullptr))
             } ->std::convertible_to<std::vector<Component<typename ModelImplementationType::Scalar>>>;
         };
 
@@ -35,6 +37,7 @@ namespace sparsepc
             using ModelImplementation = ModelImplementationType;
             using Scalar = typename ModelImplementation::Scalar;
             using ModelParam = typename ModelImplementation::Param;
+            using ProgressBar = typename ModelImplementationType::ProgressBar;
 
             struct Param final
             {
@@ -61,14 +64,17 @@ namespace sparsepc
 
             auto run(const Matrix<Scalar>& sigma) const;
 
+            template<class ComponentType>
             static auto computeNextComponentCandidates(const Matrix<Scalar>& sigma, 
-                const ModelParam& param, const std::vector<Component<Scalar>>& validatedComponents = {});
+                const ModelParam& param, const std::vector<ComponentType>& validatedComponents,
+                ProgressBar* progressBar);
 
         private:
             const Param m_Param;
 
             static auto computeComponentCandidates(const Matrix<Scalar>& sigma, const ModelParam& param,
-                const Matrix<Scalar>& deflatedSigma, const Matrix<Scalar>& B = {});
+                const Matrix<Scalar>& deflatedSigma, const Matrix<Scalar>& B,
+                ProgressBar* progressBar);
         };
 
         template <SparsePCModelLike ModelImplementationType>
@@ -113,13 +119,14 @@ namespace sparsepc
 
         template <SparsePCModelLike ModelImplementationType>
         auto SparsePC<ModelImplementationType>::computeComponentCandidates(const Matrix<Scalar>& sigma, 
-            const ModelParam& param, const Matrix<Scalar>& deflatedSigma, const Matrix<Scalar>& B)
+            const ModelParam& param, const Matrix<Scalar>& deflatedSigma, const Matrix<Scalar>& B,
+            ProgressBar* progressBar)
         {
             using Matrix = Matrix<Scalar>;
 
             if (B.size() == static_cast<Scalar>(0))
             {
-                auto candidates = ModelImplementationType::runAll(sigma, param);
+                auto candidates = ModelImplementationType::runAll(sigma, param, progressBar);
 
                 for (auto& cpnt : candidates)
                 {
@@ -130,7 +137,7 @@ namespace sparsepc
             }
             else
             {
-                auto candidates =  ModelImplementationType::runAll(deflatedSigma, param);
+                auto candidates =  ModelImplementationType::runAll(deflatedSigma, param, progressBar);
 
                 for (auto& cpnt : candidates)
                 {
@@ -145,18 +152,18 @@ namespace sparsepc
         }
 
         template <SparsePCModelLike ModelImplementationType>
+        template<class ComponentType>
         auto SparsePC<ModelImplementationType>::computeNextComponentCandidates(
             const Matrix<Scalar>& sigma, const ModelParam& param, 
-            const std::vector<Component<Scalar>>& validatedComponents)
+            const std::vector<ComponentType>& validatedComponents, ProgressBar* progressBar)
         {
             using Matrix = Matrix<Scalar>;
-            using ComponentsContainer = std::vector<Component<Scalar>>;
 
             const auto n = sigma.cols();
 
             if(validatedComponents.empty())
             {
-                return SparsePC::computeComponentCandidates(sigma, param, sigma);
+                return SparsePC::computeComponentCandidates(sigma, param, sigma, {}, progressBar);
             }
 
             Matrix B = Matrix::Identity(n, n);
@@ -164,9 +171,11 @@ namespace sparsepc
             inverse.diagonal().array() =
                 static_cast<Scalar>(1) / (static_cast<Scalar>(1) + static_cast<Scalar>(1e-4));
 
-            for (int j = 0; j < validatedComponents.size(); ++j)
+            for (const ComponentType& aValidatedComponent: validatedComponents)
             {
-                const auto& q = validatedComponents[j].q;
+                auto validatedComponent = static_cast<const Component<Scalar>&>(aValidatedComponent);
+
+                const auto& q = validatedComponent.q;
 
                 B -= q * q.transpose();
 
@@ -177,7 +186,7 @@ namespace sparsepc
                     * inverseQ) * inverseQ.transpose();
             }
 
-            return SparsePC::computeComponentCandidates(sigma, param, inverse * B * sigma * B, B);
+            return SparsePC::computeComponentCandidates(sigma, param, inverse * B * sigma * B, B, progressBar);
         }
     }
 }
