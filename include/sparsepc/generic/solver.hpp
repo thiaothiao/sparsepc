@@ -25,7 +25,8 @@ namespace sparsepc
 
             {
                 ModelImplementationType::runAll(Matrix<typename ModelImplementationType::Scalar>{},
-                    typename ModelImplementationType::Param{})
+                    typename ModelImplementationType::Param{},
+                        static_cast<typename ModelImplementationType::ProgressBar*>(nullptr))
             } ->std::convertible_to<std::vector<Component<typename ModelImplementationType::Scalar>>>;
         };
 
@@ -36,6 +37,7 @@ namespace sparsepc
             using ModelImplementation = ModelImplementationType;
             using Scalar = typename ModelImplementation::Scalar;
             using ModelParam = typename ModelImplementation::Param;
+            using ProgressBar = typename ModelImplementationType::ProgressBar;
 
             struct Param final
             {
@@ -63,15 +65,18 @@ namespace sparsepc
             auto run(const Matrix<Scalar>& sigma) const;
 
             static auto computeNextComponentCandidates(const Matrix<Scalar>& sigma, 
-                const ModelParam& param, const std::vector<Component<Scalar>>& validatedComponents = {});
+                const ModelParam& param, const std::vector<Component<Scalar>>& validatedComponents = {},
+                ProgressBar* progressBar=nullptr);
 
             static auto computeNextComponentCandidates(const Matrix<Scalar>& sigma, const ModelParam& param,
-                const std::vector<std::reference_wrapper<Component<Scalar>>>& validatedComponents = {});
+                const std::vector<std::reference_wrapper<Component<Scalar>>>& validatedComponents = {},
+                ProgressBar* progressBar=nullptr);
         private:
             const Param m_Param;
 
             static auto computeComponentCandidates(const Matrix<Scalar>& sigma, const ModelParam& param,
-                const Matrix<Scalar>& deflatedSigma, const Matrix<Scalar>& B = {});
+                const Matrix<Scalar>& deflatedSigma, const Matrix<Scalar>& B = {},
+                ProgressBar* progressBar=nullptr);
         };
 
         template <SparsePCModelLike ModelImplementationType>
@@ -116,13 +121,14 @@ namespace sparsepc
 
         template <SparsePCModelLike ModelImplementationType>
         auto SparsePC<ModelImplementationType>::computeComponentCandidates(const Matrix<Scalar>& sigma, 
-            const ModelParam& param, const Matrix<Scalar>& deflatedSigma, const Matrix<Scalar>& B)
+            const ModelParam& param, const Matrix<Scalar>& deflatedSigma, const Matrix<Scalar>& B,
+            ProgressBar* progressBar)
         {
             using Matrix = Matrix<Scalar>;
 
             if (B.size() == static_cast<Scalar>(0))
             {
-                auto candidates = ModelImplementationType::runAll(sigma, param);
+                auto candidates = ModelImplementationType::runAll(sigma, param, progressBar);
 
                 for (auto& cpnt : candidates)
                 {
@@ -133,7 +139,7 @@ namespace sparsepc
             }
             else
             {
-                auto candidates =  ModelImplementationType::runAll(deflatedSigma, param);
+                auto candidates =  ModelImplementationType::runAll(deflatedSigma, param, progressBar);
 
                 for (auto& cpnt : candidates)
                 {
@@ -150,7 +156,7 @@ namespace sparsepc
         template <SparsePCModelLike ModelImplementationType>
         auto SparsePC<ModelImplementationType>::computeNextComponentCandidates(
             const Matrix<Scalar>& sigma, const ModelParam& param, 
-            const std::vector<Component<Scalar>>& validatedComponents)
+            const std::vector<Component<Scalar>>& validatedComponents, ProgressBar* progressBar)
         {
             using Matrix = Matrix<Scalar>;
             using ComponentsContainer = std::vector<Component<Scalar>>;
@@ -186,7 +192,8 @@ namespace sparsepc
         template <SparsePCModelLike ModelImplementationType>
         auto SparsePC<ModelImplementationType>::computeNextComponentCandidates(
             const Matrix<Scalar>& sigma, const ModelParam& param,
-            const std::vector<std::reference_wrapper<Component<Scalar>>>& validatedComponents)
+            const std::vector<std::reference_wrapper<Component<Scalar>>>& validatedComponents,
+            ProgressBar* progressBar)
         {
             using Matrix = Matrix<Scalar>;
             using ComponentsContainer = std::vector<Component<Scalar>>;

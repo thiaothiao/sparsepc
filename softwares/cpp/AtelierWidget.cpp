@@ -7,6 +7,7 @@
 #include <QPushButton>
 #include <QSlider>
 #include <QLabel>
+#include <QProgressBar>
 
 #include <QColor>
 #include <QString>
@@ -14,6 +15,13 @@
 #include "sparsepc/core.hpp"
 #include "simu.hpp"
 #include <Eigen/Dense>
+
+namespace
+{
+//std::cout << "\nStarting backward run.\n";
+using BackwardGspcaa = sparsepc::linearmodel::SparsePC<
+    sparsepc::linearmodel::BackwardGspcaModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
+}
 
 void AtelierWidget::drawStandardPCs()
 {
@@ -27,12 +35,9 @@ void AtelierWidget::drawStandardPCs()
     const Index k1 = 13;
     const Index k2 = 13;
 
-    //std::cout << "\nStarting backward run.\n";
-    using BackwardGspca = sparsepc::linearmodel::BackwardGspca<double>;
+    const BackwardGspcaa::Param param{ {k0, k1, k2} };
 
-    const BackwardGspca::Param param{ {k0, k1, k2} };
-
-    const auto sparseEigenElements = BackwardGspca{ param }.run(m_Sigma);
+    const auto sparseEigenElements = BackwardGspcaa{ param }.run(m_Sigma);
 
     //std::cout << sparsepc::toMatrix<double>(sparseEigenElements) << "\n";
 
@@ -115,11 +120,10 @@ void AtelierWidget::onAddNewSparseComponent()
         m_ValidatedComponents.push_back(candidates[iCandidate]);// TODO use std::move
     }
 
-    using BackwardGspca = sparsepc::linearmodel::BackwardGspca<double>;
     using Component = sparsepc::Component<double>;
     using ComponentsContainer = std::vector<Component>;
 
-    const BackwardGspca::Param param{ {1} };
+    const BackwardGspcaa::Param param{ {1} };
 
     m_MyClasses.push_back({});// Why not emplace_back
 
@@ -127,8 +131,13 @@ void AtelierWidget::onAddNewSparseComponent()
 
     myClass.iCandidate = -1;
 
-    myClass.candidates = BackwardGspca::computeNextComponentCandidates(
-        m_Sigma, param.modelParams[0], m_ValidatedComponents);
+    m_ProgressBar->setRange(0, 13);
+    m_ProgressBar->setValue(0);
+
+    myClass.candidates = BackwardGspcaa::computeNextComponentCandidates(
+        m_Sigma, param.modelParams[0], m_ValidatedComponents, m_ProgressBar);
+
+    //m_ProgressBar->setValue(100);
 
     for(auto& candidate: myClass.candidates)
     {
@@ -296,6 +305,9 @@ AtelierWidget::AtelierWidget(QWidget* parent)
 
     m_SparsityLevelSlider->setRange(1, n);
     m_SparsityLevelSlider->setSingleStep(1);
+
+    m_ProgressBar = new QProgressBar(this);
+    layout->addWidget(m_ProgressBar);
 
     // processings
     auto* processingsGoupbox = new QGroupBox(this);

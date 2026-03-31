@@ -9,6 +9,7 @@
 #include <QTimer>
 #include <QColor>
 #include <QVector>
+#include <QProgressBar>
 
 #include "jkqtplotter/jkqtplotter.h"
 #include "jkqtplotter/graphs/jkqtpfilledcurve.h"
@@ -60,6 +61,7 @@ private:
 
     JKQTPlotter* m_Plotter;
     QSlider* m_SparsityLevelSlider;
+    QProgressBar* m_ProgressBar;
 
     QVector<QColor> m_Colors;
 };
