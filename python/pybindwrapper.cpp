@@ -114,11 +114,11 @@ PYBIND11_MODULE(sparsepc, mainmodule)
         .def("run", &BackwardGspcad::run,
             pybind11::arg("sigma"))
         .def_static("computeNextComponentCandidates",
-            pybind11::overload_cast<const Matrixd&, const BackwardGspcaModelParamd&,
-                const std::vector<Componentd>&>(&BackwardGspcad::computeNextComponentCandidates),
+            &BackwardGspcad::computeNextComponentCandidates<Componentd>,
             pybind11::arg("sigma"), 
             pybind11::arg("param"),
-            pybind11::arg("validatedComponents") = std::vector<Componentd>{});
+            pybind11::arg("validatedComponents") = std::vector<Componentd>{},
+            pybind11::arg("progressBar") = nullptr);
 
     using ForwardGspcad = sparsepc::linearmodel::ForwardGspca<double>;
     using ForwardGspcaParamd = ForwardGspcad::Param;
@@ -144,11 +144,11 @@ PYBIND11_MODULE(sparsepc, mainmodule)
         .def("run", &ForwardGspcad::run,
             pybind11::arg("sigma"))
         .def_static("computeNextComponentCandidates",
-                pybind11::overload_cast<const Matrixd&, const ForwardGspcaModelParamd&,
-                    const std::vector<Componentd>&>(&ForwardGspcad::computeNextComponentCandidates),
+            &ForwardGspcad::computeNextComponentCandidates<Componentd>,
             pybind11::arg("sigma"),
             pybind11::arg("param"),
-            pybind11::arg("validatedComponents") = std::vector<Componentd>{});
+            pybind11::arg("validatedComponents") = std::vector<Componentd>{},
+            pybind11::arg("progressBar") = nullptr);
 
     using ParallelGspcad = sparsepc::linearmodel::ParallelGspca<double>;
     using ParallelGspcaParamd = ParallelGspcad::Param;
@@ -176,11 +176,11 @@ PYBIND11_MODULE(sparsepc, mainmodule)
         .def("run", &ParallelGspcad::run,
             pybind11::arg("sigma"))
         .def_static("computeNextComponentCandidates",
-            pybind11::overload_cast<const Matrixd&, const ParallelGspcaModelParamd&,
-                const std::vector<Componentd>&>(&ParallelGspcad::computeNextComponentCandidates),
+            &ParallelGspcad::computeNextComponentCandidates<Componentd>,
             pybind11::arg("sigma"),
             pybind11::arg("param"),
-            pybind11::arg("validatedComponents") = std::vector<Componentd>{});
+            pybind11::arg("validatedComponents") = std::vector<Componentd>{},
+            pybind11::arg("progressBar") = nullptr);
 
     using Dcad = sparsepc::linearmodel::Dca<double>;
     using DcaParamd = Dcad::Param;
@@ -211,11 +211,11 @@ PYBIND11_MODULE(sparsepc, mainmodule)
         .def("run", &Dcad::run,
             pybind11::arg("sigma"))
         .def_static("computeNextComponentCandidates",
-            pybind11::overload_cast<const Matrixd&, const DcaModelParamd&,
-                const std::vector<Componentd>&>(&Dcad::computeNextComponentCandidates),
+            &Dcad::computeNextComponentCandidates<Componentd>,
             pybind11::arg("sigma"),
             pybind11::arg("param"),
-            pybind11::arg("validatedComponents") = std::vector<Componentd>{});
+            pybind11::arg("validatedComponents") = std::vector<Componentd>{},
+            pybind11::arg("progressBar") = nullptr);
 
     using BackwardGspcaf = sparsepc::linearmodel::BackwardGspca<float>;
     using BackwardGspcaParamf = BackwardGspcaf::Param;
@@ -242,12 +242,11 @@ PYBIND11_MODULE(sparsepc, mainmodule)
         .def("run", &BackwardGspcaf::run,
             pybind11::arg("sigma"))
         .def_static("computeNextComponentCandidates",
-            pybind11::overload_cast<const Matrixf&, const BackwardGspcaModelParamf&,
-                const std::vector<Componentf>&>
-                    (&BackwardGspcaf::computeNextComponentCandidates),
+            &BackwardGspcaf::computeNextComponentCandidates<Componentf>,
             pybind11::arg("sigma"),
             pybind11::arg("param"),
-            pybind11::arg("validatedComponents") = std::vector<Componentf>{});
+            pybind11::arg("validatedComponents") = std::vector<Componentf>{},
+            pybind11::arg("progressBar") = nullptr);
 
     using ForwardGspcaf = sparsepc::linearmodel::ForwardGspca<float>;
     using ForwardGspcaParamf = ForwardGspcaf::Param;
@@ -273,11 +272,11 @@ PYBIND11_MODULE(sparsepc, mainmodule)
         .def("run", &ForwardGspcaf::run,
             pybind11::arg("sigma"))
         .def_static("computeNextComponentCandidates",
-            pybind11::overload_cast<const Matrixf&, const ForwardGspcaModelParamf&,
-                const std::vector<Componentf>&>(&ForwardGspcaf::computeNextComponentCandidates),
+            &ForwardGspcaf::computeNextComponentCandidates<Componentf>,
             pybind11::arg("sigma"),
             pybind11::arg("param"),
-            pybind11::arg("validatedComponents") = std::vector<Componentf>{});
+            pybind11::arg("validatedComponents") = std::vector<Componentf>{},
+            pybind11::arg("progressBar") = nullptr);
 
     using ParallelGspcaf = sparsepc::linearmodel::ParallelGspca<float>;
     using ParallelGspcaParamf = ParallelGspcaf::Param;
@@ -305,11 +304,11 @@ PYBIND11_MODULE(sparsepc, mainmodule)
         .def("run", &ParallelGspcaf::run,
             pybind11::arg("sigma"))
         .def_static("computeNextComponentCandidates",
-            pybind11::overload_cast<const Matrixf&, const ParallelGspcaModelParamf&,
-            const std::vector<Componentf>&>(&ParallelGspcaf::computeNextComponentCandidates),
+            &ParallelGspcaf::computeNextComponentCandidates<Componentf>,
             pybind11::arg("sigma"),
             pybind11::arg("param"),
-            pybind11::arg("validatedComponents") = std::vector<Componentf>{});
+            pybind11::arg("validatedComponents") = std::vector<Componentf>{},
+            pybind11::arg("progressBar") = nullptr);
 
     using Dcaf = sparsepc::linearmodel::Dca<float>;
     using DcaParamf = Dcaf::Param;
@@ -340,9 +339,9 @@ PYBIND11_MODULE(sparsepc, mainmodule)
         .def("run", &Dcaf::run,
             pybind11::arg("sigma"))
         .def_static("computeNextComponentCandidates",
-            pybind11::overload_cast<const Matrixf&, const DcaModelParamf&,
-                const std::vector<Componentf>&>(&Dcaf::computeNextComponentCandidates),
+            &Dcaf::computeNextComponentCandidates<Componentf>,
             pybind11::arg("sigma"),
             pybind11::arg("param"),
-            pybind11::arg("validatedComponents") = std::vector<Componentf>{});
+            pybind11::arg("validatedComponents") = std::vector<Componentf>{},
+            pybind11::arg("progressBar") = nullptr);
 }

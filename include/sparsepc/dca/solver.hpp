@@ -245,7 +245,7 @@ namespace sparsepc
 #pragma omp parallel for
             for (Index k = 1; k < n; ++k)
             {
-                components[k-1] = DcaModel<Scalar, EigenSolver>{
+                components[k-1] = DcaModel<Scalar, EigenSolver, ProgressBar>{
                     Param{ k, param.eigenSolver, param.t, param.tolerance, param.maximumNumberOfIterations, param.zero }
                 }.run(sigma, components.back());
             }

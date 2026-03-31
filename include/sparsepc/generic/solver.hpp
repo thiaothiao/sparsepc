@@ -64,13 +64,11 @@ namespace sparsepc
 
             auto run(const Matrix<Scalar>& sigma) const;
 
+            template<class ComponentType>
             static auto computeNextComponentCandidates(const Matrix<Scalar>& sigma, 
-                const ModelParam& param, const std::vector<Component<Scalar>>& validatedComponents = {},
+                const ModelParam& param, const std::vector<ComponentType>& validatedComponents = {},
                 ProgressBar* progressBar=nullptr);
 
-            static auto computeNextComponentCandidates(const Matrix<Scalar>& sigma, const ModelParam& param,
-                const std::vector<std::reference_wrapper<Component<Scalar>>>& validatedComponents = {},
-                ProgressBar* progressBar=nullptr);
         private:
             const Param m_Param;
 
@@ -154,12 +152,12 @@ namespace sparsepc
         }
 
         template <SparsePCModelLike ModelImplementationType>
+        template<class ComponentType>
         auto SparsePC<ModelImplementationType>::computeNextComponentCandidates(
             const Matrix<Scalar>& sigma, const ModelParam& param, 
-            const std::vector<Component<Scalar>>& validatedComponents, ProgressBar* progressBar)
+            const std::vector<ComponentType>& validatedComponents, ProgressBar* progressBar)
         {
             using Matrix = Matrix<Scalar>;
-            using ComponentsContainer = std::vector<Component<Scalar>>;
 
             const auto n = sigma.cols();
 
@@ -173,8 +171,10 @@ namespace sparsepc
             inverse.diagonal().array() =
                 static_cast<Scalar>(1) / (static_cast<Scalar>(1) + static_cast<Scalar>(1e-4));
 
-            for (const Component<Scalar>& validatedComponent: validatedComponents)
+            for (const ComponentType& aValidatedComponent: validatedComponents)
             {
+                auto validatedComponent = static_cast<const Component<Scalar>&>(aValidatedComponent);
+
                 const auto& q = validatedComponent.q;
 
                 B -= q * q.transpose();
@@ -184,43 +184,6 @@ namespace sparsepc
                 // Woodbury matrix identity
                 inverse += ((static_cast<Scalar>(1) / (static_cast<Scalar>(1) - q.dot(inverseQ)))
                     * inverseQ) * inverseQ.transpose();
-            }
-
-            return SparsePC::computeComponentCandidates(sigma, param, inverse * B * sigma * B, B);
-        }
-
-        template <SparsePCModelLike ModelImplementationType>
-        auto SparsePC<ModelImplementationType>::computeNextComponentCandidates(
-            const Matrix<Scalar>& sigma, const ModelParam& param,
-            const std::vector<std::reference_wrapper<Component<Scalar>>>& validatedComponents,
-            ProgressBar* progressBar)
-        {
-            using Matrix = Matrix<Scalar>;
-            using ComponentsContainer = std::vector<Component<Scalar>>;
-
-            const auto n = sigma.cols();
-
-            if(validatedComponents.empty())
-            {
-                return SparsePC::computeComponentCandidates(sigma, param, sigma);
-            }
-
-            Matrix B = Matrix::Identity(n, n);
-            Matrix inverse = Matrix::Zero(n, n);// TODO optimize this block
-            inverse.diagonal().array() =
-                static_cast<Scalar>(1) / (static_cast<Scalar>(1) + static_cast<Scalar>(1e-4));
-
-            for (const Component<Scalar>& validatedComponent: validatedComponents)
-            {
-                const auto& q = validatedComponent.q;
-
-                B -= q * q.transpose();
-
-                const auto inverseQ = inverse * q;
-
-                // Woodbury matrix identity
-                inverse += ((static_cast<Scalar>(1) / (static_cast<Scalar>(1) - q.dot(inverseQ)))
-                            * inverseQ) * inverseQ.transpose();
             }
 
             return SparsePC::computeComponentCandidates(sigma, param, inverse * B * sigma * B, B);
