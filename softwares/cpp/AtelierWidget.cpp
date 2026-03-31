@@ -55,9 +55,6 @@ void AtelierWidget::drawStandardPCs()
     const QString colorString =
         QString("rgb(%1, %2, %3)").arg(m_Colors[0].red()).arg(m_Colors[0].green()).arg(m_Colors[0].blue());
 
-    m_SparsityLevelSlider->setStyleSheet(
-        "QSlider::handle:horizontal { background: " + colorString + "; }");
-
     m_PCGraphs.reserve(n);
     for (int j=0; j<sparseEigenElements.size(); ++j)
     {
@@ -114,9 +111,6 @@ void AtelierWidget::drawStandardPCs()
 
 void AtelierWidget::onAddNewSparseComponent()
 {
-    m_SliderGoupboxStackedLayout->setCurrentWidget(m_ProgressBar);// why not set current index
-
-
     if(!m_MyClasses.empty())
     {// validate current selected sparse component
         auto& candidates = m_MyClasses.back().candidates;
@@ -136,7 +130,13 @@ void AtelierWidget::onAddNewSparseComponent()
 
     myClass.iCandidate = -1;
 
+    myClass.color = m_Colors[m_ValidatedComponents.size()];
+    const QString colorString =
+        QString("rgb(%1, %2, %3)").arg(myClass.color.red()).arg(myClass.color.green()).arg(myClass.color.blue());
+
     const auto n = m_Sigma.cols();
+
+    m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(m_ProgressBarGroupBox);// why not set current index
 
     m_ProgressBar->setValue(0);
 
@@ -145,7 +145,7 @@ void AtelierWidget::onAddNewSparseComponent()
 
     m_ProgressBar->setValue(n);
 
-    m_SliderGoupboxStackedLayout->setCurrentWidget(m_SliderWidget);// why not set current index
+    m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(m_SliderGroupBox);// why not set current index
 
     for(auto& candidate: myClass.candidates)
     {
@@ -175,18 +175,10 @@ void AtelierWidget::onAddNewSparseComponent()
 
     myClass.sPCGraph->setTitle(curveName + ": " + formattedValueStr);
 
-    myClass.color = m_Colors[m_ValidatedComponents.size()];
     myClass.sPCGraph->setColor(myClass.color);
     //myClass.color.setAlphaF(0.125f);
     //myClass.sPCGraph->setFillColor(myClass.color);
 
-    const QString colorString =
-        QString("rgb(%1, %2, %3)").arg(myClass.color.red()).arg(myClass.color.green()).arg(myClass.color.blue());
-
-    m_SparsityLevelSlider->setStyleSheet(
-        "QSlider::handle:horizontal { background: " + colorString + "; }");
-
-    //myClass.sPCGraph->setLineStyle(Qt::DotLine);
     myClass.sPCGraph->setLineWidth(2);
 
     myClass.sPCGraph->setXColumn(m_ColumnX);
@@ -194,9 +186,9 @@ void AtelierWidget::onAddNewSparseComponent()
 
     m_Plotter->addGraph(myClass.sPCGraph);
 
-    if( m_SparsityLevelSlider->value() != initialICandidate+1 )
+    if( m_Slider->value() != initialICandidate+1 )
     {
-        m_SparsityLevelSlider->setValue(initialICandidate+1);
+        m_Slider->setValue(initialICandidate+1);
     }
     else
     {
@@ -231,10 +223,7 @@ void AtelierWidget::onRemoveLastSparseComponentButton()
             .color.red()).arg(m_MyClasses.back().color.green())
             .arg(m_MyClasses.back().color.blue());
 
-        m_SparsityLevelSlider->setStyleSheet(
-            "QSlider::handle:horizontal { background: " + colorString + "; }");
-
-        m_SparsityLevelSlider->setValue(m_MyClasses.back().iCandidate + 1);
+        m_Slider->setValue(m_MyClasses.back().iCandidate + 1);
     }
 
     m_Plotter->redrawPlot();
@@ -271,12 +260,26 @@ void AtelierWidget::updatePlot(int value)
 
     m_Plotter->redrawPlot();
 }
+void AtelierWidget::updateSliderTitle(int value)
+{
+    m_SliderGroupBox->setTitle(QString::number(value));
+}
+
+void AtelierWidget::updateProgressBarTitle(int value)
+{
+    const auto minValue = static_cast<double>(m_ProgressBar->minimum());
+    const auto maxValue = static_cast<double>(m_ProgressBar->maximum());
+    const auto percentage = static_cast<int>( (value - minValue) * 100.0 / (maxValue - minValue));
+    m_ProgressBarGroupBox->setTitle(QString::number(percentage));
+}
 
 AtelierWidget::AtelierWidget(QWidget* parent)
     : QWidget(parent), m_Sigma{}, m_ValidatedComponents{},
     m_MyClasses{}, m_PCGraphs{}, m_Plotter{nullptr},
-    m_SliderWidget{nullptr}, m_SparsityLevelSlider{nullptr},
-    m_ProgressBar{nullptr}, m_Colors{}
+    m_SliderGroupBox{nullptr}, m_ProgressBarGroupBox{nullptr},
+    m_Slider{nullptr}, m_ProgressBar{nullptr},
+    m_SliderOrProgressBarWidgetStackedLayout{nullptr},
+    m_MethodComboBox{nullptr}, m_Colors{}
 {
     using Matrix = sparsepc::Matrix<double>;
     using Vector = sparsepc::Vector<double>;
@@ -302,37 +305,35 @@ AtelierWidget::AtelierWidget(QWidget* parent)
     plotGroupboxLayout->addWidget(m_Plotter);
 
     // slider
-    auto* sliderGoupbox = new QGroupBox(this);
-    layout->addWidget(sliderGoupbox, 1, 0);
+    auto* sliderOrProgressWidget = new QWidget(this);
+    layout->addWidget(sliderOrProgressWidget, 1, 0);
 
-    m_SliderGoupboxStackedLayout = new QStackedLayout(sliderGoupbox);
-    m_SliderGoupboxStackedLayout->setStackingMode(QStackedLayout::StackOne);
+    m_SliderOrProgressBarWidgetStackedLayout = new QStackedLayout(sliderOrProgressWidget);
+    m_SliderOrProgressBarWidgetStackedLayout->setStackingMode(QStackedLayout::StackOne);
 
-    m_SliderWidget = new QWidget(this);
-    auto* sliderWidgetLayout = new QHBoxLayout(m_SliderWidget);
+    m_SliderGroupBox = new QGroupBox("1", this);
+    auto* sliderGroupBoxLayout = new QHBoxLayout(m_SliderGroupBox);
 
-    auto* sliderlabel = new QLabel("1", this);
-    m_SparsityLevelSlider = new QSlider(Qt::Orientation::Horizontal, this);
-    sliderWidgetLayout->addWidget(sliderlabel);
-    sliderWidgetLayout->addWidget(m_SparsityLevelSlider);
+    m_Slider = new QSlider(Qt::Orientation::Horizontal, this);
 
-    m_SliderGoupboxStackedLayout->addWidget(m_SliderWidget);
+    sliderGroupBoxLayout->addWidget(m_Slider);
 
-    m_SparsityLevelSlider->setRange(1, n);
-    m_SparsityLevelSlider->setSingleStep(1);
+    m_SliderOrProgressBarWidgetStackedLayout->addWidget(m_SliderGroupBox);
+
+    m_Slider->setRange(1, n);
+    m_Slider->setSingleStep(1);
+
+    m_ProgressBarGroupBox = new QGroupBox("0%", this);
+    auto* progressBarGroupBoxLayout = new QHBoxLayout(m_ProgressBarGroupBox);
+
+    m_SliderOrProgressBarWidgetStackedLayout->addWidget(m_ProgressBarGroupBox);
 
     m_ProgressBar = new QProgressBar(this);
-    m_SliderGoupboxStackedLayout->addWidget(m_ProgressBar);
+    progressBarGroupBoxLayout->addWidget(m_ProgressBar);
 
     m_ProgressBar->setRange(0, n);
     m_ProgressBar->setValue(0);
-
-    m_ProgressBar->setStyleSheet(
-        "QProgressBar { background-color: transparent; border: 1px solid grey; } QProgressBar::chunk { background: blue; }");
-
-    QGraphicsOpacityEffect *opacityEffect = new QGraphicsOpacityEffect(m_ProgressBar);
-    opacityEffect->setOpacity(0.125); // 0.0 to 1.0
-    m_ProgressBar->setGraphicsEffect(opacityEffect);
+    m_ProgressBar->setTextVisible(false);
 
     // processings
     auto* processingsGoupbox = new QGroupBox(this);
@@ -344,19 +345,37 @@ AtelierWidget::AtelierWidget(QWidget* parent)
 
     auto* processingsGoupboxLayout = new QHBoxLayout(processingsGoupbox);
 
+    auto* methodGroupBox = new QGroupBox("Method", this);
+    auto* methodGroupBoxLayout = new QHBoxLayout(methodGroupBox);
+
+    m_MethodComboBox = new QComboBox(this);
+    m_MethodComboBox->addItem("Dca");
+    m_MethodComboBox->addItem("Gspca forward");
+    m_MethodComboBox->addItem("Gspca backward");
+    methodGroupBoxLayout->addWidget(m_MethodComboBox);
+
+    processingsGoupboxLayout->addWidget(methodGroupBox);
+
+    auto* actionGroupBox = new QGroupBox("Sparse component processings", this);
+    auto* actionGroupBoxLayout = new QHBoxLayout(actionGroupBox);
+
+    processingsGoupboxLayout->addWidget(actionGroupBox);
+
     auto* addNewSparseComponentButton
-        = new QPushButton("Add new sparse component", this);
-    processingsGoupboxLayout->addWidget(addNewSparseComponentButton);
+        = new QPushButton("Add new", this);
+    actionGroupBoxLayout->addWidget(addNewSparseComponentButton);
 
     auto* removeLastSparseComponentButton =
-        new QPushButton("Remove last sparse component", this);
-    processingsGoupboxLayout->addWidget(removeLastSparseComponentButton);
+        new QPushButton("Remove last", this);
+    actionGroupBoxLayout->addWidget(removeLastSparseComponentButton);
 
     // connect
-    QObject::connect(m_SparsityLevelSlider, &QSlider::valueChanged,
-        this, [sliderlabel](int value){sliderlabel->setText(QString::number(value));});
 
-    QObject::connect(m_SparsityLevelSlider, &QSlider::valueChanged,
+    QObject::connect(m_ProgressBar, &QProgressBar::valueChanged,
+        this, &AtelierWidget::updateProgressBarTitle);
+    QObject::connect(m_Slider, &QSlider::valueChanged,
+        this, &AtelierWidget::updateSliderTitle);
+    QObject::connect(m_Slider, &QSlider::valueChanged,
         this, &AtelierWidget::updatePlot);
     QObject::connect(addNewSparseComponentButton, &QPushButton::clicked,
         this, &AtelierWidget::onAddNewSparseComponent);

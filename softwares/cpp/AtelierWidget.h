@@ -11,6 +11,8 @@
 #include <QVector>
 #include <QProgressBar>
 #include <QStackedLayout>
+#include <QCombobox>
+#include <QGroupBox>
 
 #include "jkqtplotter/jkqtplotter.h"
 #include "jkqtplotter/graphs/jkqtpfilledcurve.h"
@@ -52,6 +54,8 @@ public slots:
     void onAddNewSparseComponent();
     void updatePlot(int value);
     void onRemoveLastSparseComponentButton();
+    void updateSliderTitle(int value);
+    void updateProgressBarTitle(int value);
 
 private:
     sparsepc::Matrix<double> m_Sigma;
@@ -61,10 +65,12 @@ private:
     std::vector<JKQTPXYLineGraph*> m_PCGraphs;
 
     JKQTPlotter* m_Plotter;
-    QWidget* m_SliderWidget;
-    QSlider* m_SparsityLevelSlider;
+    QGroupBox* m_SliderGroupBox;
+    QGroupBox* m_ProgressBarGroupBox;
+    QSlider* m_Slider;
     QProgressBar* m_ProgressBar;
-    QStackedLayout* m_SliderGoupboxStackedLayout;
+    QStackedLayout* m_SliderOrProgressBarWidgetStackedLayout;
+    QComboBox* m_MethodComboBox;
 
     QVector<QColor> m_Colors;
 };
