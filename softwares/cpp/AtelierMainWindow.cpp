@@ -7,7 +7,7 @@ AtelierMainWindow::AtelierMainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
     constexpr std::string_view version = SPARSEPC_MACRO_STRINGIFY(SPARSEPC_VERSION);
-    this->setWindowTitle("SPARSELY- SPARse principal component SElector LIghtweight software");
+    this->setWindowTitle("SPARSELY Software - SPARSE principal component analysis LaboratorY");
     this->setMinimumSize(640, 500);
     auto* main_widget = new AtelierWidget(this);
     this->setCentralWidget(main_widget);
