@@ -3,11 +3,13 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QGridLayout>
+#include <QStackedLayout>
 #include <QGroupBox>
 #include <QPushButton>
 #include <QSlider>
 #include <QLabel>
 #include <QProgressBar>
+#include <QGraphicsOpacityEffect>
 
 #include <QColor>
 #include <QString>
@@ -112,6 +114,9 @@ void AtelierWidget::drawStandardPCs()
 
 void AtelierWidget::onAddNewSparseComponent()
 {
+    m_SliderGoupboxStackedLayout->setCurrentWidget(m_ProgressBar);// why not set current index
+
+
     if(!m_MyClasses.empty())
     {// validate current selected sparse component
         auto& candidates = m_MyClasses.back().candidates;
@@ -131,20 +136,21 @@ void AtelierWidget::onAddNewSparseComponent()
 
     myClass.iCandidate = -1;
 
-    m_ProgressBar->setRange(0, 13);
+    const auto n = m_Sigma.cols();
+
     m_ProgressBar->setValue(0);
 
     myClass.candidates = BackwardGspcaa::computeNextComponentCandidates(
         m_Sigma, param.modelParams[0], m_ValidatedComponents, m_ProgressBar);
 
-    //m_ProgressBar->setValue(100);
+    m_ProgressBar->setValue(n);
+
+    m_SliderGoupboxStackedLayout->setCurrentWidget(m_SliderWidget);// why not set current index
 
     for(auto& candidate: myClass.candidates)
     {
         candidate.state = sparsepc::ComponentState::Unvalidated;
     }
-
-    const auto n = m_Sigma.cols();
 
     const int initialICandidate = n/2;
 
@@ -269,7 +275,8 @@ void AtelierWidget::updatePlot(int value)
 AtelierWidget::AtelierWidget(QWidget* parent)
     : QWidget(parent), m_Sigma{}, m_ValidatedComponents{},
     m_MyClasses{}, m_PCGraphs{}, m_Plotter{nullptr},
-    m_SparsityLevelSlider{nullptr}, m_Colors{}
+    m_SliderWidget{nullptr}, m_SparsityLevelSlider{nullptr},
+    m_ProgressBar{nullptr}, m_Colors{}
 {
     using Matrix = sparsepc::Matrix<double>;
     using Vector = sparsepc::Vector<double>;
@@ -281,11 +288,11 @@ AtelierWidget::AtelierWidget(QWidget* parent)
     m_ValidatedComponents.reserve(n);
     m_MyClasses.reserve(n);
 
-    auto* layout = new QVBoxLayout(this);
+    auto* layout = new QGridLayout(this);
 
     // plot
     auto* plotGroupbox = new QGroupBox(this);
-    layout->addWidget(plotGroupbox);
+    layout->addWidget(plotGroupbox, 0, 0);
     auto* plotGroupboxLayout = new QHBoxLayout(plotGroupbox);
     m_Plotter = new JKQTPlotter(this);
     m_Plotter->setWindowTitle("Plotter!!!!");
@@ -296,31 +303,53 @@ AtelierWidget::AtelierWidget(QWidget* parent)
 
     // slider
     auto* sliderGoupbox = new QGroupBox(this);
-    layout->addWidget(sliderGoupbox);
-    auto* sliderGoupboxLayout = new QHBoxLayout(sliderGoupbox);
+    layout->addWidget(sliderGoupbox, 1, 0);
+
+    m_SliderGoupboxStackedLayout = new QStackedLayout(sliderGoupbox);
+    m_SliderGoupboxStackedLayout->setStackingMode(QStackedLayout::StackOne);
+
+    m_SliderWidget = new QWidget(this);
+    auto* sliderWidgetLayout = new QHBoxLayout(m_SliderWidget);
+
     auto* sliderlabel = new QLabel("1", this);
     m_SparsityLevelSlider = new QSlider(Qt::Orientation::Horizontal, this);
-    sliderGoupboxLayout->addWidget(sliderlabel);
-    sliderGoupboxLayout->addWidget(m_SparsityLevelSlider);
+    sliderWidgetLayout->addWidget(sliderlabel);
+    sliderWidgetLayout->addWidget(m_SparsityLevelSlider);
+
+    m_SliderGoupboxStackedLayout->addWidget(m_SliderWidget);
 
     m_SparsityLevelSlider->setRange(1, n);
     m_SparsityLevelSlider->setSingleStep(1);
 
     m_ProgressBar = new QProgressBar(this);
-    layout->addWidget(m_ProgressBar);
+    m_SliderGoupboxStackedLayout->addWidget(m_ProgressBar);
+
+    m_ProgressBar->setRange(0, n);
+    m_ProgressBar->setValue(0);
+
+    m_ProgressBar->setStyleSheet(
+        "QProgressBar { background-color: transparent; border: 1px solid grey; } QProgressBar::chunk { background: blue; }");
+
+    QGraphicsOpacityEffect *opacityEffect = new QGraphicsOpacityEffect(m_ProgressBar);
+    opacityEffect->setOpacity(0.125); // 0.0 to 1.0
+    m_ProgressBar->setGraphicsEffect(opacityEffect);
 
     // processings
     auto* processingsGoupbox = new QGroupBox(this);
-    layout->addWidget(processingsGoupbox);
+    layout->addWidget(processingsGoupbox, 2, 0);
+
+    layout->setRowStretch(0, 12);
+    layout->setRowStretch(1, 1);
+    layout->setRowStretch(2, 1);
 
     auto* processingsGoupboxLayout = new QHBoxLayout(processingsGoupbox);
 
     auto* addNewSparseComponentButton
-        = new QPushButton("Add new\n sparse component", this);
+        = new QPushButton("Add new sparse component", this);
     processingsGoupboxLayout->addWidget(addNewSparseComponentButton);
 
     auto* removeLastSparseComponentButton =
-        new QPushButton("Remove last\n sparse component", this);
+        new QPushButton("Remove last sparse component", this);
     processingsGoupboxLayout->addWidget(removeLastSparseComponentButton);
 
     // connect

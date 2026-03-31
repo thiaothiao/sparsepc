@@ -10,6 +10,7 @@
 #include <QColor>
 #include <QVector>
 #include <QProgressBar>
+#include <QStackedLayout>
 
 #include "jkqtplotter/jkqtplotter.h"
 #include "jkqtplotter/graphs/jkqtpfilledcurve.h"
@@ -60,8 +61,10 @@ private:
     std::vector<JKQTPXYLineGraph*> m_PCGraphs;
 
     JKQTPlotter* m_Plotter;
+    QWidget* m_SliderWidget;
     QSlider* m_SparsityLevelSlider;
     QProgressBar* m_ProgressBar;
+    QStackedLayout* m_SliderGoupboxStackedLayout;
 
     QVector<QColor> m_Colors;
 };
