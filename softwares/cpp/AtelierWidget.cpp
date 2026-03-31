@@ -22,10 +22,25 @@
 
 namespace
 {
-//std::cout << "\nStarting backward run.\n";
-using BackwardGspcaa = sparsepc::linearmodel::SparsePC<
-    sparsepc::linearmodel::BackwardGspcaModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
+    enum class SpcaMethod : std::uint8_t
+    {
+        DCA = 0U,
+        FGSPCA,  //ForwardGSPCA
+        BGSPCA   // BackwardGSPA
+    };
+
+    //std::cout << "\nStarting backward run.\n";
+    using BackwardGSPA = sparsepc::linearmodel::SparsePC<
+        sparsepc::linearmodel::BackwardGspcaModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
+
+    using ForwardGSPCA = sparsepc::linearmodel::SparsePC<
+        sparsepc::linearmodel::ForwardGspcaModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
+
+    using DCA = sparsepc::linearmodel::SparsePC<
+        sparsepc::linearmodel::DcaModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
 }
+
+Q_DECLARE_METATYPE(SpcaMethod)
 
 void AtelierWidget::drawStandardPCs()
 {
@@ -35,13 +50,13 @@ void AtelierWidget::drawStandardPCs()
 
     const auto n = m_Sigma.cols();
 
-    const Index k0 = 13;
-    const Index k1 = 13;
-    const Index k2 = 13;
+    const Index k0 = n;
+    const Index k1 = n;
+    const Index k2 = n;
 
-    const BackwardGspcaa::Param param{ {k0, k1, k2} };
+    const DCA::Param param{ {k0, k1, k2} };
 
-    const auto sparseEigenElements = BackwardGspcaa{ param }.run(m_Sigma);
+    const auto sparseEigenElements = DCA{ param }.run(m_Sigma);
 
     JKQTPDatastore* ds = m_Plotter->getDatastore();
 
@@ -119,8 +134,6 @@ void AtelierWidget::onAddNewSparseComponent()
     using Component = sparsepc::Component<double>;
     using ComponentsContainer = std::vector<Component>;
 
-    const BackwardGspcaa::Param param{ {1} };
-
     m_MyClasses.push_back({});// Why not emplace_back
 
     auto& myClass = m_MyClasses.back();
@@ -139,8 +152,38 @@ void AtelierWidget::onAddNewSparseComponent()
 
     m_ProgressBar->setValue(0);
 
-    myClass.candidates = BackwardGspcaa::computeNextComponentCandidates(
-        m_Sigma, param.modelParams[0], m_ValidatedComponents, m_ProgressBar);
+    const auto method = m_MethodComboBox->currentData().value<SpcaMethod>();
+    switch (method)
+    {
+    case SpcaMethod::DCA:
+    {
+        const DCA::Param param{ {1} };
+        myClass.candidates = DCA::computeNextComponentCandidates(
+            m_Sigma, param.modelParams[0], m_ValidatedComponents, m_ProgressBar);
+        break;
+    }
+    case SpcaMethod::BGSPCA:
+    {
+        const BackwardGSPA::Param param{ {1} };
+        myClass.candidates = BackwardGSPA::computeNextComponentCandidates(
+            m_Sigma, param.modelParams[0], m_ValidatedComponents, m_ProgressBar);
+        break;
+    }
+    case SpcaMethod::FGSPCA:
+    {
+        const ForwardGSPCA::Param param{ {1} };
+        myClass.candidates = ForwardGSPCA::computeNextComponentCandidates(
+            m_Sigma, param.modelParams[0], m_ValidatedComponents, m_ProgressBar);
+        break;
+    }
+    default:
+    {
+        const DCA::Param param{ {1} };
+        myClass.candidates = DCA::computeNextComponentCandidates(
+            m_Sigma, param.modelParams[0], m_ValidatedComponents, m_ProgressBar);
+        break;
+    }
+    }
 
     {
         using namespace std::chrono_literals;
@@ -367,9 +410,10 @@ AtelierWidget::AtelierWidget(QWidget* parent)
     auto* methodGroupBoxLayout = new QHBoxLayout(methodGroupBox);
 
     m_MethodComboBox = new QComboBox(this);
-    m_MethodComboBox->addItem("Dca");
-    m_MethodComboBox->addItem("Gspca forward");
-    m_MethodComboBox->addItem("Gspca backward");
+    m_MethodComboBox->addItem("Dca", QVariant::fromValue(SpcaMethod::DCA));
+    m_MethodComboBox->addItem("Forward Gspca", QVariant::fromValue(SpcaMethod::FGSPCA));
+    m_MethodComboBox->addItem("Backward Gspca", QVariant::fromValue(SpcaMethod::BGSPCA));
+
     methodGroupBoxLayout->addWidget(m_MethodComboBox);
 
     processingsGoupboxLayout->addWidget(methodGroupBox);
