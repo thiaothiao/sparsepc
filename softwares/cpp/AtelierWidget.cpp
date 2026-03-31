@@ -1,5 +1,7 @@
 #include "AtelierWidget.h"
 
+#include <thread>
+
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QGridLayout>
@@ -143,7 +145,17 @@ void AtelierWidget::onAddNewSparseComponent()
     myClass.candidates = BackwardGspcaa::computeNextComponentCandidates(
         m_Sigma, param.modelParams[0], m_ValidatedComponents, m_ProgressBar);
 
+    {
+        using namespace std::chrono_literals;
+        std::this_thread::sleep_for(2000ms);
+    }
+
     m_ProgressBar->setValue(n);
+
+    {
+        using namespace std::chrono_literals;
+        std::this_thread::sleep_for(1000ms);
+    }
 
     m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(m_SliderGroupBox);// why not set current index
 
