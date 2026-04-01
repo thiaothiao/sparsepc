@@ -313,9 +313,9 @@ namespace sparsepc
 
                 auto subDimEigenElement = eigenSolver.maximumValueElement(sigma(kFoundIndices, kFoundIndices));
 
-                auto iter = components.emplace(k, Component(n));
-                iter->first.value = subDimEigenElement.value;
-                iter->first.vector(kFoundIndices) = subDimEigenElement.vector;
+                auto& component = components.emplace(k, Component(n)).first->second;
+                component.value = subDimEigenElement.value;
+                component.vector(kFoundIndices) = subDimEigenElement.vector;
 
                 if(progressBar)
                 {
@@ -477,9 +477,9 @@ namespace sparsepc
                 const auto kFoundIndices = reserveIndices.head(k);
                 auto subDimEigenElement = eigenSolver.maximumValueElement(sigma(kFoundIndices, kFoundIndices));
 
-                auto iter = components.emplace(k, Component(n));
-                iter->first.value = subDimEigenElement.value;
-                iter->first.vector(kFoundIndices) = subDimEigenElement.vector;
+                auto& component = components.emplace(k, Component(n)).first->second;
+                component.value = subDimEigenElement.value;
+                component.vector(kFoundIndices) = subDimEigenElement.vector;
 
                 if(progressBar)
                 {

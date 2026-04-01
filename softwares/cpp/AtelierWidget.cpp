@@ -131,9 +131,6 @@ void AtelierWidget::onAddNewSparseComponent()
         m_ValidatedComponents.push_back(candidates[iCandidate]);// TODO use std::move
     }
 
-    using Component = sparsepc::Component<double>;
-    using ComponentsContainer = std::vector<Component>;
-
     m_MyClasses.push_back({});// Why not emplace_back
 
     auto& myClass = m_MyClasses.back();
@@ -201,14 +198,14 @@ void AtelierWidget::onAddNewSparseComponent()
 
     m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(m_SliderGroupBox);// why not set current index
 
-    for(auto& candidate: myClass.candidates)
+    for(auto& [k, candidate]: myClass.candidates)
     {
         candidate.state = sparsepc::ComponentState::Unvalidated;
     }
 
     const int initialICandidate = n/2;
 
-    const auto& element = myClass.candidates[initialICandidate-1];
+    const auto& element = myClass.candidates.at(initialICandidate);
 
     QString formattedValueStr = QString::number(element.value, 'f', 2);
     QString formattedPCNumberStr = QString::number(m_ValidatedComponents.size());
@@ -240,13 +237,13 @@ void AtelierWidget::onAddNewSparseComponent()
 
     m_Plotter->addGraph(myClass.sPCGraph);
 
-    if( m_Slider->value() != initialICandidate+1 )
+    if( m_Slider->value() != initialICandidate )
     {
-        m_Slider->setValue(initialICandidate+1);
+        m_Slider->setValue(initialICandidate);
     }
     else
     {
-        updatePlot(initialICandidate+1);
+        updatePlot(initialICandidate);
     }
 }
 
@@ -279,7 +276,7 @@ void AtelierWidget::onRemoveLastSparseComponentButton()
 
         m_SliderGroupBox->setStyleSheet("QGroupBox::title { color: "+ colorString + "; }");
 
-        m_Slider->setValue(m_MyClasses.back().iCandidate + 1);
+        m_Slider->setValue(m_MyClasses.back().iCandidate);
     }
     else
     {
@@ -299,9 +296,9 @@ void AtelierWidget::updatePlot(int value)
 
     auto& myClass = m_MyClasses.back();
 
-    myClass.iCandidate = value-1;
+    myClass.iCandidate = value;
 
-    const auto& candidate = myClass.candidates[myClass.iCandidate];
+    const auto& candidate = myClass.candidates.at(myClass.iCandidate);
 
     JKQTPDatastore* ds = m_Plotter->getDatastore();
 

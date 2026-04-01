@@ -40,9 +40,6 @@ PYBIND11_MODULE(sparsepc, mainmodule)
         .def_readwrite("vector", &Componentd::vector)
         .def_readwrite("q", &Componentd::q);
 
-    mainmodule.def("toMatrixd", &sparsepc::toMatrix<double>,
-        pybind11::arg("components"));
-
     using EigenSolverd = sparsepc::EigenSolver<double>;
     using EigenSolverParamd = EigenSolverd::Param;
     pybind11::class_<EigenSolverParamd>(mainmodule, "EigenSolverParamd")
@@ -69,9 +66,6 @@ PYBIND11_MODULE(sparsepc, mainmodule)
         .def_readwrite("value", &Componentf::value)
         .def_readwrite("vector", &Componentf::vector)
         .def_readwrite("q", &Componentf::q);
-
-    mainmodule.def("toMatrixf", &sparsepc::toMatrix<float>,
-        pybind11::arg("components"));
 
     using EigenSolverf = sparsepc::EigenSolver<float>;
     using EigenSolverParamf = EigenSolverf::Param;

@@ -55,29 +55,18 @@ namespace sparsepc
         Vector<Scalar> q;             
     };
 
-    template<std::floating_point ScalarType>
-    static auto toMatrix(const std::vector<Component<ScalarType>>& eigenElements)
+    template<class ComponentsContainerType>
+    static void printComponents(const ComponentsContainerType& eigenElements)
     {
-        using Scalar = ScalarType;
-        using Matrix = Matrix<Scalar>;
-
         if (eigenElements.empty())
         {
-            return Matrix{};
+            return;
         }
 
-        const auto n = eigenElements[0].vector.size();
-        Matrix result(static_cast<Index>(eigenElements.size()), n + 1);
-
-        for (int i = 0; i < eigenElements.size(); ++i)
+        for (const auto& [k, component] : eigenElements)
         {
-            const auto& eigenElement = eigenElements[i];
-            auto rowi = result.row(i);
-            rowi[0] = eigenElement.value;
-            rowi.tail(n) = eigenElement.vector.transpose();
+            std::cout << k << "\t" << component.value << ":\t" << component.vector.transpose() << "\n";
         }
-
-        return result;
     }
 
     template <class ImplementationType>

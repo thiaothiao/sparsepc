@@ -64,7 +64,10 @@ int main()
         std::cout << "\n\nbackward run done in "
             << durationUs.count() << " microseconds!\n";
 
-        std::cout << sparsepc::toMatrix<Scalar>(sparseEigenElements) << "\n";
+        for (const auto& component: sparseEigenElements)
+        {
+            std::cout <<component.value << ":\t" << component.vector.transpose() << "\n";
+        }
     }
 
     {
@@ -86,7 +89,10 @@ int main()
         std::cout << "\n\nforward run done in "
             << durationUs.count() << " microseconds!\n";
 
-        std::cout << sparsepc::toMatrix<Scalar>(sparseEigenElements) << "\n";
+        for (const auto& component: sparseEigenElements)
+        {
+            std::cout <<component.value << ":\t" << component.vector.transpose() << "\n";
+        }
     }
 
     {
@@ -107,7 +113,10 @@ int main()
         std::cout << "\n\nparallel run done in "
             << durationUs.count() << " microseconds!\n";
 
-        std::cout << sparsepc::toMatrix<Scalar>(sparseEigenElements) << "\n";
+        for (const auto& component: sparseEigenElements)
+        {
+            std::cout <<component.value << ":\t" << component.vector.transpose() << "\n";
+        }
     }
 
     {
@@ -128,19 +137,21 @@ int main()
         std::cout << "\n\ndca run done in "
             << durationUs.count() << " microseconds!\n";
 
-        std::cout << sparsepc::toMatrix<Scalar>(sparseEigenElements) << "\n";
+        for (const auto& component: sparseEigenElements)
+        {
+            std::cout <<component.value << ":\t" << component.vector.transpose() << "\n";
+        }
     }
 
     /*******************************************************************************/
     {
         std::cout << "\nStarting spcs validation: dca run.\n";
         using Dca = sparsepc::linearmodel::Dca<Scalar>;
-        using Component = sparsepc::Component<Scalar>;
-        using ComponentsContainer = std::vector<Component>;
+        using Component = Dca::Component;
 
         const Dca::Param param{ {k0, k1, k2} };
 
-        ComponentsContainer validatedComponents;
+        std::vector<Component> validatedComponents;
         validatedComponents.reserve(param.nbComponents);
 
         for (Index j = 0; j < param.nbComponents; ++j)
@@ -148,35 +159,37 @@ int main()
             auto candidates = Dca::computeNextComponentCandidates(
                 sigma, param.modelParams[j], validatedComponents, nullptr);
 
-            std::cout << sparsepc::toMatrix<Scalar>(candidates) << "\n";
+            sparsepc::printComponents(candidates);
 
-            auto iCandidate = static_cast<Index>(0);
+            auto iCandidate = static_cast<Index>(1);
             std::cout << "Choose one candidate\n";
             std::cin >> iCandidate;
             std::cout << "\n";
 
-            for (auto& candidate : candidates)
+            for (auto& [i, candidate] : candidates)
             {
                 candidate.state = sparsepc::ComponentState::Unvalidated;
             }
-            candidates[iCandidate].state = sparsepc::ComponentState::Validated;
+            candidates.at(iCandidate).state = sparsepc::ComponentState::Validated;
 
-            validatedComponents.push_back(std::move(candidates[iCandidate]));
+            validatedComponents.push_back(std::move(candidates.at(iCandidate)));
         }
 
-        std::cout << sparsepc::toMatrix<Scalar>(validatedComponents) << "\n";
+        for (const auto& component: validatedComponents)
+        {
+            std::cout <<component.value << ":\t" << component.vector.transpose() << "\n";
+        }
     }
 
     return 0;
     {
         std::cout << "\nStarting spcs validation: forward run.\n";
         using ForwardGspca = sparsepc::linearmodel::ForwardGspca<Scalar>;
-        using Component = sparsepc::Component<Scalar>;
-        using ComponentsContainer = std::vector<Component>;
+        using Component = ForwardGspca::Component;
 
         const ForwardGspca::Param param{ {k0, k1, k2} };
 
-        ComponentsContainer validatedComponents;
+        std::vector<Component> validatedComponents;
         validatedComponents.reserve(param.nbComponents);
 
         for (Index j = 0; j < param.nbComponents; ++j)
@@ -184,23 +197,26 @@ int main()
             auto candidates = ForwardGspca::computeNextComponentCandidates(
                 sigma, param.modelParams[j], validatedComponents, nullptr);
 
-            std::cout << sparsepc::toMatrix<Scalar>(candidates) << "\n";
+            sparsepc::printComponents(candidates);
 
-            auto iCandidate = static_cast<Index>(0);
+            auto iCandidate = static_cast<Index>(1);
             std::cout << "Choose one candidate\n";
             std::cin >> iCandidate;
             std::cout << "\n";
 
-            for (auto& candidate : candidates)
+            for (auto& [i, candidate] : candidates)
             {
                 candidate.state = sparsepc::ComponentState::Unvalidated;
             }
-            candidates[iCandidate].state = sparsepc::ComponentState::Validated;
+            candidates.at(iCandidate).state = sparsepc::ComponentState::Validated;
 
-            validatedComponents.push_back(std::move(candidates[iCandidate]));
+            validatedComponents.push_back(std::move(candidates.at(iCandidate)));
         }
 
-        std::cout << sparsepc::toMatrix<Scalar>(validatedComponents) << "\n";
+        for (const auto& component: validatedComponents)
+        {
+            std::cout <<component.value << ":\t" << component.vector.transpose() << "\n";
+        }
     }
 
     return 0;
@@ -208,12 +224,11 @@ int main()
     {
         std::cout << "\nStarting spcs validation: backward run.\n";
         using BackwardGspca = sparsepc::linearmodel::BackwardGspca<Scalar>;
-        using Component = sparsepc::Component<Scalar>;
-        using ComponentsContainer = std::vector<Component>;
+        using Component = BackwardGspca::Component;
         
         const BackwardGspca::Param param{ {k0, k1, k2} };
 
-        ComponentsContainer validatedComponents;
+        std::vector<Component> validatedComponents;
         validatedComponents.reserve(param.nbComponents);
 
         for (Index j = 0; j < param.nbComponents; ++j)
@@ -221,23 +236,26 @@ int main()
             auto candidates = BackwardGspca::computeNextComponentCandidates(
                 sigma, param.modelParams[j], validatedComponents, nullptr);
 
-            std::cout << sparsepc::toMatrix<Scalar>(candidates) << "\n";
+            sparsepc::printComponents(candidates);
 
-            auto iCandidate = static_cast<Index>(0);
+            auto iCandidate = static_cast<Index>(1);
             std::cout << "Choose one candidate\n";
             std::cin >> iCandidate;
             std::cout << "\n";
 
-            for (auto& candidate: candidates)
+            for (auto& [i, candidate]: candidates)
             {
                 candidate.state = sparsepc::ComponentState::Unvalidated;
             }
-            candidates[iCandidate].state = sparsepc::ComponentState::Validated;
+            candidates.at(iCandidate).state = sparsepc::ComponentState::Validated;
 
-            validatedComponents.push_back(std::move(candidates[iCandidate]));
+            validatedComponents.push_back(std::move(candidates.at(iCandidate)));
         }
 
-        std::cout << sparsepc::toMatrix<Scalar>(validatedComponents) << "\n";
+        for (const auto& component: validatedComponents)
+        {
+            std::cout <<component.value << ":\t" << component.vector.transpose() << "\n";
+        }
     }
 
     return 0;

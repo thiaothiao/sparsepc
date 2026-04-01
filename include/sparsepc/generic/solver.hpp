@@ -130,7 +130,7 @@ namespace sparsepc
             {
                 auto candidates = ModelImplementationType::runAll(sigma, param, progressBar);
 
-                for (auto& cpnt : candidates)
+                for (auto& [i, cpnt] : candidates)
                 {
                     cpnt.q = cpnt.vector;
                 }
@@ -141,7 +141,7 @@ namespace sparsepc
             {
                 auto candidates =  ModelImplementationType::runAll(deflatedSigma, param, progressBar);
 
-                for (auto& cpnt : candidates)
+                for (auto& [i, cpnt] : candidates)
                 {
                     cpnt.q = B * cpnt.vector;
 
@@ -175,7 +175,7 @@ namespace sparsepc
 
             for (const ComponentType& aValidatedComponent: validatedComponents)
             {
-                auto validatedComponent = static_cast<const Component<Scalar>&>(aValidatedComponent);
+                auto validatedComponent = static_cast<const Component&>(aValidatedComponent);
 
                 const auto& q = validatedComponent.q;
 

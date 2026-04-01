@@ -232,21 +232,26 @@ namespace sparsepc
             const auto& eigenSolver = param.eigenSolver;
             const auto n = sigma.cols();
 
-            ComponentsContainer components(n);
+            ComponentsContainer components;
 
-            components.back() = eigenSolver.maximumValueElement(sigma);
+            const auto& component = components.emplace(n, eigenSolver.maximumValueElement(sigma)).first->second;
 
             if (n == 1)
             {
                 return components;
             }
 
+            for (Index k = 1; k < n; ++k)
+            {
+                components.emplace(k, Component{});
+            }
+
 #pragma omp parallel for
             for (Index k = 1; k < n; ++k)
             {
-                components[k-1] = DcaModel<Scalar, EigenSolver, ProgressBar>{
+                components.at(k) = DcaModel<Scalar, EigenSolver, ProgressBar>{
                     Param{ k, param.eigenSolver, param.t, param.tolerance, param.maximumNumberOfIterations, param.zero }
-                }.run(sigma, components.back());
+                }.run(sigma, component);
             }
 
             return components;
