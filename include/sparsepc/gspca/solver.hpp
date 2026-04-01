@@ -28,8 +28,6 @@ namespace sparsepc
             using Scalar = ScalarType;
             using EigenSolver = EigenSolverType;
             using ProgressBar = ProgressBarType;
-            using Component = Component<Scalar>;
-            using ComponentsContainer = std::unordered_map<Index, Component>;
 
             struct Param final
             {
@@ -72,8 +70,6 @@ namespace sparsepc
             using Scalar = ScalarType;
             using EigenSolver = EigenSolverType;
             using ProgressBar = ProgressBarType;
-            using Component = Component<Scalar>;
-            using ComponentsContainer = std::unordered_map<Index, Component>;
 
             struct Param final
             {
@@ -116,8 +112,6 @@ namespace sparsepc
             using Scalar = ScalarType;
             using EigenSolver = EigenSolverType;
             using ProgressBar = ProgressBarType;
-            using Component = Component<Scalar>;
-            using ComponentsContainer = std::unordered_map<Index, Component>;
             using ForwardGspcaModel = typename sparsepc::linearmodel::ForwardGspcaModel<Scalar, EigenSolver, ProgressBar>;
             using BackwardGspcaModel = typename sparsepc::linearmodel::BackwardGspcaModel<Scalar, EigenSolver, ProgressBar>;
 
@@ -162,6 +156,8 @@ namespace sparsepc
         template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
         auto BackwardGspcaModel<ScalarType, EigenSolverType, ProgressBarType>::run(const Matrix<Scalar>& sigma) const
         {
+            using Component = Component<Scalar>;
+
             const auto k = m_Param.k;
             const auto& eigenSolver = m_Param.eigenSolver;
 
@@ -245,6 +241,9 @@ namespace sparsepc
         auto BackwardGspcaModel<ScalarType, EigenSolverType, ProgressBarType>::runAll(const Matrix<Scalar>& sigma,
             const Param& param, ProgressBar* progressBar)
         {
+            using Component = Component<Scalar>;
+            using ComponentsContainer = ComponentsContainer<Component>;
+
             const auto& eigenSolver = param.eigenSolver;
             const auto n = sigma.cols();
 
@@ -334,6 +333,8 @@ namespace sparsepc
         template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
         auto ForwardGspcaModel<ScalarType, EigenSolverType, ProgressBarType>::run(const Matrix<Scalar>& sigma) const
         {
+            using Component = Component<Scalar>;
+
             const auto k = m_Param.k;
             const auto& eigenSolver = m_Param.eigenSolver;
 
@@ -412,6 +413,9 @@ namespace sparsepc
         auto ForwardGspcaModel<ScalarType, EigenSolverType, ProgressBarType>::runAll(const Matrix<Scalar>& sigma,
             const Param& param, ProgressBar* progressBar)
         {
+            using Component = Component<Scalar>;
+            using ComponentsContainer = ComponentsContainer<Component>;
+
             const auto& eigenSolver = param.eigenSolver;
             const auto n = sigma.cols();
 
@@ -498,6 +502,8 @@ namespace sparsepc
         template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
         auto ParallelGspcaModel<ScalarType, EigenSolverType, ProgressBarType>::run(const Matrix<Scalar>& sigma) const
         {
+            using Component = Component<Scalar>;
+
             const auto k = m_Param.k;
             const auto& forwardSolver = m_Param.eigenSolverForForward;
             const auto& backwardSolver = m_Param.eigenSolverForBackward;
@@ -537,6 +543,9 @@ namespace sparsepc
         auto ParallelGspcaModel<ScalarType, EigenSolverType, ProgressBarType>::runAll(const Matrix<Scalar>& sigma,
             const Param& param, ProgressBar* progressBar)
         {
+            using Component = Component<Scalar>;
+            using ComponentsContainer = ComponentsContainer<Component>;
+
             const auto k = param.k;
             const auto& forwardSolver = param.eigenSolverForForward;
             const auto& backwardSolver = param.eigenSolverForBackward;

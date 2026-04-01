@@ -27,8 +27,6 @@ namespace sparsepc
             using Scalar = ScalarType;
             using EigenSolver = EigenSolverType;
             using ProgressBar = ProgressBarType;
-            using Component = Component<Scalar>;
-            using ComponentsContainer = std::unordered_map<Index, Component>;
 
             struct Param final
             {
@@ -64,7 +62,7 @@ namespace sparsepc
             {
             }
 
-            auto run(const Matrix<Scalar>& sigma, const Component& guess = {}) const;
+            auto run(const Matrix<Scalar>& sigma, const Component<Scalar>& guess = {}) const;
 
             static auto runAll(const Matrix<Scalar>& sigma, const Param& param, ProgressBar* progressBar);
 
@@ -149,8 +147,10 @@ namespace sparsepc
 
         template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
         auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::run(
-            const Matrix<Scalar>& sigma, const Component& guess) const
+            const Matrix<Scalar>& sigma, const Component<Scalar>& guess) const
         {
+            using Component = Component<Scalar>;
+
             const auto k = m_Param.k;
             const auto& eigenSolver = m_Param.eigenSolver;
 
@@ -229,6 +229,9 @@ namespace sparsepc
         auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::runAll(const Matrix<Scalar>& sigma,
             const Param& param, ProgressBar* progressBar)
         {
+            using Component = Component<Scalar>;
+            using ComponentsContainer = ComponentsContainer<Component>;
+
             const auto& eigenSolver = param.eigenSolver;
             const auto n = sigma.cols();
 

@@ -22,13 +22,14 @@ namespace sparsepc
         {
             {
                 std::as_const(impl).run(Matrix<typename ModelImplementationType::Scalar>{})
-            } ->std::convertible_to<typename ModelImplementationType::Component>;
+            } ->std::convertible_to<Component<typename ModelImplementationType::Scalar>>;
 
             {
                 ModelImplementationType::runAll(Matrix<typename ModelImplementationType::Scalar>{},
                     typename ModelImplementationType::Param{},
                         static_cast<typename ModelImplementationType::ProgressBar*>(nullptr))
-            } ->std::convertible_to<typename ModelImplementationType::ComponentsContainer>;
+            } ->std::convertible_to<
+                ComponentsContainer<Component<typename ModelImplementationType::Scalar>>>;
         };// TODO bencmarkings on map, unordered_map, flat_map
 
         template <SparsePCModelLike ModelImplementationType>
@@ -39,8 +40,6 @@ namespace sparsepc
             using Scalar = typename ModelImplementation::Scalar;
             using ModelParam = typename ModelImplementation::Param;
             using ProgressBar = typename ModelImplementationType::ProgressBar;
-            using Component = typename ModelImplementationType::Component;
-            using ComponentsContainer = typename ModelImplementationType::ComponentsContainer;
 
             struct Param final
             {
@@ -84,6 +83,7 @@ namespace sparsepc
         auto SparsePC<ModelImplementationType>::run(const Matrix<Scalar>& sigma) const
         {
             using Matrix = Matrix<Scalar>;
+            using Component = Component<Scalar>;
 
             const auto n = static_cast<Index>(sigma.cols());
 
@@ -160,6 +160,7 @@ namespace sparsepc
             const std::vector<ComponentType>& validatedComponents, ProgressBar* progressBar)
         {
             using Matrix = Matrix<Scalar>;
+            using Component = Component<Scalar>;
 
             const auto n = sigma.cols();
 

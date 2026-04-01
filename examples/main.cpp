@@ -17,6 +17,7 @@ int main()
     using Scalar = double;
     using Matrix = sparsepc::Matrix<Scalar>;
     using Vector = sparsepc::Vector<Scalar>;
+    using Component = sparsepc::Component<Scalar>;
     using Index = sparsepc::Index;
 
     const auto sigma = sparsepc::linearmodel::pitprops<Scalar>();
@@ -147,7 +148,6 @@ int main()
     {
         std::cout << "\nStarting spcs validation: dca run.\n";
         using Dca = sparsepc::linearmodel::Dca<Scalar>;
-        using Component = Dca::Component;
 
         const Dca::Param param{ {k0, k1, k2} };
 
@@ -185,7 +185,6 @@ int main()
     {
         std::cout << "\nStarting spcs validation: forward run.\n";
         using ForwardGspca = sparsepc::linearmodel::ForwardGspca<Scalar>;
-        using Component = ForwardGspca::Component;
 
         const ForwardGspca::Param param{ {k0, k1, k2} };
 
@@ -224,7 +223,6 @@ int main()
     {
         std::cout << "\nStarting spcs validation: backward run.\n";
         using BackwardGspca = sparsepc::linearmodel::BackwardGspca<Scalar>;
-        using Component = BackwardGspca::Component;
         
         const BackwardGspca::Param param{ {k0, k1, k2} };
 

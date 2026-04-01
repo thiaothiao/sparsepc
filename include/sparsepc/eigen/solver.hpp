@@ -55,14 +55,12 @@ namespace sparsepc
         Vector<Scalar> q;             
     };
 
-    template<class ComponentsContainerType>
-    static void printComponents(const ComponentsContainerType& eigenElements)
-    {
-        if (eigenElements.empty())
-        {
-            return;
-        }
+    template<class ComponentType>
+    using ComponentsContainer = std::unordered_map<Index, ComponentType>;
 
+    template<std::floating_point ScalarType>
+    static void printComponents(const ComponentsContainer<Component<ScalarType>>& eigenElements)
+    {
         for (const auto& [k, component] : eigenElements)
         {
             std::cout << k << "\t" << component.value << ":\t" << component.vector.transpose() << "\n";
