@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 4.1)
 project(sparsepc CXX)
 
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 message(STATUS "Using openMP")
 find_package(OpenMP REQUIRED) 
 if(OpenMP_CXX_FOUND)

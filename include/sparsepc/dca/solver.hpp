@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <unordered_map>
 #include <set>
 #include <limits>
 #include <algorithm>
@@ -18,7 +19,8 @@ namespace sparsepc
 {
     namespace linearmodel
     {
-        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
+        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType,
+             ProgressBarLike ProgressBarType = DummyProgressBar>
         class DcaModel final
         {
         public:
@@ -228,26 +230,31 @@ namespace sparsepc
             const Param& param, ProgressBar* progressBar)
         {
             using Component = Component<Scalar>;
-            using ComponentsContainer = std::vector<Component>;
+            using ComponentsContainer = ComponentsContainer<Component>;
 
             const auto& eigenSolver = param.eigenSolver;
             const auto n = sigma.cols();
 
-            ComponentsContainer components(n);
+            ComponentsContainer components;
 
-            components.back() = eigenSolver.maximumValueElement(sigma);
+            const auto& component = components.emplace(n, eigenSolver.maximumValueElement(sigma)).first->second;
 
             if (n == 1)
             {
                 return components;
             }
 
+            for (Index k = 1; k < n; ++k)
+            {
+                components.emplace(k, Component{});
+            }
+
 #pragma omp parallel for
             for (Index k = 1; k < n; ++k)
             {
-                components[k-1] = DcaModel<Scalar, EigenSolver, ProgressBar>{
+                components.at(k) = DcaModel<Scalar, EigenSolver, ProgressBar>{
                     Param{ k, param.eigenSolver, param.t, param.tolerance, param.maximumNumberOfIterations, param.zero }
-                }.run(sigma, components.back());
+                }.run(sigma, component);
             }
 
             return components;
@@ -524,7 +531,7 @@ namespace sparsepc
         }
 
         template<std::floating_point ScalarType>
-        using Dca = SparsePC<DcaModel<ScalarType, EigenSolver<ScalarType>, DummyProgressBar>>;
+        using Dca = SparsePC<DcaModel<ScalarType, EigenSolver<ScalarType>>>;
     }
 }
 #endif //SPARSEPC_DCA_SOLVER_HPP

@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <functional>
+#include <unordered_map>
 
 #include <QWidget>
 #include <QSlider>
@@ -36,7 +37,7 @@ struct MyClass final
 
     int iCandidate;
     std::size_t sPCColumn;
-    std::vector<sparsepc::Component<double>> candidates;
+    std::unordered_map<sparsepc::Index, sparsepc::Component<double>> candidates;
     JKQTPXYLineGraph* sPCGraph;
     QColor color;
 };

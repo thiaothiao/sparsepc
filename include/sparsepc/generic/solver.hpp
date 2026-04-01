@@ -4,6 +4,7 @@
 #include <iostream>
 #include <algorithm>
 #include <vector>
+#include <unordered_map>
 #include <utility>
 #include <future>
 #include <limits>
@@ -27,8 +28,9 @@ namespace sparsepc
                 ModelImplementationType::runAll(Matrix<typename ModelImplementationType::Scalar>{},
                     typename ModelImplementationType::Param{},
                         static_cast<typename ModelImplementationType::ProgressBar*>(nullptr))
-            } ->std::convertible_to<std::vector<Component<typename ModelImplementationType::Scalar>>>;
-        };
+            } ->std::convertible_to<
+                ComponentsContainer<Component<typename ModelImplementationType::Scalar>>>;
+        };// TODO bencmarkings on map, unordered_map, flat_map
 
         template <SparsePCModelLike ModelImplementationType>
         class SparsePC final
@@ -128,7 +130,7 @@ namespace sparsepc
             {
                 auto candidates = ModelImplementationType::runAll(sigma, param, progressBar);
 
-                for (auto& cpnt : candidates)
+                for (auto& [i, cpnt] : candidates)
                 {
                     cpnt.q = cpnt.vector;
                 }
@@ -139,7 +141,7 @@ namespace sparsepc
             {
                 auto candidates =  ModelImplementationType::runAll(deflatedSigma, param, progressBar);
 
-                for (auto& cpnt : candidates)
+                for (auto& [i, cpnt] : candidates)
                 {
                     cpnt.q = B * cpnt.vector;
 
@@ -158,6 +160,7 @@ namespace sparsepc
             const std::vector<ComponentType>& validatedComponents, ProgressBar* progressBar)
         {
             using Matrix = Matrix<Scalar>;
+            using Component = Component<Scalar>;
 
             const auto n = sigma.cols();
 
@@ -173,7 +176,7 @@ namespace sparsepc
 
             for (const ComponentType& aValidatedComponent: validatedComponents)
             {
-                auto validatedComponent = static_cast<const Component<Scalar>&>(aValidatedComponent);
+                auto validatedComponent = static_cast<const Component&>(aValidatedComponent);
 
                 const auto& q = validatedComponent.q;
 

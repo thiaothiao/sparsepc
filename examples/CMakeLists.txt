@@ -6,6 +6,4 @@ add_custom_command(TARGET main POST_BUILD
             ${CMAKE_CURRENT_BINARY_DIR}/$<TARGET_FILE_NAME:main>
 )
 
-set_target_properties(main PROPERTIES CXX_STANDARD 23 CXX_STANDARD_REQUIRED ON)
-
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})

@@ -55,29 +55,16 @@ namespace sparsepc
         Vector<Scalar> q;             
     };
 
+    template<class ComponentType>
+    using ComponentsContainer = std::unordered_map<Index, ComponentType>;
+
     template<std::floating_point ScalarType>
-    static auto toMatrix(const std::vector<Component<ScalarType>>& eigenElements)
+    static void printComponents(const ComponentsContainer<Component<ScalarType>>& eigenElements)
     {
-        using Scalar = ScalarType;
-        using Matrix = Matrix<Scalar>;
-
-        if (eigenElements.empty())
+        for (const auto& [k, component] : eigenElements)
         {
-            return Matrix{};
+            std::cout << k << "\t" << component.value << ":\t" << component.vector.transpose() << "\n";
         }
-
-        const auto n = eigenElements[0].vector.size();
-        Matrix result(static_cast<Index>(eigenElements.size()), n + 1);
-
-        for (int i = 0; i < eigenElements.size(); ++i)
-        {
-            const auto& eigenElement = eigenElements[i];
-            auto rowi = result.row(i);
-            rowi[0] = eigenElement.value;
-            rowi.tail(n) = eigenElement.vector.transpose();
-        }
-
-        return result;
     }
 
     template <class ImplementationType>
