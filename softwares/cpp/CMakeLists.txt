@@ -40,30 +40,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC Qt6::Core Qt6::Widgets Qt6::Gui Qt6
 
 target_link_libraries(${PROJECT_NAME} PUBLIC JKQTPlotter6::JKQTPlotter6)
 
-set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 23 CXX_STANDARD_REQUIRED ON)
-
 # Installation
 install(TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
-
-#target_link_libraries(helloworld PRIVATE Qt6::Core Qt6::Widgets Qt6::Gui Qt6::PrintSupport JKQTPlotter6_Debug)#JKQTPlotter6::JKQTPlotter6)
-
-#add_custom_command(TARGET helloworld POST_BUILD
-#    COMMAND ${CMAKE_COMMAND} -E copy
-#            $<TARGET_FILE_DIR:helloworld>/$<TARGET_FILE_NAME:helloworld>
-#            ${CMAKE_CURRENT_BINARY_DIR}/$<TARGET_FILE_NAME:helloworld>)
-
-
-
-# Locate windeployqt
-#get_target_property(_qmake_executable Qt6::qmake IMPORTED_LOCATION)
-#get_filename_component(_qt_bin_dir "${_qmake_executable}" DIRECTORY)
-#find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${_qt_bin_dir}")
-
-# Add post-build command
-#add_custom_command(
-#    TARGET helloworld POST_BUILD
-#    COMMAND "${WINDEPLOYQT_EXECUTABLE}" "$<TARGET_FILE:helloworld>"
-#    COMMENT "Running windeployqt..."
-#)
