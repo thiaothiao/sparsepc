@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <unordered_map>
 #include <set>
 #include <limits>
 #include <algorithm>
@@ -12,7 +13,6 @@
 #include "sparsepc/utils/matrix.hpp"
 #include "sparsepc/eigen/solver.hpp"
 #include "sparsepc/generic/solver.hpp"
-
 #include "sparsepc/progress/bar.hpp"
 
 namespace sparsepc
@@ -20,13 +20,16 @@ namespace sparsepc
     namespace linearmodel
     {
         // Greedy GSPCA implementation, see references
-        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
+        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType,
+             ProgressBarLike ProgressBarType = DummyProgressBar>
         class BackwardGspcaModel final
         {
         public:
             using Scalar = ScalarType;
             using EigenSolver = EigenSolverType;
             using ProgressBar = ProgressBarType;
+            using Component = Component<Scalar>;
+            using ComponentsContainer = std::unordered_map<Index, Component>;
 
             struct Param final
             {
@@ -61,13 +64,16 @@ namespace sparsepc
             const Param m_Param;
         };
 
-        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
+        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType,
+                 ProgressBarLike ProgressBarType = DummyProgressBar>
         class ForwardGspcaModel final
         {
         public:
             using Scalar = ScalarType;
             using EigenSolver = EigenSolverType;
             using ProgressBar = ProgressBarType;
+            using Component = Component<Scalar>;
+            using ComponentsContainer = std::unordered_map<Index, Component>;
 
             struct Param final
             {
@@ -102,13 +108,16 @@ namespace sparsepc
             const Param m_Param;
         };
 
-        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
+        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType,
+                 ProgressBarLike ProgressBarType = DummyProgressBar>
         class ParallelGspcaModel final
         {
         public:
             using Scalar = ScalarType;
             using EigenSolver = EigenSolverType;
             using ProgressBar = ProgressBarType;
+            using Component = Component<Scalar>;
+            using ComponentsContainer = std::unordered_map<Index, Component>;
             using ForwardGspcaModel = typename sparsepc::linearmodel::ForwardGspcaModel<Scalar, EigenSolver, ProgressBar>;
             using BackwardGspcaModel = typename sparsepc::linearmodel::BackwardGspcaModel<Scalar, EigenSolver, ProgressBar>;
 
@@ -153,8 +162,6 @@ namespace sparsepc
         template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
         auto BackwardGspcaModel<ScalarType, EigenSolverType, ProgressBarType>::run(const Matrix<Scalar>& sigma) const
         {
-            using Component = Component<Scalar>;
-
             const auto k = m_Param.k;
             const auto& eigenSolver = m_Param.eigenSolver;
 
@@ -238,15 +245,12 @@ namespace sparsepc
         auto BackwardGspcaModel<ScalarType, EigenSolverType, ProgressBarType>::runAll(const Matrix<Scalar>& sigma,
             const Param& param, ProgressBar* progressBar)
         {
-            using Component = Component<Scalar>;
-            using ComponentsContainer = std::vector<Component>;
-
             const auto& eigenSolver = param.eigenSolver;
             const auto n = sigma.cols();
 
-            ComponentsContainer components(n);
+            ComponentsContainer components;
 
-            components.back() = eigenSolver.maximumValueElement(sigma);
+            components.emplace(n, eigenSolver.maximumValueElement(sigma));
 
             if (n == static_cast<Index>(1))
             {
@@ -309,11 +313,9 @@ namespace sparsepc
 
                 auto subDimEigenElement = eigenSolver.maximumValueElement(sigma(kFoundIndices, kFoundIndices));
 
-                Component component(n);
-                component.value = subDimEigenElement.value;
-                component.vector(kFoundIndices) = subDimEigenElement.vector;
-
-                components[k-1] = std::move(component);
+                auto iter = components.emplace(k, Component(n));
+                iter->first.value = subDimEigenElement.value;
+                iter->first.vector(kFoundIndices) = subDimEigenElement.vector;
 
                 if(progressBar)
                 {
@@ -332,8 +334,6 @@ namespace sparsepc
         template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
         auto ForwardGspcaModel<ScalarType, EigenSolverType, ProgressBarType>::run(const Matrix<Scalar>& sigma) const
         {
-            using Component = Component<Scalar>;
-
             const auto k = m_Param.k;
             const auto& eigenSolver = m_Param.eigenSolver;
 
@@ -412,15 +412,12 @@ namespace sparsepc
         auto ForwardGspcaModel<ScalarType, EigenSolverType, ProgressBarType>::runAll(const Matrix<Scalar>& sigma,
             const Param& param, ProgressBar* progressBar)
         {
-            using Component = Component<Scalar>;
-            using ComponentsContainer = std::vector<Component>;
-
             const auto& eigenSolver = param.eigenSolver;
             const auto n = sigma.cols();
 
-            ComponentsContainer components(n);
+            ComponentsContainer components;
 
-            components.back() = eigenSolver.maximumValueElement(sigma);
+            components.emplace(n, eigenSolver.maximumValueElement(sigma));
 
             if (n == static_cast<Index>(1))
             {
@@ -480,11 +477,9 @@ namespace sparsepc
                 const auto kFoundIndices = reserveIndices.head(k);
                 auto subDimEigenElement = eigenSolver.maximumValueElement(sigma(kFoundIndices, kFoundIndices));
 
-                Component component(n);
-                component.value = subDimEigenElement.value;
-                component.vector(kFoundIndices) = subDimEigenElement.vector;
-
-                components[k-1] = std::move(component);
+                auto iter = components.emplace(k, Component(n));
+                iter->first.value = subDimEigenElement.value;
+                iter->first.vector(kFoundIndices) = subDimEigenElement.vector;
 
                 if(progressBar)
                 {
@@ -503,8 +498,6 @@ namespace sparsepc
         template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
         auto ParallelGspcaModel<ScalarType, EigenSolverType, ProgressBarType>::run(const Matrix<Scalar>& sigma) const
         {
-            using Component = Component<Scalar>;
-
             const auto k = m_Param.k;
             const auto& forwardSolver = m_Param.eigenSolverForForward;
             const auto& backwardSolver = m_Param.eigenSolverForBackward;
@@ -544,8 +537,6 @@ namespace sparsepc
         auto ParallelGspcaModel<ScalarType, EigenSolverType, ProgressBarType>::runAll(const Matrix<Scalar>& sigma,
             const Param& param, ProgressBar* progressBar)
         {
-            using Component = Component<Scalar>;
-
             const auto k = param.k;
             const auto& forwardSolver = param.eigenSolverForForward;
             const auto& backwardSolver = param.eigenSolverForBackward;
@@ -557,17 +548,18 @@ namespace sparsepc
             auto forwardSolutionFuture =
                 std::async(std::launch::async, &ForwardGspcaModel::runAll, sigma, forwardParam, progressBar);
 
-            auto backwardSolutionSparseEigenElement = BackwardGspcaModel::runAll(sigma, backwardParam, progressBar);
+            ComponentsContainer backwardSolutionSparseEigenElement
+                = BackwardGspcaModel::runAll(sigma, backwardParam, progressBar);
 
-            auto forwardSolutionSparseEigenElement = forwardSolutionFuture.get();
+            ComponentsContainer forwardSolutionSparseEigenElement = forwardSolutionFuture.get();
 
             const auto n = sigma.cols();
 
-            for (Index j = 0; j < n-1; ++j)
+            for (Index j = 1; j <= n; ++j)
             {
-                if (backwardSolutionSparseEigenElement[j].value < forwardSolutionSparseEigenElement[j].value)
+                if (backwardSolutionSparseEigenElement.at(j).value < forwardSolutionSparseEigenElement.at(j).value)
                 {
-                    backwardSolutionSparseEigenElement[j] = std::move(forwardSolutionSparseEigenElement[j]);
+                    backwardSolutionSparseEigenElement.at(j) = std::move(forwardSolutionSparseEigenElement.at(j));
                 }
             }
 
@@ -575,13 +567,13 @@ namespace sparsepc
         }
 
         template<std::floating_point ScalarType>
-        using BackwardGspca = SparsePC<BackwardGspcaModel<ScalarType, EigenSolver<ScalarType>, DummyProgressBar>>;
+        using BackwardGspca = SparsePC<BackwardGspcaModel<ScalarType, EigenSolver<ScalarType>>>;
 
         template<std::floating_point ScalarType>
-        using ForwardGspca = SparsePC<ForwardGspcaModel<ScalarType, EigenSolver<ScalarType>, DummyProgressBar>>;
+        using ForwardGspca = SparsePC<ForwardGspcaModel<ScalarType, EigenSolver<ScalarType>>>;
 
         template<std::floating_point ScalarType>
-        using ParallelGspca = SparsePC<ParallelGspcaModel<ScalarType, EigenSolver<ScalarType>, DummyProgressBar>>;
+        using ParallelGspca = SparsePC<ParallelGspcaModel<ScalarType, EigenSolver<ScalarType>>>;
     }
 }
 #endif //SPARSEPC_GSPCA_SOLVER_HPP
