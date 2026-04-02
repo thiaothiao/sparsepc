@@ -265,6 +265,7 @@ void AtelierWidget::onRemoveLastSparseComponentButton()
 
     if(!m_ValidatedComponents.empty())
     {
+        m_ValidatedComponents.back().get().state = sparsepc::ComponentState::Unvalidated;
         m_ValidatedComponents.pop_back();
     }
 
