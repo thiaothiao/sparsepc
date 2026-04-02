@@ -1,4 +1,4 @@
-project(helloworld CXX)
+project(sparsely CXX)
 
 # some basic configurations
 set(CMAKE_AUTOMOC ON)
@@ -22,13 +22,6 @@ message( STATUS "System Name:           ${CMAKE_SYSTEM_NAME}" )
 message( STATUS "Processor Name:        ${CMAKE_SYSTEM_PROCESSOR}" )
 message( STATUS "Using Qt:              ${QT_VERSION}" )
 message( STATUS "                       [at ${QT_DIR}]" )
-
-#qt_standard_project_setup()
-
-#add_executable(helloworld WIN32 main.cpp AtelierMainWindow.cpp AtelierWidget.cpp
-#    AtelierMainWindow.h AtelierWidget.h)
-#qt_add_executable(helloworld main.cpp AtelierMainWindow.cpp AtelierWidget.cpp
-#AtelierMainWindow.h AtelierWidget.h)
 
 find_package(JKQTPlotter6 REQUIRED)
 
