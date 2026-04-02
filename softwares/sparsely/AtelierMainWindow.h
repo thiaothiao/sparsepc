@@ -14,6 +14,7 @@ class AtelierMainWindow : public QMainWindow
 public slots:
     void newFile(bool checked);
     void open(bool checked);
+    void save(bool checked);
     void close(bool checked);
 
 public:

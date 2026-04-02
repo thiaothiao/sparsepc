@@ -7,9 +7,6 @@
 #include <QAction>
 #include <QFileDialog>
 
-#include "simu.hpp"
-#include <Eigen/Dense>
-
 AtelierMainWindow::AtelierMainWindow(QWidget* parent)
     : QMainWindow(parent)
 {
@@ -17,28 +14,35 @@ AtelierMainWindow::AtelierMainWindow(QWidget* parent)
     this->setWindowTitle("SPARSELY Software - SPARSE principal component LaboratorY");
     this->setMinimumSize(640, 500);
 
-     auto* newAct = new QAction(QIcon::fromTheme(QIcon::ThemeIcon::DocumentNew),
-                          tr("&New"), this);
-    newAct->setShortcuts(QKeySequence::New);
-    newAct->setStatusTip(tr("Create a new file"));
-    QObject::connect(newAct, &QAction::triggered, this, &AtelierMainWindow::newFile);
+     auto* newAction = new QAction(QIcon::fromTheme(QIcon::ThemeIcon::DocumentNew),
+        tr("&New"), this);
+    newAction->setShortcuts(QKeySequence::New);
+    newAction->setStatusTip(tr("Create a new file"));
+    QObject::connect(newAction, &QAction::triggered, this, &AtelierMainWindow::newFile);
 
-    auto* openAct = new QAction(QIcon::fromTheme(QIcon::ThemeIcon::DocumentOpen),
-                          tr("&Open..."), this);
-    openAct->setShortcuts(QKeySequence::Open);
-    openAct->setStatusTip(tr("Open an existing file"));
-    QObject::connect(openAct, &QAction::triggered, this, &AtelierMainWindow::open);
+    auto* openAction = new QAction(QIcon::fromTheme(QIcon::ThemeIcon::DocumentOpen),
+        tr("&Open..."), this);
+    openAction->setShortcuts(QKeySequence::Open);
+    openAction->setStatusTip(tr("Open an existing file"));
+    QObject::connect(openAction, &QAction::triggered, this, &AtelierMainWindow::open);
 
-    auto* quitAct = new QAction(tr("&Quit"), this);
-    quitAct->setShortcuts(QKeySequence::Quit);
-    quitAct->setStatusTip(tr("Quit"));
-    QObject::connect(quitAct, &QAction::triggered, this, &AtelierMainWindow::close);
+    auto* saveAction = new QAction(QIcon::fromTheme(QIcon::ThemeIcon::DocumentSave),
+        tr("&Save"), this);
+    saveAction->setShortcuts(QKeySequence::Save); // Usually Ctrl+S
+    saveAction->setStatusTip(tr("Save the document to disk"));
+    QObject::connect(saveAction, &QAction::triggered, this, &AtelierMainWindow::save);
+
+    auto* quitAction = new QAction(tr("&Quit"), this);
+    quitAction->setShortcuts(QKeySequence::Quit);
+    quitAction->setStatusTip(tr("Quit"));
+    QObject::connect(quitAction, &QAction::triggered, this, &AtelierMainWindow::close);
 
     auto* fileMenu = menuBar()->addMenu(tr("&File"));
-    fileMenu->addAction(newAct);
-    fileMenu->addAction(openAct);
+    fileMenu->addAction(newAction);
+    fileMenu->addAction(openAction);
+    fileMenu->addAction(saveAction);
     //fileMenu->addSeparator();
-    fileMenu->addAction(quitAct);
+    fileMenu->addAction(quitAction);
 
     auto* mainWidget = new QWidget(this);
 
@@ -76,15 +80,26 @@ void AtelierMainWindow::newFile(bool checked)
 
     if (!fileName.isEmpty())
     {
-        m_AtelierWidget->init(sparsepc::openData<double>(fileName.toStdString(), ';'));
+        if(m_AtelierWidget)
+        {
+            m_AtelierWidget->init(sparsepc::openData<double>(fileName.toStdString(), ';'));
 
-        m_MainWidgetStackedLayout->setCurrentWidget(m_AtelierWidget);
+            m_MainWidgetStackedLayout->setCurrentWidget(m_AtelierWidget);
+        }
     }
 }
 
 void AtelierMainWindow::open(bool checked)
 {
     //m_MainWidgetStackedLayout->setCurrentWidget(m_AtelierWidget);
+}
+
+void AtelierMainWindow::save(bool checked)
+{
+    if(m_AtelierWidget)
+    {
+        m_AtelierWidget->save(checked);
+    }
 }
 
 void AtelierMainWindow::close(bool checked)
