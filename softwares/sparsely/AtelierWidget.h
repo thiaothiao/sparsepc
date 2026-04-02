@@ -7,8 +7,6 @@
 
 #include <QWidget>
 #include <QSlider>
-#include <QTimer>
-#include <QColor>
 #include <QVector>
 #include <QProgressBar>
 #include <QStackedLayout>
@@ -40,7 +38,7 @@ struct MyClass final
     std::size_t pcColumn;
     std::unordered_map<sparsepc::Index, sparsepc::Component<double>> candidates;
     JKQTPFilledCurveXGraph* pcGraph;
-    QColor color;
+    QString color;
 };
 
 class AtelierWidget : public QWidget
@@ -81,7 +79,7 @@ private:
     QStackedLayout* m_SliderOrProgressBarWidgetStackedLayout;
     QComboBox* m_MethodComboBox;
 
-    QVector<QColor> m_Colors;
+    QVector<QString> m_Colors;
 };
 
 #endif //SPARSEPC_ATELIER_WIDGET_HPP

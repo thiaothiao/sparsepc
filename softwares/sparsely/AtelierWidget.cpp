@@ -57,12 +57,12 @@ void AtelierWidget::drawStandardPCs()
     JKQTPDatastore* ds = m_Plotter->getDatastore();
 
     m_Colors.reserve(components.size());
-    m_Colors.push_back(QColor("red"));
-    m_Colors.push_back(QColor("green"));
-    m_Colors.push_back(QColor("blue"));
-    m_Colors.push_back(QColor("magenta"));
-    m_Colors.push_back(QColor("yellow"));
-    m_Colors.push_back(QColor("cyan"));
+    m_Colors.push_back("red");
+    m_Colors.push_back("green");
+    m_Colors.push_back("blue");
+    m_Colors.push_back("magenta");
+    m_Colors.push_back("yellow");
+    m_Colors.push_back("cyan");
 
     for (int j=0; j<components.size(); ++j)
     {
@@ -91,7 +91,7 @@ void AtelierWidget::drawStandardPCs()
 
         standardPC.pcGraph = new JKQTPFilledCurveXGraph(m_Plotter);
 
-        auto col = standardPC.color;
+        auto col = QColor(standardPC.color);
         standardPC.pcGraph->setLineStyle(Qt::SolidLine);
         standardPC.pcGraph->setLineWidth(1);
         standardPC.pcGraph->setLineColor(col);
@@ -138,10 +138,8 @@ void AtelierWidget::onAddNewSparseComponent()
     sparsePC.iCandidate = -1;
 
     sparsePC.color = m_Colors[m_ValidatedComponents.size()];
-    const QString colorString =
-        QString("rgb(%1, %2, %3)").arg(sparsePC.color.red()).arg(sparsePC.color.green()).arg(sparsePC.color.blue());
 
-    m_ProgressBarGroupBox->setStyleSheet("QGroupBox::title { color: "+ colorString + "; }");
+    m_ProgressBarGroupBox->setStyleSheet("QGroupBox::title { color: "+ sparsePC.color + "; }");
 
     const auto n = m_Sigma.cols();
 
@@ -194,7 +192,7 @@ void AtelierWidget::onAddNewSparseComponent()
         std::this_thread::sleep_for(1000ms);
     }
 
-    m_SliderGroupBox->setStyleSheet("QGroupBox::title { color: "+ colorString + "; }");
+    m_SliderGroupBox->setStyleSheet("QGroupBox::title { color: "+ sparsePC.color + "; }");
 
     m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(m_SliderGroupBox);// why not set current index
 
@@ -224,7 +222,7 @@ void AtelierWidget::onAddNewSparseComponent()
 
     sparsePC.pcGraph = new JKQTPFilledCurveXGraph(m_Plotter);
 
-    auto col = sparsePC.color;
+    auto col = QColor(sparsePC.color);
     sparsePC.pcGraph->setLineStyle(Qt::DotLine);
     sparsePC.pcGraph->setLineWidth(2);
     sparsePC.pcGraph->setLineColor(col);
@@ -276,12 +274,7 @@ void AtelierWidget::onRemoveLastSparseComponentButton()
 
     if(!m_SparsePCs.empty())
     {
-        const QString colorString =
-            QString("rgb(%1, %2, %3)").arg(m_SparsePCs.back()
-            .color.red()).arg(m_SparsePCs.back().color.green())
-            .arg(m_SparsePCs.back().color.blue());
-
-        m_SliderGroupBox->setStyleSheet("QGroupBox::title { color: "+ colorString + "; }");
+        m_SliderGroupBox->setStyleSheet("QGroupBox::title { color: "+ m_SparsePCs.back().color + "; }");
 
         m_Slider->setValue(m_SparsePCs.back().iCandidate);
     }
