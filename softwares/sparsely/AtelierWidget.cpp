@@ -11,12 +11,11 @@
 #include <QSlider>
 #include <QLabel>
 #include <QProgressBar>
-#include <QGraphicsOpacityEffect>
+#include <QPen>
 
 #include <QColor>
 #include <QString>
 
-#include "sparsepc/core.hpp"
 #include "simu.hpp"
 #include <Eigen/Dense>
 
@@ -61,20 +60,20 @@ void AtelierWidget::drawStandardPCs()
     JKQTPDatastore* ds = m_Plotter->getDatastore();
 
     m_Colors.reserve(sparseEigenElements.size());
-    m_Colors.push_back(QColorConstants::Svg::orange);
-    m_Colors.push_back(QColorConstants::Svg::limegreen);
-    m_Colors.push_back(QColorConstants::Svg::plum);
-    m_Colors.push_back(QColorConstants::Svg::cyan);
-    m_Colors.push_back(QColorConstants::Svg::magenta);
+    m_Colors.push_back(QColor("red"));
+    m_Colors.push_back(QColor("green"));
+    m_Colors.push_back(QColor("blue"));
+    m_Colors.push_back(QColor("magenta"));
+    m_Colors.push_back(QColor("yellow"));
+    m_Colors.push_back(QColor("cyan"));
 
-    m_PCGraphs.reserve(n);
     for (int j=0; j<sparseEigenElements.size(); ++j)
     {
         const auto& element = sparseEigenElements[j];
 
         QString formattedValueStr = QString::number(element.value, 'f', 2);
         QString formattedPCNumberStr = QString::number(j);
-        QString curveName = QString("pc") + formattedPCNumberStr;
+        QString curveName = formattedPCNumberStr;
         size_t column = ds->addColumn(n, curveName);
 
         ds->setAll(column, static_cast<double>(0));
@@ -84,41 +83,37 @@ void AtelierWidget::drawStandardPCs()
             ds->inc(column, i, element.vector[i]);
         }
 
-        //JKQTPXYScatterGraph
-        //JKQTPXYLineGraph
-        m_PCGraphs.push_back(new JKQTPXYLineGraph(m_Plotter));
-        auto& graph = m_PCGraphs.back();
+        auto* graph = new JKQTPFilledCurveXGraph(m_Plotter);
 
-        graph->setTitle(curveName + ": " + formattedValueStr);
-
-        QColor col = m_Colors[j];
-        graph->setColor(col);
-        //col.setAlphaF(0.125f);
-        //graph->setFillColor(col);
-
+        auto col = m_Colors[j];
         graph->setLineStyle(Qt::DotLine);
         graph->setLineWidth(1);
+        graph->setLineColor(col);
+
+        graph->setFillMode(JKQTPFilledCurveXGraph::FillMode::SingleFilling);
+
+        col.setAlphaF(0.125f);
+        graph->setFillColor(col);
+        graph->fillStyleBelow().setFillColor(col);
+        graph->setBaseline(0.0);
 
         graph->setXColumn(m_ColumnX);
         graph->setYColumn(column);
 
+        graph->setTitle(curveName + ": " + formattedValueStr);
+
+        m_PCGraphs.push_back(graph);
         m_Plotter->addGraph(graph);
     }
 
-    // 5. set axis labels
-    //m_Plotter->getXAxis()->setAxisLabel("features");
-    //m_Plotter->getYAxis()->setAxisLabel("magnitudes");
-
-    // 4. set the maximum size of the plot to 0..100% and 0..256
+    // set the maximum size of the plot
     m_Plotter->setAbsoluteX(static_cast<double>(0), static_cast<double>(n-1));
     m_Plotter->setAbsoluteY(static_cast<double>(-1), static_cast<double>(1));
 
-    // ... and scale plot automatically
+    //scale plot automatically
     m_Plotter->zoomToFit(true, false);
 
-    // 5. show plotter and make it a decent size
     m_Plotter->resize(400,300);
-    //plot.show();
 }
 
 void AtelierWidget::onAddNewSparseComponent()
@@ -209,7 +204,7 @@ void AtelierWidget::onAddNewSparseComponent()
 
     QString formattedValueStr = QString::number(element.value, 'f', 2);
     QString formattedPCNumberStr = QString::number(m_ValidatedComponents.size());
-    QString curveName = QString("spc") + formattedPCNumberStr;
+    QString curveName = formattedPCNumberStr;
 
     JKQTPDatastore* ds = m_Plotter->getDatastore();
 
@@ -222,18 +217,24 @@ void AtelierWidget::onAddNewSparseComponent()
         ds->inc(myClass.sPCColumn, i, element.vector[i]);
     }
 
-    myClass.sPCGraph = new JKQTPXYLineGraph(m_Plotter);
+    myClass.sPCGraph = new JKQTPFilledCurveXGraph(m_Plotter);
 
-    myClass.sPCGraph->setTitle(curveName + ": " + formattedValueStr);
-
-    myClass.sPCGraph->setColor(myClass.color);
-    //myClass.color.setAlphaF(0.125f);
-    //myClass.sPCGraph->setFillColor(myClass.color);
-
+    auto col = myClass.color;
+    myClass.sPCGraph->setLineStyle(Qt::SolidLine);
     myClass.sPCGraph->setLineWidth(2);
+    myClass.sPCGraph->setLineColor(col);
+
+    myClass.sPCGraph->setFillMode(JKQTPFilledCurveXGraph::FillMode::SingleFilling);
+
+    col.setAlphaF(0.25f);
+    myClass.sPCGraph->setFillColor(col);
+    myClass.sPCGraph->fillStyleBelow().setFillColor(col);
+    myClass.sPCGraph->setBaseline(0.0);
 
     myClass.sPCGraph->setXColumn(m_ColumnX);
     myClass.sPCGraph->setYColumn(myClass.sPCColumn);
+
+    myClass.sPCGraph->setTitle(curveName + ": " + formattedValueStr);
 
     m_Plotter->addGraph(myClass.sPCGraph);
 
@@ -312,7 +313,7 @@ void AtelierWidget::updatePlot(int value)
 
     QString formattedValueStr = QString::number(candidate.value, 'f', 2);
     QString formattedPCNumberStr = QString::number(m_ValidatedComponents.size());
-    QString curveName = QString("spc") + formattedPCNumberStr;
+    QString curveName = formattedPCNumberStr;
 
     myClass.sPCGraph->setTitle(curveName + ": " + formattedValueStr);
 
@@ -348,6 +349,7 @@ AtelierWidget::AtelierWidget(QWidget* parent)
 
     m_ValidatedComponents.reserve(n);
     m_MyClasses.reserve(n);
+    m_PCGraphs.reserve(n);
 
     auto* layout = new QGridLayout(this);
 
@@ -358,6 +360,11 @@ AtelierWidget::AtelierWidget(QWidget* parent)
     m_Plotter = new JKQTPlotter(this);
     m_Plotter->setWindowTitle("Plotter!!!!");
     m_Plotter->setPlotUpdateEnabled(true);
+
+    //m_Plotter->getPlotter()->setUseAntiAliasingForGraphs(true); // nicer (but slower) plotting
+    //m_Plotter->getPlotter()->setUseAntiAliasingForSystem(true); // nicer (but slower) plotting
+    //m_Plotter->getPlotter()->setUseAntiAliasingForText(true); // nicer (but slower) text rendering
+
     JKQTPDatastore* datastore = m_Plotter->getDatastore();
     m_ColumnX = datastore->addLinearColumn(n, 0, n-1, "xi");
     plotGroupboxLayout->addWidget(m_Plotter);

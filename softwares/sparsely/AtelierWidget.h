@@ -18,6 +18,7 @@
 #include "jkqtplotter/jkqtplotter.h"
 #include "jkqtplotter/graphs/jkqtpfilledcurve.h"
 #include "jkqtplotter/graphs/jkqtpscatter.h"
+#include "jkqtplotter/graphs/jkqtpbarchart.h"
 
 #include "sparsepc/core.hpp"
 
@@ -38,7 +39,7 @@ struct MyClass final
     int iCandidate;
     std::size_t sPCColumn;
     std::unordered_map<sparsepc::Index, sparsepc::Component<double>> candidates;
-    JKQTPXYLineGraph* sPCGraph;
+    JKQTPFilledCurveXGraph* sPCGraph;
     QColor color;
 };
 
@@ -63,7 +64,8 @@ private:
     std::size_t m_ColumnX;
     std::vector<std::reference_wrapper<sparsepc::Component<double>>> m_ValidatedComponents;
     std::vector<MyClass> m_MyClasses;
-    std::vector<JKQTPXYLineGraph*> m_PCGraphs;
+
+    std::vector<JKQTPFilledCurveXGraph*> m_PCGraphs;
 
     JKQTPlotter* m_Plotter;
     QGroupBox* m_SliderGroupBox;
