@@ -52,6 +52,8 @@ public:
 
 void drawStandardPCs();
 
+void init(sparsepc::Matrix<double>&& sigma);
+
 public slots:
     void onAddNewSparseComponent();
     void updatePlot(int value);

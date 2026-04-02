@@ -16,9 +16,6 @@
 #include <QColor>
 #include <QString>
 
-#include "simu.hpp"
-#include <Eigen/Dense>
-
 namespace
 {
     enum class SpcaMethod : std::uint8_t
@@ -340,11 +337,13 @@ AtelierWidget::AtelierWidget(QWidget* parent)
     m_SliderOrProgressBarWidgetStackedLayout{nullptr},
     m_MethodComboBox{nullptr}, m_Colors{}
 {
-    using Matrix = sparsepc::Matrix<double>;
-    using Vector = sparsepc::Vector<double>;
-    using Index = sparsepc::Index;
+}
 
-    m_Sigma = sparsepc::linearmodel::pitprops<double>();
+
+void AtelierWidget::init(sparsepc::Matrix<double>&& sigma)
+{
+    m_Sigma = std::move(sigma);
+
     const auto n = m_Sigma.cols();
 
     m_ValidatedComponents.reserve(n);
@@ -438,15 +437,15 @@ AtelierWidget::AtelierWidget(QWidget* parent)
     // connect
 
     QObject::connect(m_ProgressBar, &QProgressBar::valueChanged,
-        this, &AtelierWidget::updateProgressBarTitle);
+                     this, &AtelierWidget::updateProgressBarTitle);
     QObject::connect(m_Slider, &QSlider::valueChanged,
-        this, &AtelierWidget::updateSliderTitle);
+                     this, &AtelierWidget::updateSliderTitle);
     QObject::connect(m_Slider, &QSlider::valueChanged,
-        this, &AtelierWidget::updatePlot);
+                     this, &AtelierWidget::updatePlot);
     QObject::connect(addNewSparseComponentButton, &QPushButton::clicked,
-        this, &AtelierWidget::onAddNewSparseComponent);
+                     this, &AtelierWidget::onAddNewSparseComponent);
     QObject::connect(removeLastSparseComponentButton, &QPushButton::clicked,
-        this, &AtelierWidget::onRemoveLastSparseComponentButton);
+                     this, &AtelierWidget::onRemoveLastSparseComponentButton);
 
     processingsGoupboxLayout->addStretch(1);
 
