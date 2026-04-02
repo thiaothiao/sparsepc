@@ -86,7 +86,7 @@ void AtelierWidget::drawStandardPCs()
         auto* graph = new JKQTPFilledCurveXGraph(m_Plotter);
 
         auto col = m_Colors[j];
-        graph->setLineStyle(Qt::DotLine);
+        graph->setLineStyle(Qt::SolidLine);
         graph->setLineWidth(1);
         graph->setLineColor(col);
 
@@ -220,7 +220,7 @@ void AtelierWidget::onAddNewSparseComponent()
     myClass.sPCGraph = new JKQTPFilledCurveXGraph(m_Plotter);
 
     auto col = myClass.color;
-    myClass.sPCGraph->setLineStyle(Qt::SolidLine);
+    myClass.sPCGraph->setLineStyle(Qt::DotLine);
     myClass.sPCGraph->setLineWidth(2);
     myClass.sPCGraph->setLineColor(col);
 
