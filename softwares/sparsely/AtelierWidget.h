@@ -25,8 +25,8 @@
 struct MyClass final
 {
     MyClass()
-        :iCandidate{-1}, sPCColumn{0}, candidates{},
-        sPCGraph{nullptr}, color{}
+        :iCandidate{-1}, pcColumn{0}, candidates{},
+        pcGraph{nullptr}, color{}
     {
     }
 
@@ -37,9 +37,9 @@ struct MyClass final
     MyClass& operator=(MyClass&&) = default;
 
     int iCandidate;
-    std::size_t sPCColumn;
+    std::size_t pcColumn;
     std::unordered_map<sparsepc::Index, sparsepc::Component<double>> candidates;
-    JKQTPFilledCurveXGraph* sPCGraph;
+    JKQTPFilledCurveXGraph* pcGraph;
     QColor color;
 };
 
@@ -60,14 +60,18 @@ public slots:
     void onRemoveLastSparseComponentButton();
     void updateSliderTitle(int value);
     void updateProgressBarTitle(int value);
+    void save(bool checked);
 
 private:
     sparsepc::Matrix<double> m_Sigma;
-    std::size_t m_ColumnX;
-    std::vector<std::reference_wrapper<sparsepc::Component<double>>> m_ValidatedComponents;
-    std::vector<MyClass> m_MyClasses;
 
-    std::vector<JKQTPFilledCurveXGraph*> m_PCGraphs;
+    std::size_t m_ColumnX;
+
+    std::vector<std::reference_wrapper<sparsepc::Component<double>>> m_ValidatedComponents;
+
+    std::vector<MyClass> m_SparsePCs;
+
+    std::vector<MyClass> m_StandardPCs;
 
     JKQTPlotter* m_Plotter;
     QGroupBox* m_SliderGroupBox;
