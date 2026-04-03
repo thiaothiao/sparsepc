@@ -12,7 +12,10 @@ int main(int argc, char *argv[])
     app.setWindowIcon(QIcon(R"(C:\Users\thiao\Pictures\sparsely\logo1.png)"));
 
     QPixmap pixmap(R"(C:\Users\thiao\Pictures\sparsely\logo1_text.png)");
+    pixmap.setMask(pixmap.createMaskFromColor(Qt::white));
     QSplashScreen splash(pixmap);
+    splash.setMask(pixmap.mask());
+
     splash.show();
 
     app.processEvents();
