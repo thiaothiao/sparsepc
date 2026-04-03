@@ -71,6 +71,9 @@ private:
 
     std::vector<MyClass> m_StandardPCs;
 
+    double m_CummulativeVarianceStandardPCs;
+    double m_CummulativeVarianceSparsePCs;
+
     JKQTPlotter* m_Plotter;
     QGroupBox* m_SliderGroupBox;
     QGroupBox* m_ProgressBarGroupBox;

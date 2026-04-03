@@ -63,6 +63,7 @@ void AtelierWidget::drawStandardPCs()
     m_Colors.push_back("magenta");
     m_Colors.push_back("yellow");
     m_Colors.push_back("cyan");
+    m_CummulativeVarianceStandardPCs = static_cast<double>(0);
 
     for (int j=0; j<components.size(); ++j)
     {
@@ -77,7 +78,9 @@ void AtelierWidget::drawStandardPCs()
 
         standardPC.color = m_Colors[j];
 
-        QString formattedValueStr = QString::number(component.value, 'f', 2);
+        m_CummulativeVarianceStandardPCs += component.value;
+
+        QString formattedValueStr = QString::number(m_CummulativeVarianceStandardPCs, 'f', 2);
         QString formattedPCNumberStr = QString::number(j);
         QString curveName = formattedPCNumberStr;
         size_t column = ds->addColumn(n, curveName);
@@ -127,8 +130,10 @@ void AtelierWidget::onAddNewSparseComponent()
     {// validate current selected sparse component
         auto& candidates = m_SparsePCs.back().candidates;
         const auto iCandidate = m_SparsePCs.back().iCandidate;
-        candidates[iCandidate].state = sparsepc::ComponentState::Validated;
-        m_ValidatedComponents.push_back(candidates[iCandidate]);// TODO use std::move
+
+        m_ValidatedComponents.push_back(candidates.at(iCandidate));
+        m_ValidatedComponents.back().get().state = sparsepc::ComponentState::Validated;
+        m_CummulativeVarianceSparsePCs += m_ValidatedComponents.back().get().value;
     }
 
     m_SparsePCs.push_back({});// Why not emplace_back
@@ -205,7 +210,7 @@ void AtelierWidget::onAddNewSparseComponent()
 
     const auto& component = sparsePC.candidates.at(initialICandidate);
 
-    QString formattedValueStr = QString::number(component.value, 'f', 2);
+    QString formattedValueStr = QString::number(m_CummulativeVarianceSparsePCs + component.value, 'f', 2);
     QString formattedPCNumberStr = QString::number(m_ValidatedComponents.size());
     QString curveName = formattedPCNumberStr;
 
@@ -264,6 +269,7 @@ void AtelierWidget::onRemoveLastSparseComponentButton()
     if(!m_ValidatedComponents.empty())
     {
         m_ValidatedComponents.back().get().state = sparsepc::ComponentState::Unvalidated;
+        m_CummulativeVarianceSparsePCs -= m_ValidatedComponents.back().get().value;
         m_ValidatedComponents.pop_back();
     }
 
@@ -310,7 +316,7 @@ void AtelierWidget::updatePlot(int value)
         ds->inc(sparsePC.pcColumn, i, candidate.vector[i]);
     }
 
-    QString formattedValueStr = QString::number(candidate.value, 'f', 2);
+    QString formattedValueStr = QString::number(m_CummulativeVarianceSparsePCs + candidate.value, 'f', 2);
     QString formattedPCNumberStr = QString::number(m_ValidatedComponents.size());
     QString curveName = formattedPCNumberStr;
 
@@ -338,7 +344,8 @@ void AtelierWidget::save(bool checked)
 
 AtelierWidget::AtelierWidget(QWidget* parent)
     : QWidget(parent), m_Sigma{}, m_ValidatedComponents{},
-    m_SparsePCs{}, m_StandardPCs{}, m_Plotter{nullptr},
+    m_SparsePCs{}, m_StandardPCs{}, m_CummulativeVarianceStandardPCs{0.0},
+    m_CummulativeVarianceSparsePCs{0}, m_Plotter{nullptr},
     m_SliderGroupBox{nullptr}, m_ProgressBarGroupBox{nullptr},
     m_Slider{nullptr}, m_ProgressBar{nullptr},
     m_SliderOrProgressBarWidgetStackedLayout{nullptr},
