@@ -93,7 +93,7 @@ void AtelierMainWindow::open(bool checked)
         this,                        // Parent widget
         "Open File",                 // Dialog title
         "/home",                     // Starting directory
-        "Files (*.parsely)" // File filters
+        "Files (*.sparsely)" // File filters
         );
 
     if (!fileName.isEmpty())
@@ -111,7 +111,7 @@ void AtelierMainWindow::save(bool checked)
     if(m_AtelierWidget)
     {
         const auto fileName = QFileDialog::getSaveFileName(this,
-            tr("Save File"), "/home/user/data.parsely", tr("Files (*.parsely)"));
+            tr("Save File"), "/home/user/data.sparsely", tr("Files (*.sparsely)"));
 
         if (!fileName.isEmpty())
         {
@@ -129,5 +129,8 @@ void AtelierMainWindow::close(bool checked)
 void AtelierMainWindow::closeEvent(QCloseEvent *event)
 {// closing via X button
     save(true);
-    event->accept();
+    if(event)
+    {
+        event->accept();
+    }
 }
