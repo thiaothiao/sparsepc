@@ -1,34 +1,88 @@
-#include <QApplication>
-#include <QProgressBar>
-#include <QGraphicsOpacityEffect>
-#include <QVBoxLayout>
-#include <QWidget>
+#include <filesystem>
+#include <iostream>
+#include <stdexcept>
+#include <string>
+#include <string_view>
+#include <vector>
 
-int main(int argc, char *argv[]) {
-    QApplication a(argc, argv);
+#include "spcaloader.hpp"
 
-    QWidget *window = new QWidget;
-    window->resize(400, 300);
+/**
+ * @brief Get the list of files in a directory.
+ * @param directory Name of the directory.
+ * @return A vector with the names of the files in the directory.
+ */
+std::vector<std::string> getPluginList(std::string_view directory);
 
-    QProgressBar *progressBar = new QProgressBar(window);
-    progressBar->setRange(0, 100);
-    progressBar->setValue(50);
-    progressBar->setGeometry(50, 120, 300, 50); // Position it as an overlay
+int main(int argc, char** argv)
+{
+    std::string const pluginsDir = [&]() {
+                if (argc > 1)
+                {
+                    return std::string(argv[1]);
+                }
+                return std::string("plugins");
+          }();
 
-    // 1. Make the QProgressBar background itself transparent via stylesheet
-    progressBar->setStyleSheet(
-        "QProgressBar { background-color: transparent; border: 1px solid grey; } QProgressBar::chunk { background: blue; }");
+  std::vector<plugin::SpcaLoader> loaders;
 
-    // 2. Apply a QGraphicsOpacityEffect to control the widget's overall semi-transparency
-    QGraphicsOpacityEffect *opacityEffect = new QGraphicsOpacityEffect(progressBar);
-    opacityEffect->setOpacity(0.5); // Set desired opacity (0.0 to 1.0)
-    progressBar->setGraphicsEffect(opacityEffect);
+    for (auto const plugins = getPluginList(pluginsDir);
+       auto const& pluginFile : plugins)
+    {
+        try
+        {
+            std::cout << "Loading " << pluginFile << "...";
+            loaders.emplace_back(pluginFile);
+            std::cout << " Loaded!\n";
+        }
+        catch (std::runtime_error const& e)
+        {
+            std::cerr << "Failed: " << e.what() << '\n';
+        }
+    }
 
-    // Optionally, use a semi-transparent color for the chunk itself via stylesheet if preferred
-    // progressBar->setStyleSheet("QProgressBar::chunk { background: rgba(0, 0, 255, 128); }"); // 128 is 50% alpha
+    std::cout << "\n loaded plugins \n";
+    for (int index = 1; auto const& loader : loaders)
+    {
+        std::cout << "\n\t" << index++ << ") " << loader.getSpca().getName();
+    }
+    std::cout << "\n plugin loaded.\n";
 
+    try
+    {
+        const plugin::SPCA& spca = loaders.at(0).getSpca();
 
-    window->show();
+        spca.solve(nullptr, 0, 0, nullptr);
 
-    return a.exec();
+        std::cout << "\n Job done.\n";
+    }
+    catch (std::out_of_range const&)
+    {
+        std::cout << "\n Wrong.\n";
+    }
+
+    return 0;
+}
+
+std::vector<std::string> getPluginList(std::string_view directory)
+try
+{
+    std::filesystem::path const pluginsDir(directory);
+    std::vector<std::string> plugins;
+
+    for (auto const& entry : std::filesystem::directory_iterator(pluginsDir))
+    {
+        if (auto const& ext = entry.path().extension();
+            entry.is_regular_file() &&
+            (ext == ".dll" || ext == ".so" || ext == ".dylib"))
+        {
+            plugins.push_back(entry.path().relative_path().string());
+        }
+    }
+    return plugins;
+}
+catch (std::filesystem::filesystem_error const& e)
+{
+    std::cerr << e.what() << '\n';
+    return {};
 }

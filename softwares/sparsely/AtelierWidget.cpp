@@ -1,4 +1,5 @@
 #include "AtelierWidget.h"
+#include "usersolver.hpp"
 
 #include <thread>
 #include <utility>

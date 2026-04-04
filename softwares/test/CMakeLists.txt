@@ -1,34 +1,28 @@
 project(test CXX)
 
-# some basic configurations
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
+option(BUILD_PLUGINS "Build a few plugins to test" ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui PrintSupport Svg Xml OpenGl REQUIRED)
+# add warnings
+if(MSVC)
+  add_compile_options(/W4)
+else()
+  add_compile_options(-Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion)
+endif()
 
-message( STATUS )
-message( STATUS "=============================================================================" )
-message( STATUS "== JKQTPlotterLib:simpletest_cmake Build Information                       ==" )
-message( STATUS "=============================================================================" )
-message( STATUS "Version:               ${PROJECT_VERSION}")
-message( STATUS "Build type:            ${CMAKE_BUILD_TYPE}")
-message( STATUS "Build types:           ${CMAKE_CONFIGURATION_TYPES}")
-message( STATUS "Using CMake:           ${CMAKE_VERSION}")
-message( STATUS "Using CMake Generator: ${CMAKE_GENERATOR}")
-message( STATUS "Using compiler:        ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}, platform: ${CMAKE_CXX_PLATFORM_ID}" )
-message( STATUS "LIB-Architecture:      CXX: ${CMAKE_CXX_LIBRARY_ARCHITECTURE} / BASE: ${CMAKE_LIBRARY_ARCHITECTURE}" )
-message( STATUS "System Name:           ${CMAKE_SYSTEM_NAME}" )
-message( STATUS "Processor Name:        ${CMAKE_SYSTEM_PROCESSOR}" )
-message( STATUS "Using Qt:              ${QT_VERSION}" )
-message( STATUS "                       [at ${QT_DIR}]" )
+# Plugin interface
+add_library(spcaplugin INTERFACE spca.hpp)
+target_include_directories(spcaplugin INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
+# Main program
+add_executable(spcas spcaloader.hpp spcaloader.cpp main.cpp)
+target_link_libraries(spcas PRIVATE spcaplugin)
 
-# add the example executable
-add_executable(${PROJECT_NAME} WIN32 main.cpp)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  target_link_libraries(spcas PRIVATE dl)
+endif()
 
-target_link_libraries(${PROJECT_NAME} PUBLIC Qt6::Core Qt6::Widgets Qt6::Gui Qt6::PrintSupport Qt6::Svg Qt6::Xml)
-
-# Installation
-install(TARGETS ${PROJECT_NAME}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
+# Plugins
+if(BUILD_PLUGINS)
+  message(STATUS "Configuring plugins")
+  add_subdirectory(plugins)
+endif(BUILD_PLUGINS)
