@@ -1,6 +1,7 @@
 #include "AtelierWidget.h"
 
 #include <thread>
+#include <utility>
 
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -9,12 +10,12 @@
 #include <QGroupBox>
 #include <QPushButton>
 #include <QSlider>
-#include <QLabel>
 #include <QProgressBar>
 #include <QPen>
 #include <QFile>
 #include <QColor>
 #include <QString>
+#include <QDataStream>
 
 namespace
 {
@@ -25,7 +26,6 @@ namespace
         BGSPCA   // BackwardGSPA
     };
 
-    //std::cout << "\nStarting backward run.\n";
     using BackwardGSPA = sparsepc::linearmodel::SparsePC<
         sparsepc::linearmodel::BackwardGspcaModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
 
@@ -48,7 +48,7 @@ void AtelierWidget::computeStandardPCs()
     m_StandardPCs.reserve(components.size());
     for (int j=0; j < components.size(); ++j)
     {
-        m_StandardPCs.push_back({});// Why not emplace_back
+        m_StandardPCs.emplace_back();
         auto& standardPC = m_StandardPCs.back();
         standardPC.iCandidate = m_N;
         standardPC.color = m_Colors[j];
@@ -172,7 +172,7 @@ void AtelierWidget::onAddNewSparseComponent()
         m_CummulativeVarianceSparsePCs += m_ValidatedComponents.back().get().value;
     }
 
-    m_SparsePCs.push_back({});// Why not emplace_back
+    m_SparsePCs.emplace_back();
 
     auto& sparsePC = m_SparsePCs.back();
 
@@ -393,7 +393,6 @@ void AtelierWidget::createWidget()
 
     auto* layout = new QGridLayout(this);
 
-    // plot
     auto* plotGroupbox = new QGroupBox(this);
     layout->addWidget(plotGroupbox, 0, 0);
     auto* plotGroupboxLayout = new QHBoxLayout(plotGroupbox);
@@ -440,7 +439,6 @@ void AtelierWidget::createWidget()
     m_SliderOrProgressBarWidgetStackedLayout->addWidget(m_ProgressBarGroupBox);
     m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(m_SliderGroupBox);
 
-    // processings
     auto* processingsGoupbox = new QGroupBox(this);
     layout->addWidget(processingsGoupbox, 2, 0);
 
@@ -474,8 +472,6 @@ void AtelierWidget::createWidget()
     auto* removeLastSparseComponentButton =
         new QPushButton("Remove last", this);
     actionGroupBoxLayout->addWidget(removeLastSparseComponentButton);
-
-    // connect
 
     QObject::connect(m_ProgressBar, &QProgressBar::valueChanged,
                      this, &AtelierWidget::updateProgressBarTitle);
@@ -568,9 +564,9 @@ QDataStream &operator>>(QDataStream &in, MyClass &user)
         auto& component = user.candidates[valInt];
         in >> valInt;
         component.state = static_cast<sparsepc::ComponentState>(valInt);
-        double valDouble = -1;
-        in >> valDouble;
-        component.value = valDouble;
+        auto val = static_cast<double>(-1);
+        in >> val;
+        component.value = val;
         in >> valInt;
         component.vector = sparsepc::Vector<double>(valInt);
         in.readRawData(reinterpret_cast<char*>(
@@ -655,11 +651,9 @@ void AtelierWidget::loadProject(const QString& fileName)
 
 void AtelierWidget::zoomToFit()
 {
-    // set the maximum size of the plot
     m_Plotter->setAbsoluteX(static_cast<double>(0), static_cast<double>(m_N-1));
     m_Plotter->setAbsoluteY(static_cast<double>(-1), static_cast<double>(1));
 
-    //scale plot automatically
     m_Plotter->zoomToFit(true, false);
 
     m_Plotter->resize(400,300);

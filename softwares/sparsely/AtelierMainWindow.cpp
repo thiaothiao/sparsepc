@@ -1,11 +1,11 @@
-#include "sparsepc/version.hpp"
-
 #include "AtelierMainWindow.h"
 
 #include <QMenuBar>
 #include <QMenu>
 #include <QAction>
 #include <QFileDialog>
+
+#include "sparsepc/version.hpp"
 
 AtelierMainWindow::AtelierMainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -17,19 +17,19 @@ AtelierMainWindow::AtelierMainWindow(QWidget* parent)
      auto* newAction = new QAction(QIcon::fromTheme(QIcon::ThemeIcon::DocumentNew),
         tr("&New"), this);
     newAction->setShortcuts(QKeySequence::New);
-    newAction->setStatusTip(tr("Create a new file"));
+    newAction->setStatusTip(tr("Create a new project"));
     QObject::connect(newAction, &QAction::triggered, this, &AtelierMainWindow::newFile);
 
     auto* openAction = new QAction(QIcon::fromTheme(QIcon::ThemeIcon::DocumentOpen),
         tr("&Open..."), this);
     openAction->setShortcuts(QKeySequence::Open);
-    openAction->setStatusTip(tr("Open an existing file"));
+    openAction->setStatusTip(tr("Open an existing project"));
     QObject::connect(openAction, &QAction::triggered, this, &AtelierMainWindow::open);
 
     auto* saveAction = new QAction(QIcon::fromTheme(QIcon::ThemeIcon::DocumentSave),
         tr("&Save"), this);
     saveAction->setShortcuts(QKeySequence::Save); // Usually Ctrl+S
-    saveAction->setStatusTip(tr("Save the document to disk"));
+    saveAction->setStatusTip(tr("Save project to disk"));
     QObject::connect(saveAction, &QAction::triggered, this, &AtelierMainWindow::save);
 
     auto* quitAction = new QAction(tr("&Quit"), this);

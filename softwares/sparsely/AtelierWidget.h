@@ -1,24 +1,22 @@
 #ifndef SPARSEPC_ATELIER_WIDGET_HPP
 #define SPARSEPC_ATELIER_WIDGET_HPP
 
+#include <cstddef>
 #include <vector>
-#include <functional>
 #include <unordered_map>
-#include <utility>
+#include <functional>
 
+#include <QString>
 #include <QWidget>
+#include <QGroupBox>
 #include <QSlider>
 #include <QVector>
 #include <QProgressBar>
 #include <QStackedLayout>
 #include <QCombobox>
-#include <QGroupBox>
-#include <QFile>
-#include <QDataStream>
 
 #include "jkqtplotter/jkqtplotter.h"
 #include "jkqtplotter/graphs/jkqtpfilledcurve.h"
-#include "jkqtplotter/graphs/jkqtpscatter.h"
 
 #include "sparsepc/core.hpp"
 
