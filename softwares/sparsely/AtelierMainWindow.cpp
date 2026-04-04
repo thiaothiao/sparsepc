@@ -58,9 +58,9 @@ AtelierMainWindow::AtelierMainWindow(QWidget* parent)
     topLevelLabel->setMask(pixmap.mask());
     welcomeWidgeLayout->addWidget(topLevelLabel);
 
-    m_MainWidgetStackedLayout->addWidget(m_WelcomeWidget);
-
     m_AtelierWidget = new AtelierWidget(this);
+
+    m_MainWidgetStackedLayout->addWidget(m_WelcomeWidget);
     m_MainWidgetStackedLayout->addWidget(m_AtelierWidget);
 
     m_MainWidgetStackedLayout->setCurrentWidget(m_WelcomeWidget);
@@ -70,7 +70,6 @@ AtelierMainWindow::AtelierMainWindow(QWidget* parent)
 
 void AtelierMainWindow::newFile(bool checked)
 {
-    // Open dialog to select a single file
     const QString fileName = QFileDialog::getOpenFileName(
         this,                        // Parent widget
         "Open File",                 // Dialog title
@@ -82,8 +81,7 @@ void AtelierMainWindow::newFile(bool checked)
     {
         if(m_AtelierWidget)
         {
-            m_AtelierWidget->init(sparsepc::openData<double>(fileName.toStdString(), ';'));
-
+            m_AtelierWidget->init(fileName, true);
             m_MainWidgetStackedLayout->setCurrentWidget(m_AtelierWidget);
         }
     }
@@ -91,18 +89,45 @@ void AtelierMainWindow::newFile(bool checked)
 
 void AtelierMainWindow::open(bool checked)
 {
-    //m_MainWidgetStackedLayout->setCurrentWidget(m_AtelierWidget);
+    const QString fileName = QFileDialog::getOpenFileName(
+        this,                        // Parent widget
+        "Open File",                 // Dialog title
+        "/home",                     // Starting directory
+        "Files (*.parsely)" // File filters
+        );
+
+    if (!fileName.isEmpty())
+    {
+        if(m_AtelierWidget)
+        {
+            m_AtelierWidget->init(fileName, false);
+            m_MainWidgetStackedLayout->setCurrentWidget(m_AtelierWidget);
+        }
+    }
 }
 
 void AtelierMainWindow::save(bool checked)
-{
+{    
     if(m_AtelierWidget)
     {
-        m_AtelierWidget->save(checked);
+        const auto fileName = QFileDialog::getSaveFileName(this,
+            tr("Save File"), "/home/user/data.parsely", tr("Files (*.parsely)"));
+
+        if (!fileName.isEmpty())
+        {
+            m_AtelierWidget->saveProject(fileName);
+        }
     }
 }
 
 void AtelierMainWindow::close(bool checked)
 {
+    save(true);
+    QCoreApplication::quit();
+}
 
+void AtelierMainWindow::closeEvent(QCloseEvent *event)
+{// closing via X button
+    save(true);
+    event->accept();
 }

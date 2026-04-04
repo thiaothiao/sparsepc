@@ -20,6 +20,9 @@ public slots:
 public:
     AtelierMainWindow(QWidget *parent = nullptr);
 
+protected:
+    void closeEvent(QCloseEvent *event) override;
+
 private:
     QWidget* m_WelcomeWidget;
     AtelierWidget* m_AtelierWidget;
