@@ -1,32 +1,30 @@
 #ifndef SPARSEPC_ATELIER_WIDGET_HPP
 #define SPARSEPC_ATELIER_WIDGET_HPP
 
+#include <cstddef>
 #include <vector>
-#include <functional>
 #include <unordered_map>
+#include <functional>
 
+#include <QString>
 #include <QWidget>
+#include <QGroupBox>
 #include <QSlider>
-#include <QTimer>
-#include <QColor>
 #include <QVector>
 #include <QProgressBar>
 #include <QStackedLayout>
 #include <QCombobox>
-#include <QGroupBox>
 
 #include "jkqtplotter/jkqtplotter.h"
 #include "jkqtplotter/graphs/jkqtpfilledcurve.h"
-#include "jkqtplotter/graphs/jkqtpscatter.h"
-#include "jkqtplotter/graphs/jkqtpbarchart.h"
 
 #include "sparsepc/core.hpp"
 
 struct MyClass final
 {
     MyClass()
-        :iCandidate{-1}, sPCColumn{0}, candidates{},
-        sPCGraph{nullptr}, color{}
+        :iCandidate{-1}, pcColumn{0},
+        color{}, candidates{}, pcGraph{nullptr}
     {
     }
 
@@ -37,10 +35,10 @@ struct MyClass final
     MyClass& operator=(MyClass&&) = default;
 
     int iCandidate;
-    std::size_t sPCColumn;
+    std::size_t pcColumn;
+    QString color;
     std::unordered_map<sparsepc::Index, sparsepc::Component<double>> candidates;
-    JKQTPFilledCurveXGraph* sPCGraph;
-    QColor color;
+    JKQTPFilledCurveXGraph* pcGraph;
 };
 
 class AtelierWidget : public QWidget
@@ -50,7 +48,11 @@ class AtelierWidget : public QWidget
 public:
     AtelierWidget(QWidget* parent = nullptr);
 
-void drawStandardPCs();
+    void init(const QString& fileName, bool newProject = true);
+
+    void saveProject(const QString& fileName);
+
+    void loadProject(const QString& fileName);
 
 public slots:
     void onAddNewSparseComponent();
@@ -59,13 +61,21 @@ public slots:
     void updateSliderTitle(int value);
     void updateProgressBarTitle(int value);
 
-private:
+private:    
+    void drawStandardPCs();
+    void computeStandardPCs();
+    void drawSparsePCs();
+    void createWidget();
+    void zoomToFit();
+
     sparsepc::Matrix<double> m_Sigma;
+    sparsepc::Index m_N = 0;
     std::size_t m_ColumnX;
     std::vector<std::reference_wrapper<sparsepc::Component<double>>> m_ValidatedComponents;
-    std::vector<MyClass> m_MyClasses;
-
-    std::vector<JKQTPFilledCurveXGraph*> m_PCGraphs;
+    std::vector<MyClass> m_SparsePCs;
+    std::vector<MyClass> m_StandardPCs;
+    double m_CummulativeVarianceStandardPCs;
+    double m_CummulativeVarianceSparsePCs;
 
     JKQTPlotter* m_Plotter;
     QGroupBox* m_SliderGroupBox;
@@ -75,7 +85,7 @@ private:
     QStackedLayout* m_SliderOrProgressBarWidgetStackedLayout;
     QComboBox* m_MethodComboBox;
 
-    QVector<QColor> m_Colors;
+    QVector<QString> m_Colors;
 };
 
 #endif //SPARSEPC_ATELIER_WIDGET_HPP
