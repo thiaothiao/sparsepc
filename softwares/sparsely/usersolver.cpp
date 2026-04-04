@@ -1,6 +1,3 @@
-#ifndef SPARSEPC_USER_SOLVER_HPP
-#define SPARSEPC_USER_SOLVER_HPP
-
 #include <iostream>
 #include <vector>
 #include <unordered_map>
@@ -14,6 +11,7 @@
 #include <string>
 #include <string_view>
 
+#include "usersolver.hpp"
 #include "spcaloader.hpp"
 
 #include "sparsepc/utils/matrix.hpp"
@@ -21,76 +19,36 @@
 #include "sparsepc/generic/solver.hpp"
 #include "sparsepc/progress/bar.hpp"
 
+namespace
+{
+    std::vector<std::string> getPluginList(std::string_view directory)
+    try
+    {
+        std::filesystem::path const pluginsDir(directory);
+        std::vector<std::string> plugins;
+
+        for (auto const& entry : std::filesystem::directory_iterator(pluginsDir))
+        {
+            if (auto const& ext = entry.path().extension();
+                entry.is_regular_file() &&
+                (ext == ".dll" || ext == ".so" || ext == ".dylib"))
+            {
+                plugins.push_back(entry.path().relative_path().string());
+            }
+        }
+        return plugins;
+    }
+    catch (std::filesystem::filesystem_error const& e)
+    {
+        std::cerr << e.what() << '\n';
+        return {};
+    }
+}
+
 namespace sparsepc
 {
     namespace linearmodel
     {
-        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType,
-             ProgressBarLike ProgressBarType = DummyProgressBar>
-        class UserModel final
-        {
-        public:
-            using Scalar = ScalarType;
-            using EigenSolver = EigenSolverType;
-            using ProgressBar = ProgressBarType;
-
-            struct Param final
-            {
-                Param(Index kInput = static_cast<Index>(1),
-                    const EigenSolver& eigenSolverInput = {},
-                    Scalar zeroInput = static_cast<Scalar>(1e-6))
-                    :k{ kInput }, eigenSolver{ eigenSolverInput }, 
-                    zero{ zeroInput }
-                {
-                }
-
-                Param(const Param&) = default;
-                Param& operator=(const Param&) = default;
-
-                Param(Param&&) = default;
-                Param& operator=(Param&&) = default;
-
-                const Index k;
-                const EigenSolver eigenSolver;
-                const Scalar zero;
-            };
-
-            UserModel(const Param& param = {})
-                : m_Param{param}
-            {
-            }
-
-            auto run(const Matrix<Scalar>& sigma) const;
-
-            static auto runAll(const Matrix<Scalar>& sigma, const Param& param, ProgressBar* progressBar);
-
-        private:
-            const Param m_Param;
-        };
-
-        std::vector<std::string> getPluginList(std::string_view directory)
-        try
-        {
-            std::filesystem::path const pluginsDir(directory);
-            std::vector<std::string> plugins;
-
-            for (auto const& entry : std::filesystem::directory_iterator(pluginsDir))
-            {
-                if (auto const& ext = entry.path().extension();
-                    entry.is_regular_file() &&
-                    (ext == ".dll" || ext == ".so" || ext == ".dylib"))
-                {
-                    plugins.push_back(entry.path().relative_path().string());
-                }
-            }
-            return plugins;
-        }
-        catch (std::filesystem::filesystem_error const& e)
-        {
-            std::cerr << e.what() << '\n';
-            return {};
-        }
-
         template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
         auto UserModel<ScalarType, EigenSolverType, ProgressBarType>::run(
             const Matrix<Scalar>& sigma) const
@@ -197,7 +155,7 @@ namespace sparsepc
 
             std::string const pluginsDir = [&]() {
                 //if (argc > 1)
-                // {
+               // {
                 //    return std::string(argv[1]);
                 //}
                 return std::string("plugins");
@@ -261,4 +219,3 @@ namespace sparsepc
         //using User = SparsePC<UserModel<ScalarType, EigenSolver<ScalarType>>>;
     }
 }
-#endif //SPARSEPC_USER_SOLVER_HPP

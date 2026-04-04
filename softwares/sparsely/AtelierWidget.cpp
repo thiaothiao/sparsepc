@@ -35,6 +35,9 @@ namespace
 
     using DCA = sparsepc::linearmodel::SparsePC<
         sparsepc::linearmodel::DcaModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
+
+    using User = sparsepc::linearmodel::SparsePC<
+        sparsepc::linearmodel::UserModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
 }
 
 Q_DECLARE_METATYPE(SpcaMethod)
