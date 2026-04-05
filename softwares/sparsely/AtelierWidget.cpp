@@ -26,7 +26,8 @@ namespace
         DCA = 0U,
         FGSPCA,  //ForwardGSPCA
         BGSPCA,   // BackwardGSPA
-        USERDLL
+        CUSTOM,
+        USERDYNAMICLIB
     };
 
     using BackwardGSPA = sparsepc::linearmodel::SparsePC<
@@ -37,6 +38,9 @@ namespace
 
     using DCA = sparsepc::linearmodel::SparsePC<
         sparsepc::linearmodel::DcaModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
+
+    using CustomSolver = sparsepc::linearmodel::SparsePC<
+        sparsepc::linearmodel::CustomSolverModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
 
     using DynamicLibSolver = sparsepc::linearmodel::SparsePC<
         sparsepc::linearmodel::DynamicLibSolverModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
@@ -225,7 +229,13 @@ void AtelierWidget::onAddNewSparseComponent()
             m_Sigma, ForwardGSPCA::ModelParam(1), m_ValidatedComponents, m_ProgressBar);
         break;
     }
-    case SpcaMethod::USERDLL:
+    case SpcaMethod::CUSTOM:
+    {
+        sparsePC.candidates = CustomSolver::computeNextComponentCandidates(
+            m_Sigma, CustomSolver::ModelParam(1), m_ValidatedComponents, m_ProgressBar);
+        break;
+    }
+    case SpcaMethod::USERDYNAMICLIB:
     {
         auto& library = m_DynamicLibSolverLoaders.at(0);
         if(library)
@@ -514,9 +524,10 @@ void AtelierWidget::createWidget()
     m_MethodComboBox->addItem("Dca", QVariant::fromValue(SpcaMethod::DCA));
     m_MethodComboBox->addItem("Forward Gspca", QVariant::fromValue(SpcaMethod::FGSPCA));
     m_MethodComboBox->addItem("Backward Gspca", QVariant::fromValue(SpcaMethod::BGSPCA));
+    m_MethodComboBox->addItem("Custom", QVariant::fromValue(SpcaMethod::CUSTOM));
     if(!m_DynamicLibSolverLoaders.empty())
     {
-        m_MethodComboBox->addItem(m_DynamicLibSolverNames.at(0), QVariant::fromValue(SpcaMethod::USERDLL));
+        m_MethodComboBox->addItem(m_DynamicLibSolverNames.at(0), QVariant::fromValue(SpcaMethod::USERDYNAMICLIB));
     }
 
     methodGroupBoxLayout->addWidget(m_MethodComboBox);
