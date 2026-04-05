@@ -19,6 +19,9 @@
 #include <QDir>
 #include <QDebug>
 
+#include "jkqtplotter/graphs/jkqtpfilledcurve.h"
+#include "jkqtplotter/graphs/jkqtpimpulses.h"
+
 namespace
 {
     enum class SpcaMethod : std::uint8_t
@@ -28,6 +31,12 @@ namespace
         BGSPCA,   // BackwardGSPA
         CUSTOM,
         USERDYNAMICLIB
+    };
+
+    enum class PlotType : std::uint8_t
+    {
+        FILLED = 0U,
+        IMPULSES
     };
 
     using BackwardGSPA = sparsepc::linearmodel::SparsePC<
@@ -59,6 +68,7 @@ namespace
 }
 
 Q_DECLARE_METATYPE(SpcaMethod)
+Q_DECLARE_METATYPE(PlotType)
 
 void AtelierWidget::computeStandardPCs()
 {
@@ -105,23 +115,51 @@ void AtelierWidget::drawStandardPCs()
         {
             ds->inc(standardPC.pcColumn, i, component.vector[i]);
         }
+        const auto plotType = m_PlotTypeComboBox->currentData().value<PlotType>();
+        switch (plotType)
+        {
+        case PlotType::FILLED:
+        {
+            auto* graph = new JKQTPFilledCurveXGraph(m_Plotter);
 
-        standardPC.pcGraph = new JKQTPFilledCurveXGraph(m_Plotter);
+            auto col = QColor(standardPC.color);
+            graph->setLineStyle(Qt::SolidLine);
+            graph->setLineWidth(1);
+            graph->setLineColor(col);
 
-        auto col = QColor(standardPC.color);
-        standardPC.pcGraph->setLineStyle(Qt::SolidLine);
-        standardPC.pcGraph->setLineWidth(1);
-        standardPC.pcGraph->setLineColor(col);
+            graph->setFillMode(JKQTPFilledCurveXGraph::FillMode::SingleFilling);
 
-        standardPC.pcGraph->setFillMode(JKQTPFilledCurveXGraph::FillMode::SingleFilling);
+            col.setAlphaF(0.125f);
+            graph->setFillColor(col);
+            graph->fillStyleBelow().setFillColor(col);
+            graph->setBaseline(0.0);
 
-        col.setAlphaF(0.125f);
-        standardPC.pcGraph->setFillColor(col);
-        standardPC.pcGraph->fillStyleBelow().setFillColor(col);
-        standardPC.pcGraph->setBaseline(0.0);
+            graph->setXColumn(m_ColumnX);
+            graph->setYColumn(standardPC.pcColumn);
 
-        standardPC.pcGraph->setXColumn(m_ColumnX);
-        standardPC.pcGraph->setYColumn(standardPC.pcColumn);
+            standardPC.pcGraph = graph;
+            break;
+        }
+        case PlotType::IMPULSES:
+        {
+            auto* graph = new JKQTPImpulsesVerticalGraph(m_Plotter);
+            graph->setLineWidth(2);
+            graph->setDrawSymbols(true);
+            graph->setSymbolType(JKQTPGraphSymbols::JKQTPFilledCircle);
+            auto col = QColor(standardPC.color);
+            graph->setColor(col);
+
+            graph->setXColumn(m_ColumnX);
+            graph->setYColumn(standardPC.pcColumn);
+
+            standardPC.pcGraph = graph;
+            break;
+        }
+        default:
+        {
+            break;
+        }
+        }
 
         standardPC.pcGraph->setTitle(curveName + ": " + formattedValueStr);
 
@@ -159,27 +197,62 @@ void AtelierWidget::drawSparsePCs()
             ds->inc(sparsePC.pcColumn, i, component.vector[i]);
         }
 
-        sparsePC.pcGraph = new JKQTPFilledCurveXGraph(m_Plotter);
+        const auto plotType = m_PlotTypeComboBox->currentData().value<PlotType>();
+        switch (plotType)
+        {
+        case PlotType::FILLED:
+        {
+            auto* graph = new JKQTPFilledCurveXGraph(m_Plotter);
 
-        auto col = QColor(sparsePC.color);
-        sparsePC.pcGraph->setLineStyle(Qt::DotLine);
-        sparsePC.pcGraph->setLineWidth(2);
-        sparsePC.pcGraph->setLineColor(col);
+            auto col = QColor(sparsePC.color);
+            graph->setLineStyle(Qt::DotLine);
+            graph->setLineWidth(2);
+            graph->setLineColor(col);
 
-        sparsePC.pcGraph->setFillMode(JKQTPFilledCurveXGraph::FillMode::SingleFilling);
+            graph->setFillMode(JKQTPFilledCurveXGraph::FillMode::SingleFilling);
 
-        col.setAlphaF(0.25f);
-        sparsePC.pcGraph->setFillColor(col);
-        sparsePC.pcGraph->fillStyleBelow().setFillColor(col);
-        sparsePC.pcGraph->setBaseline(0.0);
+            col.setAlphaF(0.25f);
+            graph->setFillColor(col);
+            graph->fillStyleBelow().setFillColor(col);
+            graph->setBaseline(0.0);
 
-        sparsePC.pcGraph->setXColumn(m_ColumnX);
-        sparsePC.pcGraph->setYColumn(sparsePC.pcColumn);
+            graph->setXColumn(m_ColumnX);
+            graph->setYColumn(sparsePC.pcColumn);
+
+            sparsePC.pcGraph = graph;
+            break;
+        }
+        case PlotType::IMPULSES:
+        {
+            auto* graph = new JKQTPImpulsesVerticalGraph(m_Plotter);
+            graph->setLineStyle(Qt::DotLine);
+            graph->setLineWidth(3);
+            graph->setDrawSymbols(true);
+            graph->setSymbolType(JKQTPGraphSymbols::JKQTPCircle);
+            auto col = QColor(sparsePC.color);
+            graph->setColor(col);
+
+            graph->setXColumn(m_ColumnX);
+            graph->setYColumn(sparsePC.pcColumn);
+
+            sparsePC.pcGraph = graph;
+            break;
+        }
+        default:
+        {
+            break;
+        }
+        }
 
         sparsePC.pcGraph->setTitle(curveName + ": " + formattedValueStr);
 
         m_Plotter->addGraph(sparsePC.pcGraph);
     }
+}
+
+void AtelierWidget::clearAllPlots()
+{
+
 }
 
 void AtelierWidget::onAddNewSparseComponent()
@@ -298,22 +371,51 @@ void AtelierWidget::onAddNewSparseComponent()
         ds->inc(sparsePC.pcColumn, i, component.vector[i]);
     }
 
-    sparsePC.pcGraph = new JKQTPFilledCurveXGraph(m_Plotter);
+    const auto plotType = m_PlotTypeComboBox->currentData().value<PlotType>();
+    switch (plotType)
+    {
+    case PlotType::FILLED:
+    {
+        auto* graph = new JKQTPFilledCurveXGraph(m_Plotter);
 
-    auto col = QColor(sparsePC.color);
-    sparsePC.pcGraph->setLineStyle(Qt::DotLine);
-    sparsePC.pcGraph->setLineWidth(2);
-    sparsePC.pcGraph->setLineColor(col);
+        auto col = QColor(sparsePC.color);
+        graph->setLineStyle(Qt::DotLine);
+        graph->setLineWidth(2);
+        graph->setLineColor(col);
 
-    sparsePC.pcGraph->setFillMode(JKQTPFilledCurveXGraph::FillMode::SingleFilling);
+        graph->setFillMode(JKQTPFilledCurveXGraph::FillMode::SingleFilling);
 
-    col.setAlphaF(0.25f);
-    sparsePC.pcGraph->setFillColor(col);
-    sparsePC.pcGraph->fillStyleBelow().setFillColor(col);
-    sparsePC.pcGraph->setBaseline(0.0);
+        col.setAlphaF(0.25f);
+        graph->setFillColor(col);
+        graph->fillStyleBelow().setFillColor(col);
+        graph->setBaseline(0.0);
+        graph->setXColumn(m_ColumnX);
+        graph->setYColumn(sparsePC.pcColumn);
 
-    sparsePC.pcGraph->setXColumn(m_ColumnX);
-    sparsePC.pcGraph->setYColumn(sparsePC.pcColumn);
+        sparsePC.pcGraph = graph;
+        break;
+    }
+    case PlotType::IMPULSES:
+    {
+        auto* graph = new JKQTPImpulsesVerticalGraph(m_Plotter);
+        graph->setLineStyle(Qt::DotLine);
+        graph->setLineWidth(3);
+        graph->setDrawSymbols(true);
+        graph->setSymbolType(JKQTPGraphSymbols::JKQTPCircle);
+        auto col = QColor(sparsePC.color);
+        graph->setColor(col);
+
+        graph->setXColumn(m_ColumnX);
+        graph->setYColumn(sparsePC.pcColumn);
+
+        sparsePC.pcGraph = graph;
+        break;
+    }
+    default:
+    {
+        break;
+    }
+    }
 
     sparsePC.pcGraph->setTitle(curveName + ": " + formattedValueStr);
 
@@ -396,6 +498,30 @@ void AtelierWidget::updatePlot(int value)
 
     m_Plotter->redrawPlot();
 }
+
+void AtelierWidget::onSelectionChanged(int index)
+{// must replot all plots
+    //m_PlotTypeComboBox->currentText();
+    for(auto& spc: m_SparsePCs)
+    {
+        m_Plotter->deleteGraph(spc.pcGraph, true);
+        m_Plotter->getDatastore()->deleteColumn(spc.pcColumn, true);
+        spc.pcGraph = nullptr;
+    }
+
+    for(auto& spc: m_StandardPCs)
+    {
+        m_Plotter->deleteGraph(spc.pcGraph, true);
+        m_Plotter->getDatastore()->deleteColumn(spc.pcColumn, true);
+        spc.pcGraph = nullptr;
+    }
+
+    drawStandardPCs();
+    drawSparsePCs();
+
+    m_Plotter->redrawPlot();
+}
+
 void AtelierWidget::updateSliderTitle(int value)
 {
     m_SliderGroupBox->setTitle(QString::number(value));
@@ -416,7 +542,7 @@ AtelierWidget::AtelierWidget(QWidget* parent)
     m_SliderGroupBox{nullptr}, m_ProgressBarGroupBox{nullptr},
     m_Slider{nullptr}, m_ProgressBar{nullptr},
     m_SliderOrProgressBarWidgetStackedLayout{nullptr},
-    m_MethodComboBox{nullptr}, m_Colors{}
+    m_MethodComboBox{nullptr}, m_PlotTypeComboBox{nullptr}, m_Colors{}
 {
     qDebug() << "Loading plugins ...";
 
@@ -517,6 +643,16 @@ void AtelierWidget::createWidget()
 
     auto* processingsGoupboxLayout = new QHBoxLayout(processingsGoupbox);
 
+    auto* plotTypeGroupBox = new QGroupBox("Plot", this);
+    auto* plotTypeGroupBoxLayout = new QHBoxLayout(plotTypeGroupBox);
+
+    m_PlotTypeComboBox = new QComboBox(this);
+    m_PlotTypeComboBox->addItem("Filled", QVariant::fromValue(PlotType::FILLED));
+    m_PlotTypeComboBox->addItem("Impulse", QVariant::fromValue(PlotType::IMPULSES));
+
+    plotTypeGroupBoxLayout->addWidget(m_PlotTypeComboBox);
+    processingsGoupboxLayout->addWidget(plotTypeGroupBox);
+
     auto* methodGroupBox = new QGroupBox("Method", this);
     auto* methodGroupBoxLayout = new QHBoxLayout(methodGroupBox);
 
@@ -547,6 +683,8 @@ void AtelierWidget::createWidget()
         new QPushButton("Remove last", this);
     actionGroupBoxLayout->addWidget(removeLastSparseComponentButton);
 
+    QObject::connect(m_PlotTypeComboBox, &QComboBox::currentIndexChanged,
+                     this, &AtelierWidget::onSelectionChanged);
     QObject::connect(m_ProgressBar, &QProgressBar::valueChanged,
                      this, &AtelierWidget::updateProgressBarTitle);
     QObject::connect(m_Slider, &QSlider::valueChanged,

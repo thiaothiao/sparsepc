@@ -18,7 +18,6 @@
 #include <QLibrary>
 
 #include "jkqtplotter/jkqtplotter.h"
-#include "jkqtplotter/graphs/jkqtpfilledcurve.h"
 
 #include "sparsepc/core.hpp"
 
@@ -40,7 +39,7 @@ struct MyClass final
     std::size_t pcColumn;
     QString color;
     std::unordered_map<sparsepc::Index, sparsepc::Component<double>> candidates;
-    JKQTPFilledCurveXGraph* pcGraph;
+    JKQTPPlotElement* pcGraph;
 };
 
 class AtelierWidget : public QWidget
@@ -62,11 +61,13 @@ public slots:
     void onRemoveLastSparseComponentButton();
     void updateSliderTitle(int value);
     void updateProgressBarTitle(int value);
+    void onSelectionChanged(int index);
 
 private:    
     void drawStandardPCs();
     void computeStandardPCs();
     void drawSparsePCs();
+    void clearAllPlots();
     void createWidget();
     void zoomToFit();
 
@@ -86,6 +87,7 @@ private:
     QProgressBar* m_ProgressBar;
     QStackedLayout* m_SliderOrProgressBarWidgetStackedLayout;
     QComboBox* m_MethodComboBox;
+    QComboBox* m_PlotTypeComboBox;
 
     QVector<QString> m_Colors;
 
