@@ -14,12 +14,14 @@
 #include <string>
 #include <string_view>
 
-#include "spcaloader.hpp"
+#include <QLibrary>
 
 #include "sparsepc/utils/matrix.hpp"
 #include "sparsepc/eigen/solver.hpp"
 #include "sparsepc/generic/solver.hpp"
 #include "sparsepc/progress/bar.hpp"
+
+typedef void (*ComputeSparseEigenVector)(const double*, int, int, double*);
 
 namespace sparsepc
 {
@@ -36,7 +38,7 @@ namespace sparsepc
 
             struct Param final
             {
-                Param(const plugin::SpcaLoader* loaderInput = nullptr,
+                Param(QLibrary* loaderInput = nullptr,
                       Index kInput = static_cast<Index>(1),
                     const EigenSolver& eigenSolverInput = {},
                     Scalar zeroInput = static_cast<Scalar>(1e-6))
@@ -46,15 +48,15 @@ namespace sparsepc
                 }
 
                 Param(const Param&) = default;
-                Param& operator=(const Param&) = delete;
+                Param& operator=(const Param&) = default;
 
-                Param(Param&&) = delete;
-                Param& operator=(Param&&) = delete;
+                Param(Param&&) = default;
+                Param& operator=(Param&&) = default;
 
                 const Index k;
                 const EigenSolver eigenSolver;
                 const Scalar zero;
-                const plugin::SpcaLoader* loader;
+                QLibrary* const loader;
             };
 
             DllSolverModel(const Param& param = {})
@@ -96,21 +98,19 @@ namespace sparsepc
 
             Component component(n);
             if(m_Param.loader)
-            try
             {
-                const plugin::SPCA& spca = m_Param.loader->getSpca();
+                auto computeSparseEigenVector =
+                    (ComputeSparseEigenVector)m_Param.loader->resolve("computeSparseEigenVector");
+                if (computeSparseEigenVector)
+                {
+                    computeSparseEigenVector(sigma.data(), n, k, component.vector.data());
 
-                spca.solve(sigma.data(), n, k, component.vector.data());
+                    component.vector.normalize();
 
-                component.vector.normalize();
+                    component.value = (component.vector.transpose() * sigma * component.vector).value();
 
-                component.value = (component.vector.transpose() * sigma * component.vector).value();
-
-                std::cout << "\n Job done.\n";
-            }
-            catch (std::out_of_range const&)
-            {
-                std::cout << "\n Wrong.\n";
+                    std::cout << "\n Job done.\n";
+                }
             }
 
             return component;
@@ -137,35 +137,33 @@ namespace sparsepc
 
             for (Index k = 1; k < n; ++k)
             {
-                components.emplace(k, Component{});
+                components.emplace(k, Component(n));
             }
 
             if(param.loader)
-            try
             {
-                const plugin::SPCA& spca = param.loader->getSpca();
-
-                for (Index k = 1; k < n; ++k)
+                auto computeSparseEigenVector =
+                    (ComputeSparseEigenVector)param.loader->resolve("computeSparseEigenVector");
+                if (computeSparseEigenVector)
                 {
-                    if(progressBar)
+                    for (Index k = 1; k < n; ++k)
                     {
-                        progressBar->setValue(k);
+                        if(progressBar)
+                        {
+                            progressBar->setValue(k);
+                        }
+
+                        auto& component = components.at(k);
+
+                        computeSparseEigenVector(sigma.data(), n, k, component.vector.data());
+
+                        component.vector.normalize();
+
+                        component.value = (component.vector.transpose() * sigma * component.vector).value();
                     }
 
-                    auto& component = components.at(k);
-
-                    spca.solve(sigma.data(), n, k, component.vector.data());
-
-                    component.vector.normalize();
-
-                    component.value = (component.vector.transpose() * sigma * component.vector).value();
+                    std::cout << "\n Job done.\n";
                 }
-
-                std::cout << "\n Job done.\n";
-            }
-            catch (std::out_of_range const&)
-            {
-                std::cout << "\n Wrong.\n";
             }
 
             return components;

@@ -7,17 +7,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 option(BUILD_PLUGINS "Build a few plugins to test" ON)
 
-# add warnings
-if(MSVC)
-  add_compile_options(/W4)
-else()
-  add_compile_options(-Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion)
-endif()
-
-# Plugin interface
-add_library(spcaplugin INTERFACE spca.hpp)
-target_include_directories(spcaplugin INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui PrintSupport Svg Xml OpenGl REQUIRED)
 
 message( STATUS )
@@ -40,17 +29,11 @@ find_package(JKQTPlotter6 REQUIRED)
 
 # add the example executable
 add_executable(${PROJECT_NAME} WIN32 main.cpp AtelierMainWindow.cpp AtelierWidget.cpp
-    AtelierMainWindow.h AtelierWidget.h spcaloader.hpp spcaloader.cpp usersolver.hpp)
+    AtelierMainWindow.h AtelierWidget.h usersolver.hpp)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Gui Qt6::PrintSupport Qt6::Svg Qt6::Xml)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE JKQTPlotter6::JKQTPlotter6)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE spcaplugin)
-
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  target_link_libraries(${PROJECT_NAME} PRIVATE dl)
-endif()
 
 # Plugins
 if(BUILD_PLUGINS)

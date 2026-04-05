@@ -1,2 +1,1 @@
-add_library(dca SHARED dca.hpp dca.cpp)
-target_link_libraries(dca PRIVATE spcaplugin)
+add_library(user SHARED user.hpp user.cpp)

@@ -5,6 +5,7 @@
 #include <vector>
 #include <unordered_map>
 #include <functional>
+#include <memory>
 
 #include <QString>
 #include <QWidget>
@@ -14,12 +15,12 @@
 #include <QProgressBar>
 #include <QStackedLayout>
 #include <QCombobox>
+#include <QLibrary>
 
 #include "jkqtplotter/jkqtplotter.h"
 #include "jkqtplotter/graphs/jkqtpfilledcurve.h"
 
 #include "sparsepc/core.hpp"
-#include "usersolver.hpp"
 
 struct MyClass final
 {
@@ -88,7 +89,8 @@ private:
 
     QVector<QString> m_Colors;
 
-    std::vector<plugin::SpcaLoader> m_DllSolverLoaders;
+    std::vector<std::unique_ptr<QLibrary>> m_DllSolverLoaders;
+    QVector<QString> m_DllSolverNames;
 };
 
 #endif //SPARSEPC_ATELIER_WIDGET_HPP
