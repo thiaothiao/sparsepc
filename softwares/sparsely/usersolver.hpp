@@ -14,14 +14,12 @@
 #include <string>
 #include <string_view>
 
-#include <QLibrary>
-
 #include "sparsepc/utils/matrix.hpp"
 #include "sparsepc/eigen/solver.hpp"
 #include "sparsepc/generic/solver.hpp"
 #include "sparsepc/progress/bar.hpp"
 
-typedef void (*ComputeSparseEigenVector)(const double*, int, int, double*);
+using ComputeSparseEigenVector = void (*)(const double*, int, int, double*);
 
 namespace sparsepc
 {
@@ -38,11 +36,11 @@ namespace sparsepc
 
             struct Param final
             {
-                Param(QLibrary* loaderInput = nullptr,
+                Param(ComputeSparseEigenVector computeSparseEigenVectorInput = nullptr,
                       Index kInput = static_cast<Index>(1),
                     const EigenSolver& eigenSolverInput = {},
                     Scalar zeroInput = static_cast<Scalar>(1e-6))
-                    :loader{loaderInput}, k{ kInput },
+                    :computeSparseEigenVector{computeSparseEigenVectorInput}, k{ kInput },
                     eigenSolver{ eigenSolverInput }, zero{ zeroInput }
                 {
                 }
@@ -56,7 +54,7 @@ namespace sparsepc
                 const Index k;
                 const EigenSolver eigenSolver;
                 const Scalar zero;
-                QLibrary* const loader;
+                const ComputeSparseEigenVector computeSparseEigenVector;
             };
 
             DllSolverModel(const Param& param = {})
@@ -97,20 +95,15 @@ namespace sparsepc
             }
 
             Component component(n);
-            if(m_Param.loader)
+            if(m_Param.computeSparseEigenVector)
             {
-                auto computeSparseEigenVector =
-                    (ComputeSparseEigenVector)m_Param.loader->resolve("computeSparseEigenVector");
-                if (computeSparseEigenVector)
-                {
-                    computeSparseEigenVector(sigma.data(), n, k, component.vector.data());
+                m_Param.computeSparseEigenVector(sigma.data(), n, k, component.vector.data());
 
-                    component.vector.normalize();
+                component.vector.normalize();
 
-                    component.value = (component.vector.transpose() * sigma * component.vector).value();
+                component.value = (component.vector.transpose() * sigma * component.vector).value();
 
-                    std::cout << "\n Job done.\n";
-                }
+                std::cout << "\n Job done.\n";
             }
 
             return component;
@@ -140,30 +133,25 @@ namespace sparsepc
                 components.emplace(k, Component(n));
             }
 
-            if(param.loader)
+            if(param.computeSparseEigenVector)
             {
-                auto computeSparseEigenVector =
-                    (ComputeSparseEigenVector)param.loader->resolve("computeSparseEigenVector");
-                if (computeSparseEigenVector)
+                for (Index k = 1; k < n; ++k)
                 {
-                    for (Index k = 1; k < n; ++k)
+                    if(progressBar)
                     {
-                        if(progressBar)
-                        {
-                            progressBar->setValue(k);
-                        }
-
-                        auto& component = components.at(k);
-
-                        computeSparseEigenVector(sigma.data(), n, k, component.vector.data());
-
-                        component.vector.normalize();
-
-                        component.value = (component.vector.transpose() * sigma * component.vector).value();
+                        progressBar->setValue(k);
                     }
 
-                    std::cout << "\n Job done.\n";
+                    auto& component = components.at(k);
+
+                    param.computeSparseEigenVector(sigma.data(), n, k, component.vector.data());
+
+                    component.vector.normalize();
+
+                    component.value = (component.vector.transpose() * sigma * component.vector).value();
                 }
+
+                std::cout << "\n Job done.\n";
             }
 
             return components;

@@ -228,9 +228,17 @@ void AtelierWidget::onAddNewSparseComponent()
     }
     case SpcaMethod::USERDLL:
     {
-        sparsePC.candidates = DllSolver::computeNextComponentCandidates(
-            m_Sigma, DllSolver::ModelParam(m_DllSolverLoaders.at(0).get()),
-            m_ValidatedComponents, m_ProgressBar);
+        auto& library = m_DllSolverLoaders.at(0);
+        if(library)
+        {
+            auto computeSparseEigenVector =
+                (ComputeSparseEigenVector)library->resolve("computeSparseEigenVector");
+            if (computeSparseEigenVector)
+            {
+                sparsePC.candidates = DllSolver::computeNextComponentCandidates(
+                    m_Sigma, DllSolver::ModelParam(computeSparseEigenVector), m_ValidatedComponents, m_ProgressBar);
+            }
+        }
         break;
     }
     default:
