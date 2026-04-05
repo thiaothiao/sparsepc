@@ -39,8 +39,8 @@ namespace
     using DCA = sparsepc::linearmodel::SparsePC<
         sparsepc::linearmodel::DcaModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
 
-    using DllSolver = sparsepc::linearmodel::SparsePC<
-        sparsepc::linearmodel::DllSolverModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
+    using DynamicLibSolver = sparsepc::linearmodel::SparsePC<
+        sparsepc::linearmodel::DynamicLibSolverModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
 
     auto getPluginList()
     {
@@ -228,15 +228,15 @@ void AtelierWidget::onAddNewSparseComponent()
     }
     case SpcaMethod::USERDLL:
     {
-        auto& library = m_DllSolverLoaders.at(0);
+        auto& library = m_DynamicLibSolverLoaders.at(0);
         if(library)
         {
             auto computeSparseEigenVector =
                 (ComputeSparseEigenVector)library->resolve("computeSparseEigenVector");
             if (computeSparseEigenVector)
             {
-                sparsePC.candidates = DllSolver::computeNextComponentCandidates(
-                    m_Sigma, DllSolver::ModelParam(computeSparseEigenVector), m_ValidatedComponents, m_ProgressBar);
+                sparsePC.candidates = DynamicLibSolver::computeNextComponentCandidates(
+                    m_Sigma, DynamicLibSolver::ModelParam(computeSparseEigenVector), m_ValidatedComponents, m_ProgressBar);
             }
         }
         break;
@@ -414,24 +414,24 @@ AtelierWidget::AtelierWidget(QWidget* parent)
     const auto pluginList = getPluginList();
     if(!pluginList.empty())
     {
-        m_DllSolverLoaders.reserve(pluginList.size());
-        m_DllSolverNames.reserve(pluginList.size());
+        m_DynamicLibSolverLoaders.reserve(pluginList.size());
+        m_DynamicLibSolverNames.reserve(pluginList.size());
 
         for (const auto &fileInfo : pluginList)
         {
             QString noExtensionAbsolutePath = QDir(fileInfo.absolutePath()).filePath(fileInfo.baseName());
             qDebug() << "Loading " << noExtensionAbsolutePath << "...";
-            m_DllSolverLoaders.push_back(
+            m_DynamicLibSolverLoaders.push_back(
                 std::make_unique<QLibrary>(noExtensionAbsolutePath));
-            if(m_DllSolverLoaders.back()->load())
+            if(m_DynamicLibSolverLoaders.back()->load())
             {
-                m_DllSolverNames.push_back(fileInfo.baseName());
+                m_DynamicLibSolverNames.push_back(fileInfo.baseName());
                 qDebug() << " ...loaded.";
             }
             else
             {
                 qDebug() << " ...loading failed.";
-                m_DllSolverLoaders.pop_back();
+                m_DynamicLibSolverLoaders.pop_back();
             }
         }
 
@@ -515,9 +515,9 @@ void AtelierWidget::createWidget()
     m_MethodComboBox->addItem("Dca", QVariant::fromValue(SpcaMethod::DCA));
     m_MethodComboBox->addItem("Forward Gspca", QVariant::fromValue(SpcaMethod::FGSPCA));
     m_MethodComboBox->addItem("Backward Gspca", QVariant::fromValue(SpcaMethod::BGSPCA));
-    if(!m_DllSolverLoaders.empty())
+    if(!m_DynamicLibSolverLoaders.empty())
     {
-        m_MethodComboBox->addItem(m_DllSolverNames.at(0), QVariant::fromValue(SpcaMethod::USERDLL));
+        m_MethodComboBox->addItem(m_DynamicLibSolverNames.at(0), QVariant::fromValue(SpcaMethod::USERDLL));
     }
 
     methodGroupBoxLayout->addWidget(m_MethodComboBox);

@@ -89,8 +89,8 @@ private:
 
     QVector<QString> m_Colors;
 
-    std::vector<std::unique_ptr<QLibrary>> m_DllSolverLoaders;
-    QVector<QString> m_DllSolverNames;
+    std::vector<std::unique_ptr<QLibrary>> m_DynamicLibSolverLoaders;
+    QVector<QString> m_DynamicLibSolverNames;
 };
 
 #endif //SPARSEPC_ATELIER_WIDGET_HPP

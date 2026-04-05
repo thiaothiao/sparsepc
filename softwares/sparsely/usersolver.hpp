@@ -27,7 +27,7 @@ namespace sparsepc
     {
         template<std::floating_point ScalarType, EigenSolverLike EigenSolverType,
              ProgressBarLike ProgressBarType = DummyProgressBar>
-        class DllSolverModel final
+        class DynamicLibSolverModel final
         {
         public:
             using Scalar = ScalarType;
@@ -57,7 +57,7 @@ namespace sparsepc
                 const ComputeSparseEigenVector computeSparseEigenVector;
             };
 
-            DllSolverModel(const Param& param = {})
+            DynamicLibSolverModel(const Param& param = {})
                 : m_Param{param}
             {
             }
@@ -71,7 +71,7 @@ namespace sparsepc
         };        
 
         template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
-        auto DllSolverModel<ScalarType, EigenSolverType, ProgressBarType>::run(
+        auto DynamicLibSolverModel<ScalarType, EigenSolverType, ProgressBarType>::run(
             const Matrix<Scalar>& sigma) const
         {
             using Component = Component<Scalar>;
@@ -110,7 +110,7 @@ namespace sparsepc
         }
 
         template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
-        auto DllSolverModel<ScalarType, EigenSolverType, ProgressBarType>::runAll(const Matrix<Scalar>& sigma,
+        auto DynamicLibSolverModel<ScalarType, EigenSolverType, ProgressBarType>::runAll(const Matrix<Scalar>& sigma,
                                                                              const Param& param, ProgressBar* progressBar)
         {
             using Component = Component<Scalar>;
@@ -158,7 +158,7 @@ namespace sparsepc
         }
 
         //template<std::floating_point ScalarType>
-        //using User = SparsePC<DllSolverModel<ScalarType, EigenSolver<ScalarType>>>;
+        //using User = SparsePC<DynamicLibSolverModel<ScalarType, EigenSolver<ScalarType>>>;
     }
 }
 #endif //SPARSEPC_USER_SOLVER_HPP
