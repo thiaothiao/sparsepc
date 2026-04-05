@@ -16,6 +16,8 @@
 #include <QColor>
 #include <QString>
 #include <QDataStream>
+#include <QDir>
+#include <QDebug>
 
 namespace
 {
@@ -23,7 +25,9 @@ namespace
     {
         DCA = 0U,
         FGSPCA,  //ForwardGSPCA
-        BGSPCA   // BackwardGSPA
+        BGSPCA,   // BackwardGSPA
+        CUSTOM,
+        USERDYNAMICLIB
     };
 
     using BackwardGSPA = sparsepc::linearmodel::SparsePC<
@@ -34,6 +38,24 @@ namespace
 
     using DCA = sparsepc::linearmodel::SparsePC<
         sparsepc::linearmodel::DcaModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
+
+    using CustomSolver = sparsepc::linearmodel::SparsePC<
+        sparsepc::linearmodel::CustomSolverModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
+
+    using DynamicLibSolver = sparsepc::linearmodel::SparsePC<
+        sparsepc::linearmodel::DynamicLibSolverModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
+
+    auto getPluginList()
+    {
+        QDir path(QDir::currentPath() + "/plugins");
+
+        qDebug() << "current path is: " << path.currentPath();
+
+        QStringList filters;
+        filters << "*.dll" << "*.so" << "*.dylib";
+
+        return path.entryInfoList(filters, QDir::Files | QDir::NoDotAndDotDot);
+    }
 }
 
 Q_DECLARE_METATYPE(SpcaMethod)
@@ -191,30 +213,47 @@ void AtelierWidget::onAddNewSparseComponent()
     {
     case SpcaMethod::DCA:
     {
-        const DCA::Param param{ {1} };
         sparsePC.candidates = DCA::computeNextComponentCandidates(
-            m_Sigma, param.modelParams[0], m_ValidatedComponents, m_ProgressBar);
+            m_Sigma, DCA::ModelParam(1), m_ValidatedComponents, m_ProgressBar);
         break;
     }
     case SpcaMethod::BGSPCA:
     {
-        const BackwardGSPA::Param param{ {1} };
         sparsePC.candidates = BackwardGSPA::computeNextComponentCandidates(
-            m_Sigma, param.modelParams[0], m_ValidatedComponents, m_ProgressBar);
+            m_Sigma, BackwardGSPA::ModelParam(1), m_ValidatedComponents, m_ProgressBar);
         break;
     }
     case SpcaMethod::FGSPCA:
     {
-        const ForwardGSPCA::Param param{ {1} };
         sparsePC.candidates = ForwardGSPCA::computeNextComponentCandidates(
-            m_Sigma, param.modelParams[0], m_ValidatedComponents, m_ProgressBar);
+            m_Sigma, ForwardGSPCA::ModelParam(1), m_ValidatedComponents, m_ProgressBar);
+        break;
+    }
+    case SpcaMethod::CUSTOM:
+    {
+        sparsePC.candidates = CustomSolver::computeNextComponentCandidates(
+            m_Sigma, CustomSolver::ModelParam(1), m_ValidatedComponents, m_ProgressBar);
+        break;
+    }
+    case SpcaMethod::USERDYNAMICLIB:
+    {
+        auto& library = m_DynamicLibSolverLoaders.at(0);
+        if(library)
+        {
+            auto computeSparseEigenVector =
+                (ComputeSparseEigenVector)library->resolve("computeSparseEigenVector");
+            if (computeSparseEigenVector)
+            {
+                sparsePC.candidates = DynamicLibSolver::computeNextComponentCandidates(
+                    m_Sigma, DynamicLibSolver::ModelParam(computeSparseEigenVector), m_ValidatedComponents, m_ProgressBar);
+            }
+        }
         break;
     }
     default:
     {
-        const DCA::Param param{ {1} };
         sparsePC.candidates = DCA::computeNextComponentCandidates(
-            m_Sigma, param.modelParams[0], m_ValidatedComponents, m_ProgressBar);
+            m_Sigma, DCA::ModelParam(1), m_ValidatedComponents, m_ProgressBar);
         break;
     }
     }
@@ -379,6 +418,36 @@ AtelierWidget::AtelierWidget(QWidget* parent)
     m_SliderOrProgressBarWidgetStackedLayout{nullptr},
     m_MethodComboBox{nullptr}, m_Colors{}
 {
+    qDebug() << "Loading plugins ...";
+
+    const auto pluginList = getPluginList();
+    if(!pluginList.empty())
+    {
+        m_DynamicLibSolverLoaders.reserve(pluginList.size());
+        m_DynamicLibSolverNames.reserve(pluginList.size());
+
+        for (const auto &fileInfo : pluginList)
+        {
+            QString noExtensionAbsolutePath = QDir(fileInfo.absolutePath()).filePath(fileInfo.baseName());
+            qDebug() << "Loading " << noExtensionAbsolutePath << "...";
+            m_DynamicLibSolverLoaders.push_back(
+                std::make_unique<QLibrary>(noExtensionAbsolutePath));
+            if(m_DynamicLibSolverLoaders.back()->load())
+            {
+                m_DynamicLibSolverNames.push_back(fileInfo.baseName());
+                qDebug() << " ...loaded.";
+            }
+            else
+            {
+                qDebug() << " ...loading failed.";
+                m_DynamicLibSolverLoaders.pop_back();
+            }
+        }
+
+        //foreach(auto fileName, path.entryList(QDir::Files))
+
+        qDebug() << "...Plugins loaded.";
+    }
 }
 
 void AtelierWidget::createWidget()
@@ -455,6 +524,11 @@ void AtelierWidget::createWidget()
     m_MethodComboBox->addItem("Dca", QVariant::fromValue(SpcaMethod::DCA));
     m_MethodComboBox->addItem("Forward Gspca", QVariant::fromValue(SpcaMethod::FGSPCA));
     m_MethodComboBox->addItem("Backward Gspca", QVariant::fromValue(SpcaMethod::BGSPCA));
+    m_MethodComboBox->addItem("Custom", QVariant::fromValue(SpcaMethod::CUSTOM));
+    if(!m_DynamicLibSolverLoaders.empty())
+    {
+        m_MethodComboBox->addItem(m_DynamicLibSolverNames.at(0), QVariant::fromValue(SpcaMethod::USERDYNAMICLIB));
+    }
 
     methodGroupBoxLayout->addWidget(m_MethodComboBox);
 

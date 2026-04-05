@@ -5,6 +5,8 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
+option(BUILD_PLUGINS "Build a few plugins to test" ON)
+
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui PrintSupport Svg Xml OpenGl REQUIRED)
 
 message( STATUS )
@@ -27,11 +29,17 @@ find_package(JKQTPlotter6 REQUIRED)
 
 # add the example executable
 add_executable(${PROJECT_NAME} WIN32 main.cpp AtelierMainWindow.cpp AtelierWidget.cpp
-    AtelierMainWindow.h AtelierWidget.h simu.hpp)
+    AtelierMainWindow.h AtelierWidget.h)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC Qt6::Core Qt6::Widgets Qt6::Gui Qt6::PrintSupport Qt6::Svg Qt6::Xml)
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Gui Qt6::PrintSupport Qt6::Svg Qt6::Xml)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC JKQTPlotter6::JKQTPlotter6)
+target_link_libraries(${PROJECT_NAME} PRIVATE JKQTPlotter6::JKQTPlotter6)
+
+# Plugins
+if(BUILD_PLUGINS)
+  message(STATUS "Configuring plugins")
+  add_subdirectory(plugins)
+endif(BUILD_PLUGINS)
 
 # Installation
 install(TARGETS ${PROJECT_NAME}

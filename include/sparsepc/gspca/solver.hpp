@@ -206,11 +206,11 @@ namespace sparsepc
 
                 if (index != choosenIndices[j0])
                 {// TODO use find function within tailed vector
-                    for (Index j = j0 + 1; j < static_cast<Index>(choosenIndices.size()); ++j)
+                    for (Index i = j0 + 1; i < static_cast<Index>(choosenIndices.size()); ++i)
                     {
-                        if (index == choosenIndices[j])
+                        if (index == choosenIndices[i])
                         {
-                            std::swap(choosenIndices[j0], choosenIndices[j]);
+                            std::swap(choosenIndices[j0], choosenIndices[i]);
                             break;
                         }
                     }
@@ -295,7 +295,7 @@ namespace sparsepc
 
                 if (index != choosenIndices[j0])
                 {// TODO use find function within tailed vector
-                    for (Index j = j0 + 1; j < static_cast<Index>(choosenIndices.size()); ++j)
+                    for (Index i = j0 + 1; i < static_cast<Index>(choosenIndices.size()); ++i)
                     {
                         if (index == choosenIndices[j])
                         {
@@ -381,11 +381,11 @@ namespace sparsepc
 
                 if (index != reserveIndices[j0])
                 {// TODO use find function within tailed vector
-                    for (Index j = j0 + 1; j < static_cast<Index>(reserveIndices.size()); ++j)
+                    for (Index i = j0 + 1; i < static_cast<Index>(reserveIndices.size()); ++i)
                     {
-                        if (index == reserveIndices[j])
+                        if (index == reserveIndices[i])
                         {
-                            std::swap(reserveIndices[j0], reserveIndices[j]);
+                            std::swap(reserveIndices[j0], reserveIndices[i]);
                             break;
                         }
                     }
@@ -465,11 +465,11 @@ namespace sparsepc
 
                 if (index != reserveIndices[j0])
                 {// TODO use find function within tailed vector
-                    for (Index j = j0 + 1; j < static_cast<Index>(reserveIndices.size()); ++j)
+                    for (Index i = j0 + 1; i < static_cast<Index>(reserveIndices.size()); ++i)
                     {
-                        if (index == reserveIndices[j])
+                        if (index == reserveIndices[i])
                         {
-                            std::swap(reserveIndices[j0], reserveIndices[j]);
+                            std::swap(reserveIndices[j0], reserveIndices[i]);
                             break;
                         }
                     }

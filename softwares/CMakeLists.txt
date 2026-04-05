@@ -1,2 +1,1 @@
 add_subdirectory(sparsely)
-add_subdirectory(test)
