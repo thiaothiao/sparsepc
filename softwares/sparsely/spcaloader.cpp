@@ -28,6 +28,20 @@ namespace
         return message;
     }
 
+    // Source - https://stackoverflow.com/a/38155689
+    // Posted by Barmak Shemirani
+    // Retrieved 2026-04-05, License - CC BY-SA 3.0
+    std::wstring getUTF16(const std::string &str, int codepage = CP_UTF8)
+    {
+        if (str.empty())
+        {
+            return std::wstring();
+        }
+        int sz = MultiByteToWideChar(codepage, 0, &str[0], (int)str.size(), 0, 0);
+        std::wstring res(sz, 0);
+        MultiByteToWideChar(codepage, 0, &str[0], (int)str.size(), &res[0], sz);
+        return res;
+    }
 } // namespace
 
 #endif
@@ -38,7 +52,8 @@ namespace plugin
     {
         // Open the library.
 #ifdef _WIN32
-        handle.reset(LoadLibrary(libname.c_str()));
+        const auto wFileName  = getUTF16(libname);
+        handle.reset(LoadLibrary(wFileName.c_str()));
 #else
         handle.reset(dlopen(libname.c_str(), RTLD_LAZY));
 #endif

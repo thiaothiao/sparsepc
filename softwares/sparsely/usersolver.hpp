@@ -27,7 +27,7 @@ namespace sparsepc
     {
         template<std::floating_point ScalarType, EigenSolverLike EigenSolverType,
              ProgressBarLike ProgressBarType = DummyProgressBar>
-        class UserModel final
+        class DllSolverModel final
         {
         public:
             using Scalar = ScalarType;
@@ -36,26 +36,28 @@ namespace sparsepc
 
             struct Param final
             {
-                Param(Index kInput = static_cast<Index>(1),
+                Param(const plugin::SpcaLoader* loaderInput = nullptr,
+                      Index kInput = static_cast<Index>(1),
                     const EigenSolver& eigenSolverInput = {},
                     Scalar zeroInput = static_cast<Scalar>(1e-6))
-                    :k{ kInput }, eigenSolver{ eigenSolverInput }, 
-                    zero{ zeroInput }
+                    :loader{loaderInput}, k{ kInput },
+                    eigenSolver{ eigenSolverInput }, zero{ zeroInput }
                 {
                 }
 
                 Param(const Param&) = default;
-                Param& operator=(const Param&) = default;
+                Param& operator=(const Param&) = delete;
 
-                Param(Param&&) = default;
-                Param& operator=(Param&&) = default;
+                Param(Param&&) = delete;
+                Param& operator=(Param&&) = delete;
 
                 const Index k;
                 const EigenSolver eigenSolver;
                 const Scalar zero;
+                const plugin::SpcaLoader* loader;
             };
 
-            UserModel(const Param& param = {})
+            DllSolverModel(const Param& param = {})
                 : m_Param{param}
             {
             }
@@ -66,33 +68,10 @@ namespace sparsepc
 
         private:
             const Param m_Param;
-        };
-
-        std::vector<std::string> getPluginList(std::string_view directory)
-        try
-        {
-            std::filesystem::path const pluginsDir(directory);
-            std::vector<std::string> plugins;
-
-            for (auto const& entry : std::filesystem::directory_iterator(pluginsDir))
-            {
-                if (auto const& ext = entry.path().extension();
-                    entry.is_regular_file() &&
-                    (ext == ".dll" || ext == ".so" || ext == ".dylib"))
-                {
-                    plugins.push_back(entry.path().relative_path().string());
-                }
-            }
-            return plugins;
-        }
-        catch (std::filesystem::filesystem_error const& e)
-        {
-            std::cerr << e.what() << '\n';
-            return {};
-        }
+        };        
 
         template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
-        auto UserModel<ScalarType, EigenSolverType, ProgressBarType>::run(
+        auto DllSolverModel<ScalarType, EigenSolverType, ProgressBarType>::run(
             const Matrix<Scalar>& sigma) const
         {
             using Component = Component<Scalar>;
@@ -116,42 +95,10 @@ namespace sparsepc
             }
 
             Component component(n);
-
-            std::string const pluginsDir = [&]() {
-                //if (argc > 1)
-                // {
-                //    return std::string(argv[1]);
-                //}
-                return std::string("plugins");
-            }();
-
-            std::vector<plugin::SpcaLoader> loaders;
-
-            for (auto const plugins = getPluginList(pluginsDir);
-                 auto const& pluginFile : plugins)
-            {
-                try
-                {
-                    std::cout << "Loading " << pluginFile << "...";
-                    loaders.emplace_back(pluginFile);
-                    std::cout << " Loaded!\n";
-                }
-                catch (std::runtime_error const& e)
-                {
-                    std::cerr << "Failed: " << e.what() << '\n';
-                }
-            }
-
-            std::cout << "\n loaded plugins \n";
-            for (int index = 1; auto const& loader : loaders)
-            {
-                std::cout << "\n\t" << index++ << ") " << loader.getSpca().getName();
-            }
-            std::cout << "\n plugin loaded.\n";
-
+            if(m_Param.loader)
             try
             {
-                const plugin::SPCA& spca = loaders.at(0).getSpca();
+                const plugin::SPCA& spca = m_Param.loader->getSpca();
 
                 spca.solve(sigma.data(), n, k, component.vector.data());
 
@@ -170,7 +117,7 @@ namespace sparsepc
         }
 
         template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
-        auto UserModel<ScalarType, EigenSolverType, ProgressBarType>::runAll(const Matrix<Scalar>& sigma,
+        auto DllSolverModel<ScalarType, EigenSolverType, ProgressBarType>::runAll(const Matrix<Scalar>& sigma,
                                                                              const Param& param, ProgressBar* progressBar)
         {
             using Component = Component<Scalar>;
@@ -181,7 +128,7 @@ namespace sparsepc
 
             ComponentsContainer components;
 
-            const auto& component = components.emplace(n, eigenSolver.maximumValueElement(sigma)).first->second;
+            components.emplace(n, eigenSolver.maximumValueElement(sigma));
 
             if (n == 1)
             {
@@ -193,43 +140,10 @@ namespace sparsepc
                 components.emplace(k, Component{});
             }
 
-            /*********************************/
-
-            std::string const pluginsDir = [&]() {
-                //if (argc > 1)
-                // {
-                //    return std::string(argv[1]);
-                //}
-                return std::string("plugins");
-            }();
-
-            std::vector<plugin::SpcaLoader> loaders;
-
-            for (auto const plugins = getPluginList(pluginsDir);
-                 auto const& pluginFile : plugins)
-            {
-                try
-                {
-                    std::cout << "Loading " << pluginFile << "...";
-                    loaders.emplace_back(pluginFile);
-                    std::cout << " Loaded!\n";
-                }
-                catch (std::runtime_error const& e)
-                {
-                    std::cerr << "Failed: " << e.what() << '\n';
-                }
-            }
-
-            std::cout << "\n loaded plugins \n";
-            for (int index = 1; auto const& loader : loaders)
-            {
-                std::cout << "\n\t" << index++ << ") " << loader.getSpca().getName();
-            }
-            std::cout << "\n plugin loaded.\n";
-
+            if(param.loader)
             try
             {
-                const plugin::SPCA& spca = loaders.at(0).getSpca();
+                const plugin::SPCA& spca = param.loader->getSpca();
 
                 for (Index k = 1; k < n; ++k)
                 {
@@ -258,7 +172,7 @@ namespace sparsepc
         }
 
         //template<std::floating_point ScalarType>
-        //using User = SparsePC<UserModel<ScalarType, EigenSolver<ScalarType>>>;
+        //using User = SparsePC<DllSolverModel<ScalarType, EigenSolver<ScalarType>>>;
     }
 }
 #endif //SPARSEPC_USER_SOLVER_HPP

@@ -19,6 +19,7 @@
 #include "jkqtplotter/graphs/jkqtpfilledcurve.h"
 
 #include "sparsepc/core.hpp"
+#include "usersolver.hpp"
 
 struct MyClass final
 {
@@ -86,6 +87,8 @@ private:
     QComboBox* m_MethodComboBox;
 
     QVector<QString> m_Colors;
+
+    std::vector<plugin::SpcaLoader> m_DllSolverLoaders;
 };
 
 #endif //SPARSEPC_ATELIER_WIDGET_HPP

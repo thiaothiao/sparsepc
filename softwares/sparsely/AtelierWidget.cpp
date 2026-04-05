@@ -24,7 +24,8 @@ namespace
     {
         DCA = 0U,
         FGSPCA,  //ForwardGSPCA
-        BGSPCA   // BackwardGSPA
+        BGSPCA,   // BackwardGSPA
+        USERDLL
     };
 
     using BackwardGSPA = sparsepc::linearmodel::SparsePC<
@@ -36,8 +37,31 @@ namespace
     using DCA = sparsepc::linearmodel::SparsePC<
         sparsepc::linearmodel::DcaModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
 
-    using User = sparsepc::linearmodel::SparsePC<
-        sparsepc::linearmodel::UserModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
+    using DllSolver = sparsepc::linearmodel::SparsePC<
+        sparsepc::linearmodel::DllSolverModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
+
+    std::vector<std::string> getPluginList(std::string_view directory)
+    try
+    {
+        std::filesystem::path const pluginsDir(directory);
+        std::vector<std::string> plugins;
+
+        for (auto const& entry : std::filesystem::directory_iterator(pluginsDir))
+        {
+            if (auto const& ext = entry.path().extension();
+                entry.is_regular_file() &&
+                (ext == ".dll" || ext == ".so" || ext == ".dylib"))
+            {
+                plugins.push_back(entry.path().relative_path().string());
+            }
+        }
+        return plugins;
+    }
+    catch (std::filesystem::filesystem_error const& e)
+    {
+        std::cerr << e.what() << '\n';
+        return {};
+    }
 }
 
 Q_DECLARE_METATYPE(SpcaMethod)
@@ -214,6 +238,13 @@ void AtelierWidget::onAddNewSparseComponent()
             m_Sigma, param.modelParams[0], m_ValidatedComponents, m_ProgressBar);
         break;
     }
+    case SpcaMethod::USERDLL:
+    {
+        const DllSolver::Param param{ {&m_DllSolverLoaders.at(0)} };
+        sparsePC.candidates = DllSolver::computeNextComponentCandidates(
+            m_Sigma, param.modelParams[0], m_ValidatedComponents, m_ProgressBar);
+        break;
+    }
     default:
     {
         const DCA::Param param{ {1} };
@@ -382,7 +413,38 @@ AtelierWidget::AtelierWidget(QWidget* parent)
     m_Slider{nullptr}, m_ProgressBar{nullptr},
     m_SliderOrProgressBarWidgetStackedLayout{nullptr},
     m_MethodComboBox{nullptr}, m_Colors{}
-{
+{    
+    std::string const pluginsDir = [&]() {
+        //if (argc > 1)
+        // {
+        //    return std::string(argv[1]);
+        //}
+        return std::string(R"(plugins)");
+    }();
+
+    //std::vector<plugin::SpcaLoader> loaders;
+
+    for (auto const plugins = getPluginList(pluginsDir);
+         auto const& pluginFile : plugins)
+    {
+        try
+        {
+            std::cout << "Loading " << pluginFile << "...";
+            m_DllSolverLoaders.emplace_back(pluginFile);
+            std::cout << " Loaded!\n";
+        }
+        catch (std::runtime_error const& e)
+        {
+            std::cerr << "Failed: " << e.what() << '\n';
+        }
+    }
+
+    std::cout << "\n loaded plugins \n";
+    for (int index = 1; auto const& loader : m_DllSolverLoaders)
+    {
+        std::cout << "\n\t" << index++ << ") " << loader.getSpca().getName();
+    }
+    std::cout << "\n plugin loaded.\n";
 }
 
 void AtelierWidget::createWidget()
@@ -459,6 +521,10 @@ void AtelierWidget::createWidget()
     m_MethodComboBox->addItem("Dca", QVariant::fromValue(SpcaMethod::DCA));
     m_MethodComboBox->addItem("Forward Gspca", QVariant::fromValue(SpcaMethod::FGSPCA));
     m_MethodComboBox->addItem("Backward Gspca", QVariant::fromValue(SpcaMethod::BGSPCA));
+    if(!m_DllSolverLoaders.empty())
+    {
+        m_MethodComboBox->addItem(QString::fromStdString(m_DllSolverLoaders.at(0).getLibname()), QVariant::fromValue(SpcaMethod::USERDLL));
+    }
 
     methodGroupBoxLayout->addWidget(m_MethodComboBox);
 
