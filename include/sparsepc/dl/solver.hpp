@@ -1,5 +1,5 @@
-#ifndef SPARSEPC_USER_SOLVER_HPP
-#define SPARSEPC_USER_SOLVER_HPP
+#ifndef SPARSEPC_DL_SOLVER_HPP
+#define SPARSEPC_DL_SOLVER_HPP
 
 #include <iostream>
 #include <vector>
@@ -161,4 +161,4 @@ namespace sparsepc
         //using User = SparsePC<DynamicLibSolverModel<ScalarType, EigenSolver<ScalarType>>>;
     }
 }
-#endif //SPARSEPC_USER_SOLVER_HPP
+#endif //SPARSEPC_DL_SOLVER_HPP

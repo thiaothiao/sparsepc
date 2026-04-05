@@ -29,7 +29,7 @@ find_package(JKQTPlotter6 REQUIRED)
 
 # add the example executable
 add_executable(${PROJECT_NAME} WIN32 main.cpp AtelierMainWindow.cpp AtelierWidget.cpp
-    AtelierMainWindow.h AtelierWidget.h usersolver.hpp)
+    AtelierMainWindow.h AtelierWidget.h)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Gui Qt6::PrintSupport Qt6::Svg Qt6::Xml)
 
