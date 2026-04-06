@@ -4,8 +4,11 @@
 #include <QMenu>
 #include <QAction>
 #include <QFileDialog>
+#include <QDebug>
 
 #include "sparsepc/version.hpp"
+
+#include "PreferencesDialog.h"
 
 AtelierMainWindow::AtelierMainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -44,6 +47,18 @@ AtelierMainWindow::AtelierMainWindow(QWidget* parent)
     //fileMenu->addSeparator();
     fileMenu->addAction(quitAction);
 
+    auto *preferencesAction = new QAction(tr("&Preferences..."), this);
+    preferencesAction->setShortcuts(QKeySequence::Preferences);
+    preferencesAction->setMenuRole(QAction::PreferencesRole);
+
+    // Connect to a slot that opens your settings dialog
+    QObject::connect(preferencesAction, &QAction::triggered, this,
+                     &AtelierMainWindow::showPreferences);
+
+    // Add it to a menu (e.g., the Edit menu)
+    auto* editMenu = menuBar()->addMenu(tr("&Edit"));
+    editMenu->addAction(preferencesAction);
+
     auto* mainWidget = new QWidget(this);
 
     m_MainWidgetStackedLayout = new QStackedLayout(mainWidget);
@@ -53,7 +68,7 @@ AtelierMainWindow::AtelierMainWindow(QWidget* parent)
     auto* welcomeWidgeLayout = new QHBoxLayout(m_WelcomeWidget);
 
     auto* topLevelLabel = new QLabel(this);
-    QPixmap pixmap(R"(C:\Users\thiao\Pictures\sparsely\welcome.png)");
+    QPixmap pixmap(R"(C:\Users\thiao\Pictures\sparsely\welcomee.png)");
     topLevelLabel->setPixmap(pixmap);
     topLevelLabel->setMask(pixmap.mask());
     welcomeWidgeLayout->addWidget(topLevelLabel);
@@ -132,5 +147,15 @@ void AtelierMainWindow::closeEvent(QCloseEvent *event)
     if(event)
     {
         event->accept();
+    }
+}
+
+void AtelierMainWindow::showPreferences()
+{
+    sparsepc::PreferencesDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted)
+    {
+        // Appliquer les nouveaux réglages ici
+        qDebug() << "Accepted";
     }
 }

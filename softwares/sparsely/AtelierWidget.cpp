@@ -22,23 +22,10 @@
 #include "jkqtplotter/graphs/jkqtpfilledcurve.h"
 #include "jkqtplotter/graphs/jkqtpimpulses.h"
 
+#include "PreferencesDialog.h"
+
 namespace
 {
-    enum class SpcaMethod : std::uint8_t
-    {
-        DCA = 0U,
-        FGSPCA,  //ForwardGSPCA
-        BGSPCA,   // BackwardGSPA
-        CUSTOM,
-        USERDYNAMICLIB
-    };
-
-    enum class PlotType : std::uint8_t
-    {
-        FILLED = 0U,
-        IMPULSES
-    };
-
     using BackwardGSPA = sparsepc::linearmodel::SparsePC<
         sparsepc::linearmodel::BackwardGspcaModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
 
@@ -66,9 +53,6 @@ namespace
         return path.entryInfoList(filters, QDir::Files | QDir::NoDotAndDotDot);
     }
 }
-
-Q_DECLARE_METATYPE(SpcaMethod)
-Q_DECLARE_METATYPE(PlotType)
 
 void AtelierWidget::computeStandardPCs()
 {
@@ -115,21 +99,21 @@ void AtelierWidget::drawStandardPCs()
         {
             ds->inc(standardPC.pcColumn, i, component.vector[i]);
         }
-        const auto plotType = m_PlotTypeComboBox->currentData().value<PlotType>();
+        const auto plotType = m_PlotTypeComboBox->currentData().value<sparsepc::Enums::PlotType>();
         switch (plotType)
         {
-        case PlotType::FILLED:
+        case sparsepc::Enums::PlotType::FILLED:
         {
             auto* graph = new JKQTPFilledCurveXGraph(m_Plotter);
 
             auto col = QColor(standardPC.color);
-            graph->setLineStyle(Qt::SolidLine);
-            graph->setLineWidth(1);
+            graph->setLineStyle(m_Preferences.standardComponentsLineStyle);
+            graph->setLineWidth(m_Preferences.standardComponentsLineWidthFilledPlot);
             graph->setLineColor(col);
 
             graph->setFillMode(JKQTPFilledCurveXGraph::FillMode::SingleFilling);
 
-            col.setAlphaF(0.125f);
+            col.setAlphaF(m_Preferences.standardComponentsFillingColorsAlpha);
             graph->setFillColor(col);
             graph->fillStyleBelow().setFillColor(col);
             graph->setBaseline(0.0);
@@ -140,10 +124,11 @@ void AtelierWidget::drawStandardPCs()
             standardPC.pcGraph = graph;
             break;
         }
-        case PlotType::IMPULSES:
+        case sparsepc::Enums::PlotType::IMPULSES:
         {
             auto* graph = new JKQTPImpulsesVerticalGraph(m_Plotter);
-            graph->setLineWidth(2);
+            graph->setLineStyle(m_Preferences.standardComponentsLineStyle);
+            graph->setLineWidth(m_Preferences.standardComponentsLineWidthImpulsesPlot);
             graph->setDrawSymbols(true);
             graph->setSymbolType(JKQTPGraphSymbols::JKQTPFilledCircle);
             auto col = QColor(standardPC.color);
@@ -197,21 +182,21 @@ void AtelierWidget::drawSparsePCs()
             ds->inc(sparsePC.pcColumn, i, component.vector[i]);
         }
 
-        const auto plotType = m_PlotTypeComboBox->currentData().value<PlotType>();
+        const auto plotType = m_PlotTypeComboBox->currentData().value<sparsepc::Enums::PlotType>();
         switch (plotType)
         {
-        case PlotType::FILLED:
+        case sparsepc::Enums::PlotType::FILLED:
         {
             auto* graph = new JKQTPFilledCurveXGraph(m_Plotter);
 
             auto col = QColor(sparsePC.color);
-            graph->setLineStyle(Qt::DotLine);
-            graph->setLineWidth(2);
+            graph->setLineStyle(m_Preferences.sparseComponentsLineStyle);
+            graph->setLineWidth(m_Preferences.sparseComponentsLineWidthFilledPlot);
             graph->setLineColor(col);
 
             graph->setFillMode(JKQTPFilledCurveXGraph::FillMode::SingleFilling);
 
-            col.setAlphaF(0.25f);
+            col.setAlphaF(m_Preferences.sparseComponentsFillingColorsAlpha);
             graph->setFillColor(col);
             graph->fillStyleBelow().setFillColor(col);
             graph->setBaseline(0.0);
@@ -222,11 +207,11 @@ void AtelierWidget::drawSparsePCs()
             sparsePC.pcGraph = graph;
             break;
         }
-        case PlotType::IMPULSES:
+        case sparsepc::Enums::PlotType::IMPULSES:
         {
             auto* graph = new JKQTPImpulsesVerticalGraph(m_Plotter);
-            graph->setLineStyle(Qt::DotLine);
-            graph->setLineWidth(3);
+            graph->setLineStyle(m_Preferences.sparseComponentsLineStyle);
+            graph->setLineWidth(m_Preferences.sparseComponentsLineWidthImpulsesPlot);
             graph->setDrawSymbols(true);
             graph->setSymbolType(JKQTPGraphSymbols::JKQTPCircle);
             auto col = QColor(sparsePC.color);
@@ -281,34 +266,34 @@ void AtelierWidget::onAddNewSparseComponent()
 
     m_ProgressBar->setValue(0);
 
-    const auto method = m_MethodComboBox->currentData().value<SpcaMethod>();
+    const auto method = m_MethodComboBox->currentData().value<sparsepc::Enums::Method>();
     switch (method)
     {
-    case SpcaMethod::DCA:
+    case sparsepc::Enums::Method::DCA:
     {
         sparsePC.candidates = DCA::computeNextComponentCandidates(
             m_Sigma, DCA::ModelParam(1), m_ValidatedComponents, m_ProgressBar);
         break;
     }
-    case SpcaMethod::BGSPCA:
+    case sparsepc::Enums::Method::BGSPCA:
     {
         sparsePC.candidates = BackwardGSPA::computeNextComponentCandidates(
             m_Sigma, BackwardGSPA::ModelParam(1), m_ValidatedComponents, m_ProgressBar);
         break;
     }
-    case SpcaMethod::FGSPCA:
+    case sparsepc::Enums::Method::FGSPCA:
     {
         sparsePC.candidates = ForwardGSPCA::computeNextComponentCandidates(
             m_Sigma, ForwardGSPCA::ModelParam(1), m_ValidatedComponents, m_ProgressBar);
         break;
     }
-    case SpcaMethod::CUSTOM:
+    case sparsepc::Enums::Method::CUSTOM:
     {
         sparsePC.candidates = CustomSolver::computeNextComponentCandidates(
             m_Sigma, CustomSolver::ModelParam(1), m_ValidatedComponents, m_ProgressBar);
         break;
     }
-    case SpcaMethod::USERDYNAMICLIB:
+    case sparsepc::Enums::Method::USERDYNAMICLIB:
     {
         auto& library = m_DynamicLibSolverLoaders.at(0);
         if(library)
@@ -371,21 +356,21 @@ void AtelierWidget::onAddNewSparseComponent()
         ds->inc(sparsePC.pcColumn, i, component.vector[i]);
     }
 
-    const auto plotType = m_PlotTypeComboBox->currentData().value<PlotType>();
+    const auto plotType = m_PlotTypeComboBox->currentData().value<sparsepc::Enums::PlotType>();
     switch (plotType)
     {
-    case PlotType::FILLED:
+    case sparsepc::Enums::PlotType::FILLED:
     {
         auto* graph = new JKQTPFilledCurveXGraph(m_Plotter);
 
         auto col = QColor(sparsePC.color);
-        graph->setLineStyle(Qt::DotLine);
-        graph->setLineWidth(2);
+        graph->setLineStyle(m_Preferences.sparseComponentsLineStyle);
+        graph->setLineWidth(m_Preferences.sparseComponentsLineWidthFilledPlot);
         graph->setLineColor(col);
 
         graph->setFillMode(JKQTPFilledCurveXGraph::FillMode::SingleFilling);
 
-        col.setAlphaF(0.25f);
+        col.setAlphaF(m_Preferences.sparseComponentsFillingColorsAlpha);
         graph->setFillColor(col);
         graph->fillStyleBelow().setFillColor(col);
         graph->setBaseline(0.0);
@@ -395,11 +380,11 @@ void AtelierWidget::onAddNewSparseComponent()
         sparsePC.pcGraph = graph;
         break;
     }
-    case PlotType::IMPULSES:
+    case sparsepc::Enums::PlotType::IMPULSES:
     {
         auto* graph = new JKQTPImpulsesVerticalGraph(m_Plotter);
-        graph->setLineStyle(Qt::DotLine);
-        graph->setLineWidth(3);
+        graph->setLineStyle(m_Preferences.sparseComponentsLineStyle);
+        graph->setLineWidth(m_Preferences.sparseComponentsLineWidthImpulsesPlot);
         graph->setDrawSymbols(true);
         graph->setSymbolType(JKQTPGraphSymbols::JKQTPCircle);
         auto col = QColor(sparsePC.color);
@@ -544,6 +529,11 @@ AtelierWidget::AtelierWidget(QWidget* parent)
     m_SliderOrProgressBarWidgetStackedLayout{nullptr},
     m_MethodComboBox{nullptr}, m_PlotTypeComboBox{nullptr}, m_Colors{}
 {
+    // TODO preferences as a singleton
+    qDebug() << "Loading prefernces ...";
+    m_Preferences = sparsepc::Preferences::load(
+        R"(C:\Projects\cpp\wassdecision\solvers\sparsepc\softwares\sparsely\preferences.json)");
+    qDebug() << "... preferences done.";
     qDebug() << "Loading plugins ...";
 
     const auto pluginList = getPluginList();
@@ -578,13 +568,11 @@ AtelierWidget::AtelierWidget(QWidget* parent)
 
 void AtelierWidget::createWidget()
 {
-    m_Colors.reserve(6);
-    m_Colors.push_back("red");
-    m_Colors.push_back("green");
-    m_Colors.push_back("blue");
-    m_Colors.push_back("magenta");
-    m_Colors.push_back("yellow");
-    m_Colors.push_back("cyan");
+    m_Colors.reserve(m_Preferences.componentsColors.size());
+    for(const auto& colorString: m_Preferences.componentsColors)
+    {
+        m_Colors.push_back(colorString);
+    }
 
     auto* layout = new QGridLayout(this);
 
@@ -647,8 +635,9 @@ void AtelierWidget::createWidget()
     auto* plotTypeGroupBoxLayout = new QHBoxLayout(plotTypeGroupBox);
 
     m_PlotTypeComboBox = new QComboBox(this);
-    m_PlotTypeComboBox->addItem("Filled", QVariant::fromValue(PlotType::FILLED));
-    m_PlotTypeComboBox->addItem("Impulse", QVariant::fromValue(PlotType::IMPULSES));
+    m_PlotTypeComboBox->addItem("Filled", QVariant::fromValue(sparsepc::Enums::PlotType::FILLED));
+    m_PlotTypeComboBox->addItem("Impulses", QVariant::fromValue(sparsepc::Enums::PlotType::IMPULSES));
+    m_PlotTypeComboBox->setCurrentIndex(m_Preferences.plotType == sparsepc::Enums::PlotType::FILLED ? 0 : 1);
 
     plotTypeGroupBoxLayout->addWidget(m_PlotTypeComboBox);
     processingsGoupboxLayout->addWidget(plotTypeGroupBox);
@@ -657,13 +646,48 @@ void AtelierWidget::createWidget()
     auto* methodGroupBoxLayout = new QHBoxLayout(methodGroupBox);
 
     m_MethodComboBox = new QComboBox(this);
-    m_MethodComboBox->addItem("Dca", QVariant::fromValue(SpcaMethod::DCA));
-    m_MethodComboBox->addItem("Forward Gspca", QVariant::fromValue(SpcaMethod::FGSPCA));
-    m_MethodComboBox->addItem("Backward Gspca", QVariant::fromValue(SpcaMethod::BGSPCA));
-    m_MethodComboBox->addItem("Custom", QVariant::fromValue(SpcaMethod::CUSTOM));
+    m_MethodComboBox->addItem("Dca", QVariant::fromValue(sparsepc::Enums::Method::DCA));
+    m_MethodComboBox->addItem("Forward Gspca", QVariant::fromValue(sparsepc::Enums::Method::FGSPCA));
+    m_MethodComboBox->addItem("Backward Gspca", QVariant::fromValue(sparsepc::Enums::Method::BGSPCA));
+    m_MethodComboBox->addItem("Custom", QVariant::fromValue(sparsepc::Enums::Method::CUSTOM));
     if(!m_DynamicLibSolverLoaders.empty())
     {
-        m_MethodComboBox->addItem(m_DynamicLibSolverNames.at(0), QVariant::fromValue(SpcaMethod::USERDYNAMICLIB));
+        m_MethodComboBox->addItem(m_DynamicLibSolverNames.at(0), QVariant::fromValue(sparsepc::Enums::Method::USERDYNAMICLIB));
+    }
+
+    switch (m_Preferences.method)
+    {// should use a map type ontainer!
+    case sparsepc::Enums::Method::DCA:
+    {
+        m_MethodComboBox->setCurrentIndex(0);
+        break;
+    }
+    case sparsepc::Enums::Method::FGSPCA:
+    {
+        m_MethodComboBox->setCurrentIndex(1);
+        break;
+    }
+    case sparsepc::Enums::Method::BGSPCA:
+    {
+        m_MethodComboBox->setCurrentIndex(2);
+        break;
+    }
+    case sparsepc::Enums::Method::CUSTOM:
+    {
+        m_MethodComboBox->setCurrentIndex(3);
+        break;
+    }
+    default:
+    {
+        m_MethodComboBox->setCurrentIndex(0);
+        break;
+    }
+    }
+
+    if(!m_DynamicLibSolverLoaders.empty() &&
+        m_Preferences.method == sparsepc::Enums::Method::USERDYNAMICLIB)
+    {
+        m_MethodComboBox->setCurrentIndex(4);
     }
 
     methodGroupBoxLayout->addWidget(m_MethodComboBox);
@@ -683,13 +707,13 @@ void AtelierWidget::createWidget()
         new QPushButton("Remove last", this);
     actionGroupBoxLayout->addWidget(removeLastSparseComponentButton);
 
-    QObject::connect(m_PlotTypeComboBox, &QComboBox::currentIndexChanged,
+    QObject::connect(m_PlotTypeComboBox, qOverload<int>(&QComboBox::currentIndexChanged),
                      this, &AtelierWidget::onSelectionChanged);
     QObject::connect(m_ProgressBar, &QProgressBar::valueChanged,
                      this, &AtelierWidget::updateProgressBarTitle);
-    QObject::connect(m_Slider, &QSlider::valueChanged,
+    QObject::connect(m_Slider, qOverload<int>(&QSlider::valueChanged),
                      this, &AtelierWidget::updateSliderTitle);
-    QObject::connect(m_Slider, &QSlider::valueChanged,
+    QObject::connect(m_Slider, qOverload<int>(&QSlider::valueChanged),
                      this, &AtelierWidget::updatePlot);
     QObject::connect(addNewSparseComponentButton, &QPushButton::clicked,
                      this, &AtelierWidget::onAddNewSparseComponent);

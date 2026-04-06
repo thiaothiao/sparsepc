@@ -16,6 +16,7 @@ public slots:
     void open(bool checked);
     void save(bool checked);
     void close(bool checked);
+    void showPreferences();
 
 public:
     AtelierMainWindow(QWidget *parent = nullptr);
