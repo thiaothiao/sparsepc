@@ -152,7 +152,7 @@ void AtelierMainWindow::closeEvent(QCloseEvent *event)
 
 void AtelierMainWindow::showPreferences()
 {
-    PreferencesDialog dialog(this);
+    sparsepc::PreferencesDialog dialog(this);
     if (dialog.exec() == QDialog::Accepted)
     {
         // Appliquer les nouveaux réglages ici

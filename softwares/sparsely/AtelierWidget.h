@@ -17,6 +17,8 @@
 #include <QCombobox>
 #include <QLibrary>
 
+#include "PreferencesDialog.h"
+
 #include "jkqtplotter/jkqtplotter.h"
 
 #include "sparsepc/core.hpp"
@@ -79,6 +81,8 @@ private:
     std::vector<MyClass> m_StandardPCs;
     double m_CummulativeVarianceStandardPCs;
     double m_CummulativeVarianceSparsePCs;
+
+    sparsepc::Preferences m_Preferences;
 
     JKQTPlotter* m_Plotter;
     QGroupBox* m_SliderGroupBox;
