@@ -9,9 +9,9 @@
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    app.setWindowIcon(QIcon(R"(C:\Users\thiao\Pictures\sparsely\logo1.png)"));
+    app.setWindowIcon(QIcon(R"(C:\Users\thiao\Pictures\sparsely\logo.png)"));
 
-    QPixmap pixmap(R"(C:\Users\thiao\Pictures\sparsely\logo1_text.png)");
+    QPixmap pixmap(R"(C:\Users\thiao\Pictures\sparsely\welcome.png)");
     pixmap.setMask(pixmap.createMaskFromColor(Qt::white));
     QSplashScreen splash(pixmap);
     splash.setMask(pixmap.mask());

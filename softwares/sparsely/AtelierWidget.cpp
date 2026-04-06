@@ -22,23 +22,10 @@
 #include "jkqtplotter/graphs/jkqtpfilledcurve.h"
 #include "jkqtplotter/graphs/jkqtpimpulses.h"
 
+#include "PreferencesDialog.h"
+
 namespace
 {
-    enum class SpcaMethod : std::uint8_t
-    {
-        DCA = 0U,
-        FGSPCA,  //ForwardGSPCA
-        BGSPCA,   // BackwardGSPA
-        CUSTOM,
-        USERDYNAMICLIB
-    };
-
-    enum class PlotType : std::uint8_t
-    {
-        FILLED = 0U,
-        IMPULSES
-    };
-
     using BackwardGSPA = sparsepc::linearmodel::SparsePC<
         sparsepc::linearmodel::BackwardGspcaModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
 
@@ -66,9 +53,6 @@ namespace
         return path.entryInfoList(filters, QDir::Files | QDir::NoDotAndDotDot);
     }
 }
-
-Q_DECLARE_METATYPE(SpcaMethod)
-Q_DECLARE_METATYPE(PlotType)
 
 void AtelierWidget::computeStandardPCs()
 {
@@ -648,7 +632,7 @@ void AtelierWidget::createWidget()
 
     m_PlotTypeComboBox = new QComboBox(this);
     m_PlotTypeComboBox->addItem("Filled", QVariant::fromValue(PlotType::FILLED));
-    m_PlotTypeComboBox->addItem("Impulse", QVariant::fromValue(PlotType::IMPULSES));
+    m_PlotTypeComboBox->addItem("Impulses", QVariant::fromValue(PlotType::IMPULSES));
 
     plotTypeGroupBoxLayout->addWidget(m_PlotTypeComboBox);
     processingsGoupboxLayout->addWidget(plotTypeGroupBox);
@@ -683,13 +667,13 @@ void AtelierWidget::createWidget()
         new QPushButton("Remove last", this);
     actionGroupBoxLayout->addWidget(removeLastSparseComponentButton);
 
-    QObject::connect(m_PlotTypeComboBox, &QComboBox::currentIndexChanged,
+    QObject::connect(m_PlotTypeComboBox, qOverload<int>(&QComboBox::currentIndexChanged),
                      this, &AtelierWidget::onSelectionChanged);
     QObject::connect(m_ProgressBar, &QProgressBar::valueChanged,
                      this, &AtelierWidget::updateProgressBarTitle);
-    QObject::connect(m_Slider, &QSlider::valueChanged,
+    QObject::connect(m_Slider, qOverload<int>(&QSlider::valueChanged),
                      this, &AtelierWidget::updateSliderTitle);
-    QObject::connect(m_Slider, &QSlider::valueChanged,
+    QObject::connect(m_Slider, qOverload<int>(&QSlider::valueChanged),
                      this, &AtelierWidget::updatePlot);
     QObject::connect(addNewSparseComponentButton, &QPushButton::clicked,
                      this, &AtelierWidget::onAddNewSparseComponent);
