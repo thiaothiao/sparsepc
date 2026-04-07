@@ -1,19 +1,6 @@
 #ifndef SPARSEPC_CUSTOM_SOLVER_HPP
 #define SPARSEPC_CUSTOM_SOLVER_HPP
 
-#include <iostream>
-#include <vector>
-#include <unordered_map>
-#include <set>
-#include <limits>
-#include <algorithm>
-#include <future>
-#include <concepts>
-#include <filesystem>
-#include <stdexcept>
-#include <string>
-#include <string_view>
-
 #include "sparsepc/utils/matrix.hpp"
 #include "sparsepc/eigen/solver.hpp"
 #include "sparsepc/generic/solver.hpp"
@@ -59,15 +46,17 @@ namespace sparsepc
 
             auto run(const Matrix<Scalar>& sigma) const;
 
-            static auto runAll(const Matrix<Scalar>& sigma, const Param& param, ProgressBar* progressBar);
+            static auto runAll(
+                const Matrix<Scalar>& sigma,
+                const Param& param,
+                ProgressBar* progressBar);
 
         private:
             const Param m_Param;
         };        
 
         template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
-        auto CustomSolverModel<ScalarType, EigenSolverType, ProgressBarType>::run(
-            const Matrix<Scalar>& sigma) const
+        auto CustomSolverModel<ScalarType, EigenSolverType, ProgressBarType>::run(const Matrix<Scalar>& sigma) const
         {
             using Component = Component<Scalar>;
 
@@ -104,8 +93,10 @@ namespace sparsepc
         }
 
         template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
-        auto CustomSolverModel<ScalarType, EigenSolverType, ProgressBarType>::runAll(const Matrix<Scalar>& sigma,
-                                                                             const Param& param, ProgressBar* progressBar)
+        auto CustomSolverModel<ScalarType, EigenSolverType, ProgressBarType>::runAll(
+            const Matrix<Scalar>& sigma,
+            const Param& param,
+            ProgressBar* progressBar)
         {
             using Component = Component<Scalar>;
             using ComponentsContainer = ComponentsContainer<Component>;

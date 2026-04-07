@@ -1,19 +1,6 @@
 #ifndef SPARSEPC_DL_SOLVER_HPP
 #define SPARSEPC_DL_SOLVER_HPP
 
-#include <iostream>
-#include <vector>
-#include <unordered_map>
-#include <set>
-#include <limits>
-#include <algorithm>
-#include <future>
-#include <concepts>
-#include <filesystem>
-#include <stdexcept>
-#include <string>
-#include <string_view>
-
 #include "sparsepc/utils/matrix.hpp"
 #include "sparsepc/eigen/solver.hpp"
 #include "sparsepc/generic/solver.hpp"
@@ -64,15 +51,17 @@ namespace sparsepc
 
             auto run(const Matrix<Scalar>& sigma) const;
 
-            static auto runAll(const Matrix<Scalar>& sigma, const Param& param, ProgressBar* progressBar);
+            static auto runAll(
+                const Matrix<Scalar>& sigma,
+                const Param& param,
+                ProgressBar* progressBar);
 
         private:
             const Param m_Param;
         };        
 
         template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
-        auto DynamicLibSolverModel<ScalarType, EigenSolverType, ProgressBarType>::run(
-            const Matrix<Scalar>& sigma) const
+        auto DynamicLibSolverModel<ScalarType, EigenSolverType, ProgressBarType>::run(const Matrix<Scalar>& sigma) const
         {
             using Component = Component<Scalar>;
 
@@ -102,16 +91,16 @@ namespace sparsepc
                 component.vector.normalize();
 
                 component.value = (component.vector.transpose() * sigma * component.vector).value();
-
-                std::cout << "\n Job done.\n";
             }
 
             return component;
         }
 
         template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
-        auto DynamicLibSolverModel<ScalarType, EigenSolverType, ProgressBarType>::runAll(const Matrix<Scalar>& sigma,
-                                                                             const Param& param, ProgressBar* progressBar)
+        auto DynamicLibSolverModel<ScalarType, EigenSolverType, ProgressBarType>::runAll(
+            const Matrix<Scalar>& sigma,
+            const Param& param,
+            ProgressBar* progressBar)
         {
             using Component = Component<Scalar>;
             using ComponentsContainer = ComponentsContainer<Component>;
@@ -150,8 +139,6 @@ namespace sparsepc
 
                     component.value = (component.vector.transpose() * sigma * component.vector).value();
                 }
-
-                std::cout << "\n Job done.\n";
             }
 
             return components;
