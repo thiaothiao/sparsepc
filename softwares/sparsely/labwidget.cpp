@@ -43,7 +43,7 @@ namespace
 
     auto getPluginList()
     {
-        QDir path(QDir::currentPath() + "/plugins");
+        QDir path(QDir::currentPath() + "/addons");
 
         qDebug() << "current path is: " << path.currentPath();
 
@@ -536,7 +536,7 @@ namespace sparsely
         m_Preferences = Preferences::load(
             QDir(QDir::currentPath() + "/configurations").absoluteFilePath("sparsely.json"));
         qDebug() << "... preferences done.";
-        qDebug() << "Loading plugins ...";
+        qDebug() << "Loading addons ...";
 
         const auto pluginList = getPluginList();
         if(!pluginList.empty())
@@ -564,7 +564,7 @@ namespace sparsely
 
             //foreach(auto fileName, path.entryList(QDir::Files))
 
-            qDebug() << "...Plugins loaded.";
+            qDebug() << "...Addons loaded.";
         }
     }
 
