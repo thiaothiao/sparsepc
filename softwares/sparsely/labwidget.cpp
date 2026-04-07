@@ -534,7 +534,7 @@ namespace sparsely
         // TODO preferences as a singleton
         qDebug() << "Loading prefernces ...";
         m_Preferences = Preferences::load(
-            QDir(QDir::currentPath() + "/configurations").absoluteFilePath("preferences.json"));
+            QDir(QDir::currentPath() + "/configurations").absoluteFilePath("sparsely.json"));
         qDebug() << "... preferences done.";
         qDebug() << "Loading plugins ...";
 

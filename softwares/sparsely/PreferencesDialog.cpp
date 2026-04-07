@@ -21,7 +21,7 @@ namespace sparsely
     {
         // must load preferense json file
         Preferences prefs = Preferences::load(
-            QDir(QDir::currentPath() + "/configurations").absoluteFilePath("preferences.json"));
+            QDir(QDir::currentPath() + "/configurations").absoluteFilePath("sparsely.json"));
 
         QWidget *container = new QWidget(this);
         QVBoxLayout* containerLayout = new QVBoxLayout(container);
@@ -387,7 +387,7 @@ namespace sparsely
         prefs.plotType = m_PlotTypeComboBox->currentData().value<Enums::PlotType>();
         prefs.method = m_MethodComboBox->currentData().value<Enums::Method>();
 
-        prefs.save(QDir(QDir::currentPath() + "/configurations").absoluteFilePath("preferences.json"));
+        prefs.save(QDir(QDir::currentPath() + "/configurations").absoluteFilePath("sparsely.json"));
 
         QDialog::accept();
     }
