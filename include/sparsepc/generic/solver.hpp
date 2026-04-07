@@ -1,17 +1,12 @@
 #ifndef SPARSEPC_GENERIC_SOLVER_HPP
 #define SPARSEPC_GENERIC_SOLVER_HPP
 
-#include <iostream>
-#include <algorithm>
 #include <vector>
-#include <unordered_map>
 #include <utility>
-#include <future>
-#include <limits>
-#include <functional>
 #include <concepts>
 
 #include "SparsePC/utils/matrix.hpp"
+#include "SparsePC/eigen/solver.hpp"
 
 namespace sparsepc
 {
@@ -67,15 +62,20 @@ namespace sparsepc
             auto run(const Matrix<Scalar>& sigma) const;
 
             template<class ComponentType>
-            static auto computeNextComponentCandidates(const Matrix<Scalar>& sigma, 
-                const ModelParam& param, const std::vector<ComponentType>& validatedComponents,
+            static auto computeNextComponentCandidates(
+                const Matrix<Scalar>& sigma,
+                const ModelParam& param,
+                const std::vector<ComponentType>& validatedComponents,
                 ProgressBar* progressBar);
 
         private:
             const Param m_Param;
 
-            static auto computeComponentCandidates(const Matrix<Scalar>& sigma, const ModelParam& param,
-                const Matrix<Scalar>& deflatedSigma, const Matrix<Scalar>& B,
+            static auto computeComponentCandidates(
+                const Matrix<Scalar>& sigma,
+                const ModelParam& param,
+                const Matrix<Scalar>& deflatedSigma,
+                const Matrix<Scalar>& B,
                 ProgressBar* progressBar);
         };
 
@@ -120,8 +120,11 @@ namespace sparsepc
         }
 
         template <SparsePCModelLike ModelImplementationType>
-        auto SparsePC<ModelImplementationType>::computeComponentCandidates(const Matrix<Scalar>& sigma, 
-            const ModelParam& param, const Matrix<Scalar>& deflatedSigma, const Matrix<Scalar>& B,
+        auto SparsePC<ModelImplementationType>::computeComponentCandidates(
+            const Matrix<Scalar>& sigma,
+            const ModelParam& param,
+            const Matrix<Scalar>& deflatedSigma,
+            const Matrix<Scalar>& B,
             ProgressBar* progressBar)
         {
             using Matrix = Matrix<Scalar>;
@@ -156,8 +159,10 @@ namespace sparsepc
         template <SparsePCModelLike ModelImplementationType>
         template<class ComponentType>
         auto SparsePC<ModelImplementationType>::computeNextComponentCandidates(
-            const Matrix<Scalar>& sigma, const ModelParam& param, 
-            const std::vector<ComponentType>& validatedComponents, ProgressBar* progressBar)
+            const Matrix<Scalar>& sigma,
+            const ModelParam& param,
+            const std::vector<ComponentType>& validatedComponents,
+            ProgressBar* progressBar)
         {
             using Matrix = Matrix<Scalar>;
             using Component = Component<Scalar>;

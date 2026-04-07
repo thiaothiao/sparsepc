@@ -1,13 +1,7 @@
 #ifndef SPARSEPC_DCA_SOLVER_HPP
 #define SPARSEPC_DCA_SOLVER_HPP
 
-#include <iostream>
-#include <vector>
-#include <unordered_map>
-#include <set>
-#include <limits>
 #include <algorithm>
-#include <future>
 #include <concepts>
 
 #include "sparsepc/utils/matrix.hpp"
@@ -62,9 +56,14 @@ namespace sparsepc
             {
             }
 
-            auto run(const Matrix<Scalar>& sigma, const Component<Scalar>& guess = {}) const;
+            auto run(
+                const Matrix<Scalar>& sigma,
+                const Component<Scalar>& guess = {}) const;
 
-            static auto runAll(const Matrix<Scalar>& sigma, const Param& param, ProgressBar* progressBar);
+            static auto runAll(
+                const Matrix<Scalar>& sigma,
+                const Param& param,
+                ProgressBar* progressBar);
 
             struct PrimalSolution
             {
@@ -128,11 +127,24 @@ namespace sparsepc
                 Vector<Scalar> y;
             };
 
-            auto objectiveValue(const Matrix<Scalar>& sigma, const PrimalSolution& solution, double t) const;
-            auto kktCandidate(const Vector<Scalar>& q, const Vector<Scalar>& y, Scalar r) const;
-            auto computePhir(const Vector<Scalar>& y, Scalar r, const PrimalSolution& solution) const;
-            auto dual(const Matrix<Scalar>& sigma, const PrimalSolution& solution, double t) const;
-            auto primal([[maybe_unused]] const Matrix<Scalar>& sigma, 
+            auto objectiveValue(
+                const Matrix<Scalar>& sigma,
+                const PrimalSolution& solution,
+                double t) const;
+            auto kktCandidate(
+                const Vector<Scalar>& q,
+                const Vector<Scalar>& y,
+                Scalar r) const;
+            auto computePhir(
+                const Vector<Scalar>& y,
+                Scalar r,
+                const PrimalSolution& solution) const;
+            auto dual(
+                const Matrix<Scalar>& sigma,
+                const PrimalSolution& solution,
+                double t) const;
+            auto primal(
+                [[maybe_unused]] const Matrix<Scalar>& sigma,
                 const DualSolution& dualSolution) const;
 
             const Param m_Param;
@@ -140,14 +152,17 @@ namespace sparsepc
 
         template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
         inline auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::objectiveValue(
-            const Matrix<Scalar>& sigma, const PrimalSolution& solution, double t) const
+            const Matrix<Scalar>& sigma,
+            const PrimalSolution& solution,
+            double t) const
         {
             return -(solution.x.transpose() * sigma * solution.x).value() - t * solution.u.squaredNorm();
         }
 
         template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
         auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::run(
-            const Matrix<Scalar>& sigma, const Component<Scalar>& guess) const
+            const Matrix<Scalar>& sigma,
+            const Component<Scalar>& guess) const
         {
             using Component = Component<Scalar>;
 
@@ -226,8 +241,10 @@ namespace sparsepc
         }
 
         template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
-        auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::runAll(const Matrix<Scalar>& sigma,
-            const Param& param, ProgressBar* progressBar)
+        auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::runAll(
+            const Matrix<Scalar>& sigma,
+            const Param& param,
+            ProgressBar* progressBar)
         {
             using Component = Component<Scalar>;
             using ComponentsContainer = ComponentsContainer<Component>;
@@ -262,13 +279,18 @@ namespace sparsepc
 
         template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
         inline auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::dual(
-            const Matrix<Scalar>& sigma, const PrimalSolution& solution, double t) const
+            const Matrix<Scalar>& sigma,
+            const PrimalSolution& solution,
+            double t) const
         {
             return DualSolution{sigma * solution.x, t * solution.u};
         }
 
         template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
-        auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::kktCandidate(const Vector<Scalar>& q, const Vector<Scalar>& y, Scalar r) const
+        auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::kktCandidate(
+            const Vector<Scalar>& q,
+            const Vector<Scalar>& y,
+            Scalar r) const
         {
             const auto zero = m_Param.zero;
             const auto k = m_Param.k;
@@ -319,8 +341,10 @@ namespace sparsepc
         }
 
         template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
-        auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::computePhir(const Vector<Scalar>& y,
-            Scalar r, const PrimalSolution& solution) const
+        auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::computePhir(
+            const Vector<Scalar>& y,
+            Scalar r,
+            const PrimalSolution& solution) const
         {
             const auto zero = m_Param.zero;
             const auto k = m_Param.k;
@@ -336,7 +360,8 @@ namespace sparsepc
         }
 
         template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
-        auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::primal([[maybe_unused]] const Matrix<Scalar>& sigma,
+        auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::primal(
+            [[maybe_unused]] const Matrix<Scalar>& sigma,
             const DualSolution& dualSolution) const
         {
             const auto zero = m_Param.zero;

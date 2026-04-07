@@ -24,7 +24,10 @@ namespace sparsepc
 	using RMMatrix = Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
     template<std::floating_point ScalarType>
-    void saveData(std::string fileName, const RMMatrix<ScalarType>&  matrix, const char sep = ',')
+    void saveData(
+        std::string fileName,
+        const RMMatrix<ScalarType>&  matrix,
+        const char sep = ',')
     {// TODO optimize
         //https://eigen.tuxfamily.org/dox/structEigen_1_1IOFormat.html
         const static Eigen::IOFormat CSVFormat(Eigen::FullPrecision, Eigen::DontAlignCols, std::string(1, sep), "\n");
@@ -38,7 +41,9 @@ namespace sparsepc
     }
 
     template<std::floating_point ScalarType>
-    Matrix<ScalarType> openData(std::string fileToOpen, const char sep = ',')
+    Matrix<ScalarType> openData(
+        std::string fileToOpen,
+        const char sep = ',')
     {// TODO optimize memory usage
 
         using Scalar = ScalarType;

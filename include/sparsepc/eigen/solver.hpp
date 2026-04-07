@@ -2,10 +2,8 @@
 #define SPARSEPC_MAX_EIGEN_VALUE_SOLVER_HPP
 
 #include <iostream>
-#include <iomanip>
 #include <vector>
 #include <set>
-#include <limits>
 
 #include <Eigen/Dense>
 
@@ -26,20 +24,25 @@ namespace sparsepc
         using Scalar = ScalarType;
 
         Component()
-            : state{ComponentState::Unknown}, value{ static_cast<Scalar>(0) },
+            : state{ComponentState::Unknown},
+            value{ static_cast<Scalar>(0) },
             vector{}, q{}
         {
         }
 
         Component(const Index n)
-            : state{ ComponentState::Unknown }, value{ static_cast<Scalar>(0) },
+            : state{ ComponentState::Unknown },
+            value{ static_cast<Scalar>(0) },
             vector{ Vector<Scalar>::Zero(n)},
             q{}
         {
         }
 
         Component(Scalar valueInput, const Vector<Scalar>& vectorInput)
-            : state{ ComponentState::Unknown }, value{ valueInput }, vector{ vectorInput }, q{}
+            : state{ ComponentState::Unknown },
+            value{ valueInput },
+            vector{ vectorInput },
+            q{}
         {
         }
 
