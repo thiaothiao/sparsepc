@@ -22,5 +22,4 @@ include_directories(${PROJECT_SOURCE_DIR}/include ${MY_EIGEN3_INCLUDE_DIR})
 
 # Add the subdirectories
 add_subdirectory(examples)
-add_subdirectory(python)
 add_subdirectory(softwares)
