@@ -1,4 +1,4 @@
-#include "PreferencesDialog.h"
+#include "preferencesdialog.h"
 
 #include <QVBoxLayout>
 #include <QPushButton>
@@ -12,174 +12,16 @@
 #include <QJsonObject>
 #include <QDebug>
 
-namespace
+#include "preferences.h"
+
+namespace sparsely
 {
-    void saveJson(const QJsonObject &obj, const QString &fileName)
-    {
-        QJsonDocument doc(obj);
-
-        QFile file(fileName);
-        if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-        {
-            qWarning() << "Couldn't open save file:" << file.errorString();
-            return;
-        }
-
-        qDebug() << "Fieee opened:";
-        file.write(doc.toJson());//QJsonDocument::Indented));
-        file.close();
-    }
-
-    auto loadJson(const QString& filePath)
-    {
-        QFile file(filePath);
-        if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-        {
-            qDebug() << "Failed to open file";
-            return QJsonObject{};
-        }
-
-        QByteArray rawData = file.readAll();
-        file.close();
-
-        QJsonParseError error;
-        QJsonDocument document = QJsonDocument::fromJson(rawData, &error);
-
-        if (document.isNull())
-        {
-            qDebug() << "Parse error:" << error.errorString();
-            return QJsonObject{};
-        }
-
-        if (!document.isObject())
-        {
-            return QJsonObject{};
-        }
-
-        return document.object();
-    }
-}
-
-namespace sparsepc
-{
-    // Convert Struct to JSON
-    QJsonObject Preferences::toJson() const
-    {
-        QJsonObject obj;
-        obj["maximumNumberOfComponents"] = QString::number(maximumNumberOfComponents);
-
-        obj["componentsColors"] = componentsColors.join(u',');
-
-        obj["standardComponentsLineWidthFilledPlot"] =
-            QString::number(standardComponentsLineWidthFilledPlot, 'f', 2);
-        obj["sparseComponentsLineWidthFilledPlot"] =
-            QString::number(sparseComponentsLineWidthFilledPlot, 'f', 2);
-        obj["standardComponentsLineWidthImpulsesPlot"] =
-            QString::number(standardComponentsLineWidthImpulsesPlot, 'f', 2);
-        obj["sparseComponentsLineWidthImpulsesPlot"] =
-            QString::number(sparseComponentsLineWidthImpulsesPlot, 'f', 2);
-        {
-            const QMetaEnum metaEnum = QMetaEnum::fromType<Qt::PenStyle>();
-            const char* key = metaEnum.valueToKey(standardComponentsLineStyle);
-            obj["standardComponentsLineStyle"] = QString::fromUtf8(key);
-        }
-        {
-            const QMetaEnum metaEnum = QMetaEnum::fromType<Qt::PenStyle>();
-            const char* key = metaEnum.valueToKey(sparseComponentsLineStyle);
-            obj["sparseComponentsLineStyle"] = QString::fromUtf8(key);
-        }
-
-        obj["standardComponentsFillingColorsAlpha"] =
-            QString::number(standardComponentsFillingColorsAlpha, 'f', 3);
-
-        obj["sparseComponentsFillingColorsAlpha"] =
-            QString::number(sparseComponentsFillingColorsAlpha, 'f', 3);
-
-        {
-            const QMetaEnum metaEnum = QMetaEnum::fromType<Enums::PlotType>();
-            const char* key = metaEnum.valueToKey(std::to_underlying(plotType));
-            obj["plotType"] = QString::fromUtf8(key);
-        }
-        {
-            const QMetaEnum metaEnum = QMetaEnum::fromType<Enums::Method>();
-            const char* key = metaEnum.valueToKey(std::to_underlying(method));
-            obj["method"] = QString::fromUtf8(key);
-        }
-
-        return obj;
-    }
-
-    // Load Struct from JSON
-    Preferences Preferences::fromJson(const QJsonObject &obj)
-    {
-        Preferences prefs;
-
-        if(obj.isEmpty())
-        {
-            return prefs;
-        }
-
-        prefs.maximumNumberOfComponents = obj["maximumNumberOfComponents"].toString().toInt();
-
-        prefs.componentsColors = obj["componentsColors"].toString().split(u',', Qt::SkipEmptyParts);
-
-        prefs.standardComponentsLineWidthFilledPlot =
-            obj["standardComponentsLineWidthFilledPlot"].toString().toDouble();
-
-        prefs.sparseComponentsLineWidthFilledPlot =
-            obj["sparseComponentsLineWidthFilledPlot"].toString().toDouble();
-
-        prefs.standardComponentsLineWidthImpulsesPlot =
-            obj["standardComponentsLineWidthImpulsesPlot"].toString().toDouble();
-
-        prefs.sparseComponentsLineWidthImpulsesPlot =
-            obj["sparseComponentsLineWidthImpulsesPlot"].toString().toDouble();
-
-        {
-            const QMetaEnum metaEnum = QMetaEnum::fromType<Qt::PenStyle>();
-            const QString jsonVal = obj["standardComponentsLineStyle"].toString();
-            const int enumVal = metaEnum.keyToValue(jsonVal.toUtf8().data());
-            prefs.standardComponentsLineStyle = static_cast<Qt::PenStyle>(enumVal);
-        }
-        {
-            const QMetaEnum metaEnum = QMetaEnum::fromType<Qt::PenStyle>();
-            const QString jsonVal = obj["sparseComponentsLineStyle"].toString();
-            const int enumVal = metaEnum.keyToValue(jsonVal.toUtf8().data());
-            prefs.sparseComponentsLineStyle = static_cast<Qt::PenStyle>(enumVal);
-        }
-
-        prefs.standardComponentsFillingColorsAlpha =
-            obj["standardComponentsFillingColorsAlpha"].toString().toDouble();
-        prefs.sparseComponentsFillingColorsAlpha =
-            obj["sparseComponentsFillingColorsAlpha"].toString().toDouble();
-
-        {
-            const QMetaEnum metaEnum = QMetaEnum::fromType<Enums::PlotType>();
-            const QString jsonVal = obj["plotType"].toString();
-            const int enumVal = metaEnum.keyToValue(jsonVal.toUtf8().data());
-            prefs.plotType = static_cast<Enums::PlotType>(enumVal);
-        }
-        {
-            const QMetaEnum metaEnum = QMetaEnum::fromType<Enums::Method>();
-            const QString jsonVal = obj["method"].toString();
-            const int enumVal = metaEnum.keyToValue(jsonVal.toUtf8().data());
-            prefs.method = static_cast<Enums::Method>(enumVal);
-        }
-
-        return prefs;
-    }
-
-    Preferences Preferences::load(const QString& fileName)
-    {
-        return Preferences::fromJson(loadJson(fileName));
-    }
-
     PreferencesDialog::PreferencesDialog(QWidget *parent) :
         QDialog(parent)
     {
         // must load preferense json file
         Preferences prefs = Preferences::load(
-            QDir(QDir::currentPath() + "/configurations").absoluteFilePath("preferences.json"));
+            QDir(QDir::currentPath() + "/configurations").absoluteFilePath("sparsely.json"));
 
         QWidget *container = new QWidget(this);
         QVBoxLayout* containerLayout = new QVBoxLayout(container);
@@ -390,27 +232,27 @@ namespace sparsepc
 
         switch (prefs.method)
         {// should use a map type ontainer!
-        case sparsepc::Enums::Method::DCA:
+        case Enums::Method::DCA:
         {
             m_MethodComboBox->setCurrentIndex(0);
             break;
         }
-        case sparsepc::Enums::Method::FGSPCA:
+        case Enums::Method::FGSPCA:
         {
             m_MethodComboBox->setCurrentIndex(1);
             break;
         }
-        case sparsepc::Enums::Method::BGSPCA:
+        case Enums::Method::BGSPCA:
         {
             m_MethodComboBox->setCurrentIndex(2);
             break;
         }
-        case sparsepc::Enums::Method::CUSTOM:
+        case Enums::Method::CUSTOM:
         {
             m_MethodComboBox->setCurrentIndex(3);
             break;
         }
-        case sparsepc::Enums::Method::USERDYNAMICLIB:
+        case Enums::Method::USERDYNAMICLIB:
         {
             m_MethodComboBox->setCurrentIndex(4);
             break;
@@ -545,8 +387,7 @@ namespace sparsepc
         prefs.plotType = m_PlotTypeComboBox->currentData().value<Enums::PlotType>();
         prefs.method = m_MethodComboBox->currentData().value<Enums::Method>();
 
-        saveJson(prefs.toJson(),
-            QDir(QDir::currentPath() + "/configurations").absoluteFilePath("preferences.json"));
+        prefs.save(QDir(QDir::currentPath() + "/configurations").absoluteFilePath("sparsely.json"));
 
         QDialog::accept();
     }
