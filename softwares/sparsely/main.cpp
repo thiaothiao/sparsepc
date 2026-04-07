@@ -2,6 +2,7 @@
 #include <QApplication>
 #include <QIcon>
 #include <QPixmap>
+#include <QDir>
 #include <QSplashScreen>
 
 #include <thread>
@@ -9,14 +10,31 @@
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    app.setWindowIcon(QIcon(R"(C:\Users\thiao\Pictures\sparsely\logo.png)"));
+    app.setWindowIcon(QIcon(QDir(QDir::currentPath() + "/images").absoluteFilePath("logo_transparent.png")));
 
-    QPixmap pixmap(R"(C:\Users\thiao\Pictures\sparsely\welcome.png)");
-    pixmap.setMask(pixmap.createMaskFromColor(Qt::white));
+    QPixmap pixmap(QDir(QDir::currentPath() + "/images").absoluteFilePath("welcome_transparent.png"));
     QSplashScreen splash(pixmap);
     splash.setMask(pixmap.mask());
 
     splash.show();
+
+    {
+        QPixmap pixmp(QDir(QDir::currentPath() + "/images").absoluteFilePath("logo.png"));
+        pixmp.setMask(pixmp.createMaskFromColor(Qt::white));
+        pixmp.save(QDir(QDir::currentPath() + "/images").absoluteFilePath("logo_transparent.png"));
+    }
+
+    {
+        QPixmap pixmp(QDir(QDir::currentPath() + "/images").absoluteFilePath("welcome.png"));
+        pixmp.setMask(pixmp.createMaskFromColor(Qt::white));
+        pixmp.save(QDir(QDir::currentPath() + "/images").absoluteFilePath("welcome_transparent.png"));
+    }
+
+    {
+        QPixmap pixmp(QDir(QDir::currentPath() + "/images").absoluteFilePath("text.png"));
+        pixmp.setMask(pixmp.createMaskFromColor(Qt::white));
+        pixmp.save(QDir(QDir::currentPath() + "/images").absoluteFilePath("text_transparent.png"));
+    }
 
     app.processEvents();
     {

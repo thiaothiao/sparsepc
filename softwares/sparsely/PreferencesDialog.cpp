@@ -5,6 +5,7 @@
 #include <QGroupBox>
 #include <QScrollArea>
 #include <QFile>
+#include <QDir>
 #include <QVariantList>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -178,7 +179,7 @@ namespace sparsepc
     {
         // must load preferense json file
         Preferences prefs = Preferences::load(
-            R"(C:\Projects\cpp\wassdecision\solvers\sparsepc\softwares\sparsely\preferences.json)");
+            QDir(QDir::currentPath() + "/configurations").absoluteFilePath("preferences.json"));
 
         QWidget *container = new QWidget(this);
         QVBoxLayout* containerLayout = new QVBoxLayout(container);
@@ -545,7 +546,7 @@ namespace sparsepc
         prefs.method = m_MethodComboBox->currentData().value<Enums::Method>();
 
         saveJson(prefs.toJson(),
-        R"(C:\Projects\cpp\wassdecision\solvers\sparsepc\softwares\sparsely\preferences.json)");
+            QDir(QDir::currentPath() + "/configurations").absoluteFilePath("preferences.json"));
 
         QDialog::accept();
     }
