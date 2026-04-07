@@ -532,7 +532,7 @@ AtelierWidget::AtelierWidget(QWidget* parent)
     // TODO preferences as a singleton
     qDebug() << "Loading prefernces ...";
     m_Preferences = sparsepc::Preferences::load(
-        R"(C:\Projects\cpp\wassdecision\solvers\sparsepc\softwares\sparsely\preferences.json)");
+        QDir(QDir::currentPath() + "/configurations").absoluteFilePath("preferences.json"));
     qDebug() << "... preferences done.";
     qDebug() << "Loading plugins ...";
 

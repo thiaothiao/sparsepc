@@ -1,0 +1,14 @@
+{
+    "componentsColors": "red,green,blue,magenta,yellow,cyan",
+    "maximumNumberOfComponents": "6",
+    "method": "CUSTOM",
+    "plotType": "FILLED",
+    "sparseComponentsFillingColorsAlpha": "0.250",
+    "sparseComponentsLineStyle": "DotLine",
+    "sparseComponentsLineWidthFilledPlot": "2.00",
+    "sparseComponentsLineWidthImpulsesPlot": "4.00",
+    "standardComponentsFillingColorsAlpha": "0.125",
+    "standardComponentsLineStyle": "SolidLine",
+    "standardComponentsLineWidthFilledPlot": "1.00",
+    "standardComponentsLineWidthImpulsesPlot": "2.00"
+}

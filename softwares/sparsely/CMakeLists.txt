@@ -35,6 +35,20 @@ target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Gui Qt
 
 target_link_libraries(${PROJECT_NAME} PRIVATE JKQTPlotter6::JKQTPlotter6)
 
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_CURRENT_SOURCE_DIR}/images"
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/images"
+    COMMENT "Copying images to build directory"
+)
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_CURRENT_SOURCE_DIR}/configurations"
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/configurations"
+    COMMENT "Copying configurations to build directory"
+)
+
 # Plugins
 if(BUILD_PLUGINS)
   message(STATUS "Configuring plugins")

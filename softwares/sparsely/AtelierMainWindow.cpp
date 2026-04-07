@@ -68,10 +68,12 @@ AtelierMainWindow::AtelierMainWindow(QWidget* parent)
     auto* welcomeWidgeLayout = new QHBoxLayout(m_WelcomeWidget);
 
     auto* topLevelLabel = new QLabel(this);
-    QPixmap pixmap(R"(C:\Users\thiao\Pictures\sparsely\welcomee.png)");
+    QPixmap pixmap(QDir(QDir::currentPath() + "/images").absoluteFilePath("welcome.png"));
     topLevelLabel->setPixmap(pixmap);
     topLevelLabel->setMask(pixmap.mask());
     welcomeWidgeLayout->addWidget(topLevelLabel);
+
+    m_WelcomeWidget->setStyleSheet("background-color: white;");
 
     m_AtelierWidget = new AtelierWidget(this);
 
