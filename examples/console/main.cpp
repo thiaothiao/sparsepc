@@ -1,7 +1,6 @@
 #include <iostream>
 #include <chrono>
 #include <utility>
-#include <vector>
 
 #include <Eigen/Dense>
 
@@ -21,7 +20,7 @@ int main()
     using Index = sparsepc::Index;
 
     const auto sigma = sparsepc::linearmodel::pitprops<Scalar>();
-    const auto n = sigma.cols();
+    //const auto n = sigma.cols();
 
     const auto tic = std::chrono::high_resolution_clock::now();
     auto eeGram = sparsepc::EigenSolver<Scalar>{}.maximumValueElement(sigma);
