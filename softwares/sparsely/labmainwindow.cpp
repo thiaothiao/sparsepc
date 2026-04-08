@@ -70,7 +70,7 @@ namespace sparsely
         auto* welcomeWidgeLayout = new QHBoxLayout(m_WelcomeWidget);
 
         auto* topLevelLabel = new QLabel(this);
-        QPixmap pixmap(QDir(QDir::currentPath() + "/images").absoluteFilePath("welcome.png"));
+        QPixmap pixmap(":/images/welcome.png");
         topLevelLabel->setPixmap(pixmap);
         topLevelLabel->setMask(pixmap.mask());
         welcomeWidgeLayout->addWidget(topLevelLabel);

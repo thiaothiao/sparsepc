@@ -10,9 +10,8 @@
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    app.setWindowIcon(QIcon(QDir(QDir::currentPath() + "/images").absoluteFilePath("logo_transparent.png")));
-
-    QPixmap pixmap(QDir(QDir::currentPath() + "/images").absoluteFilePath("welcome_transparent.png"));
+    app.setWindowIcon(QIcon(":/icons/logo_transparent.png"));
+    QPixmap pixmap(":/images/welcome_transparent.png");
     QSplashScreen splash(pixmap);
     splash.setMask(pixmap.mask());
 
