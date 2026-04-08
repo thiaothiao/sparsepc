@@ -29,6 +29,7 @@ DisableProgramGroupPage=yes
 OutputDir={#DeployementFolder}\INSTALEUR
 OutputBaseFilename=SparselySetup
 SetupIconFile={#DeployementFolder}\bin\images\logo_transparent.ico
+UninstallDisplayIcon={app}\images\logo_transparent.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -46,8 +47,10 @@ Source: "{#DeployementFolder}\plugins\*"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
-Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\images\logo_transparent.ico"
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\images\logo_transparent.ico"; Tasks: desktopicon
+Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\images\logo_transparent.ico"; Tasks: desktopicon
+
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
