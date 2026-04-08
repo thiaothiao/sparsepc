@@ -1,16 +1,21 @@
 project(sparsely CXX)
 
-set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui PrintSupport Svg Xml OpenGl REQUIRED)
 
 find_package(JKQTPlotter6 REQUIRED COMPONENTS JKQTPlotter6 JKQTCommon6 JKQTMath6 JKQTMathText6)
 
-qt_standard_project_setup()
+set(sources main.cpp labmainwindow.cpp labwidget.cpp preferences.cpp preferencesdialog.cpp labmainwindow.h labwidget.h preferences.h preferencesdialog.h)
+set(appiconrc images/appicon.rc)
 
-add_executable(${PROJECT_NAME} WIN32 lab.cpp labmainwindow.cpp labwidget.cpp preferences.cpp preferencesdialog.cpp
-    labmainwindow.h labwidget.h preferences.h preferencesdialog.h)
+if(WIN32)
+    enable_language(RC)
+endif()
+
+qt_standard_project_setup()
+qt_add_resources(sources resources.qrc)
+qt_add_executable(${PROJECT_NAME} ${sources} ${appiconrc})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core)
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets)
@@ -23,6 +28,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE JKQTPlotter6::JKQTPlotter6)
 target_link_libraries(${PROJECT_NAME} PRIVATE JKQTPlotter6::JKQTCommon6)
 target_link_libraries(${PROJECT_NAME} PRIVATE JKQTPlotter6::JKQTMath6)
 target_link_libraries(${PROJECT_NAME} PRIVATE JKQTPlotter6::JKQTMathText6)
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    WIN32_EXECUTABLE ON
+)
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -58,7 +67,7 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 qt_generate_deploy_app_script(
     TARGET ${PROJECT_NAME}
     OUTPUT_SCRIPT deploy_script
-	NO_TRANSLATIONS
+    NO_TRANSLATIONS
 )
 
 install(SCRIPT ${deploy_script})
