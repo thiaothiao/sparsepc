@@ -58,6 +58,7 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 qt_generate_deploy_app_script(
     TARGET ${PROJECT_NAME}
     OUTPUT_SCRIPT deploy_script
+	NO_TRANSLATIONS
 )
 
 install(SCRIPT ${deploy_script})
