@@ -6,7 +6,7 @@ find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui PrintSupport Svg Xml OpenG
 
 find_package(JKQTPlotter6 REQUIRED COMPONENTS JKQTPlotter6 JKQTCommon6 JKQTMath6 JKQTMathText6)
 
-set(sources main.cpp labmainwindow.cpp labwidget.cpp labcontroller.cpp preferences.cpp preferencesdialog.cpp labmainwindow.h labwidget.h labcontroller.h preferences.h preferencesdialog.h)
+set(sources main.cpp labmainwindow.cpp labwidget.cpp labcontroller.cpp labmodel.cpp labpreferences.cpp labpreferencesdialog.cpp labenums.h labmainwindow.h labwidget.h labcontroller.h labmodel.h labpreferences.h labpreferencesdialog.h)
 set(appiconrc images/appicon.rc)
 
 if(WIN32)
