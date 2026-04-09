@@ -1,36 +1,12 @@
 #ifndef SPARSEPC_PREFERENCES_HPP
 #define SPARSEPC_PREFERENCES_HPP
 
-#include <QPushButton>
 #include <QJsonObject>
-#include <QMetaEnum>
+
+#include "labenums.h"
 
 namespace sparsely
 {
-    class Enums : public QObject
-    {
-        Q_OBJECT
-
-    public:
-        enum class Method : std::uint8_t
-        {
-            DCA = 0U,
-            FGSPCA,
-            BGSPCA,
-            CUSTOM,
-            USERDYNAMICLIB
-        };
-
-        enum class PlotType : std::uint8_t
-        {
-            FILLED = 0U,
-            IMPULSES
-        };
-
-        Q_ENUM(Method)
-        Q_ENUM(PlotType)
-    };
-
     struct Preferences
     {
         Preferences():

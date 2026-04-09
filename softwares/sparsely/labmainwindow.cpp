@@ -8,7 +8,7 @@
 
 #include "sparsepc/version.hpp"
 
-#include "preferencesdialog.h"
+#include "labpreferencesdialog.h"
 
 namespace sparsely
 {
@@ -79,7 +79,7 @@ namespace sparsely
 
         m_LabWidget = new LabWidget(this);
 
-        m_LabController = new LabController(*m_LabWidget, this);
+        m_LabController = new LabController(m_LabModel, *m_LabWidget, this);
 
         m_MainWidgetStackedLayout->addWidget(m_WelcomeWidget);
         m_MainWidgetStackedLayout->addWidget(m_LabWidget);

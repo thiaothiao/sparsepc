@@ -1,9 +1,5 @@
-#include "preferences.h"
+#include "labpreferences.h"
 
-#include <QVBoxLayout>
-#include <QPushButton>
-#include <QGroupBox>
-#include <QScrollArea>
 #include <QFile>
 #include <QDir>
 #include <QVariantList>

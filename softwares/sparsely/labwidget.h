@@ -1,15 +1,14 @@
-#ifndef SPARSEPC_ATELIER_WIDGET_HPP
-#define SPARSEPC_ATELIER_WIDGET_HPP
+#ifndef SPARSEPC_WIDGET_HPP
+#define SPARSEPC_WIDGET_HPP
 
 #include <cstddef>
 #include <vector>
-#include <unordered_map>
-#include <functional>
 #include <memory>
 
 #include <QString>
 #include <QWidget>
 #include <QGroupBox>
+#include <QPushButton>
 #include <QSlider>
 #include <QVector>
 #include <QProgressBar>
@@ -17,7 +16,7 @@
 #include <QCombobox>
 #include <QLibrary>
 
-#include "preferences.h"
+#include "labpreferences.h"
 
 #include "jkqtplotter/jkqtplotter.h"
 
@@ -56,7 +55,10 @@ namespace sparsely
 
     //private:
     public:
-        void createWidget();
+        void setPreferences(const Preferences& preferences);
+
+        void createWidget(const QString& addonName);
+
         void zoomToFit();
 
         void drawStandardPC(const sparsepc::Component<double>& component,
@@ -99,4 +101,4 @@ namespace sparsely
         QVector<QString> m_DynamicLibSolverNames;
     };
 }
-#endif //SPARSEPC_ATELIER_WIDGET_HPP
+#endif //SPARSEPC_WIDGET_HPP

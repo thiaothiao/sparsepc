@@ -1,8 +1,5 @@
 #include "labwidget.h"
 
-#include <thread>
-#include <utility>
-
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QGridLayout>
@@ -15,29 +12,11 @@
 #include <QFile>
 #include <QColor>
 #include <QString>
-#include <QDataStream>
 #include <QDir>
 #include <QDebug>
 
 #include "jkqtplotter/graphs/jkqtpfilledcurve.h"
 #include "jkqtplotter/graphs/jkqtpimpulses.h"
-
-#include "PreferencesDialog.h"
-
-namespace
-{
-auto getPluginList()
-{
-    QDir path(QDir::currentPath() + "/addons");
-
-    qDebug() << "current path is: " << path.currentPath();
-
-    QStringList filters;
-    filters << "*.dll" << "*.so" << "*.dylib";
-
-    return path.entryInfoList(filters, QDir::Files | QDir::NoDotAndDotDot);
-}
-}
 
 namespace sparsely
 {
@@ -48,41 +27,6 @@ namespace sparsely
         m_SliderOrProgressBarWidgetStackedLayout{nullptr},
         m_MethodComboBox{nullptr}, m_PlotTypeComboBox{nullptr}, m_Colors{}
     {
-        // TODO preferences as a singleton
-        qDebug() << "Loading prefernces ...";
-        m_Preferences = Preferences::load(
-            QDir(QDir::currentPath() + "/configurations").absoluteFilePath("sparsely.json"));
-        qDebug() << "... preferences done.";
-        qDebug() << "Loading addons ...";
-
-        const auto pluginList = getPluginList();
-        if(!pluginList.empty())
-        {
-            m_DynamicLibSolverLoaders.reserve(pluginList.size());
-            m_DynamicLibSolverNames.reserve(pluginList.size());
-
-            for (const auto &fileInfo : pluginList)
-            {
-                QString noExtensionAbsolutePath = QDir(fileInfo.absolutePath()).filePath(fileInfo.baseName());
-                qDebug() << "Loading " << noExtensionAbsolutePath << "...";
-                m_DynamicLibSolverLoaders.push_back(
-                    std::make_unique<QLibrary>(noExtensionAbsolutePath));
-                if(m_DynamicLibSolverLoaders.back()->load())
-                {
-                    m_DynamicLibSolverNames.push_back(fileInfo.baseName());
-                    qDebug() << " ...loaded.";
-                }
-                else
-                {
-                    qDebug() << " ...loading failed.";
-                    m_DynamicLibSolverLoaders.pop_back();
-                }
-            }
-
-            //foreach(auto fileName, path.entryList(QDir::Files))
-
-            qDebug() << "...Addons loaded.";
-        }
     }
 
     void LabWidget::drawStandardPC(const sparsepc::Component<double>& component,
@@ -294,7 +238,12 @@ namespace sparsely
         }
     }
 
-    void LabWidget::createWidget()
+    void LabWidget::setPreferences(const Preferences& preferences)
+    {
+        m_Preferences = preferences;
+    }
+
+    void LabWidget::createWidget(const QString& addonName)
     {
         m_Colors.reserve(m_Preferences.componentsColors.size());
         //for(const auto& colorString: m_Preferences.componentsColors)
@@ -379,9 +328,9 @@ namespace sparsely
         m_MethodComboBox->addItem("Forward Gspca", QVariant::fromValue(Enums::Method::FGSPCA));
         m_MethodComboBox->addItem("Backward Gspca", QVariant::fromValue(Enums::Method::BGSPCA));
         m_MethodComboBox->addItem("Custom", QVariant::fromValue(Enums::Method::CUSTOM));
-        if(!m_DynamicLibSolverLoaders.empty())
+        if(!addonName.isEmpty())
         {
-            m_MethodComboBox->addItem(m_DynamicLibSolverNames.at(0), QVariant::fromValue(Enums::Method::USERDYNAMICLIB));
+            m_MethodComboBox->addItem(addonName, QVariant::fromValue(Enums::Method::USERDYNAMICLIB));
         }
 
         switch (m_Preferences.method)
@@ -413,7 +362,7 @@ namespace sparsely
         }
         }
 
-        if(!m_DynamicLibSolverLoaders.empty() &&
+        if(!addonName.isEmpty() &&
             m_Preferences.method == Enums::Method::USERDYNAMICLIB)
         {
             m_MethodComboBox->setCurrentIndex(4);
