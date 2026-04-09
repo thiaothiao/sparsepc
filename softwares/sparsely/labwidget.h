@@ -28,8 +28,7 @@ namespace sparsely
     struct MyClass final
     {
         MyClass()
-            :iCandidate{-1}, pcColumn{0},
-            color{}, candidates{}, pcGraph{nullptr}
+            :iCandidate{-1}, candidates{}
         {
         }
 
@@ -40,10 +39,25 @@ namespace sparsely
         MyClass& operator=(MyClass&&) = default;
 
         int iCandidate;
+        std::unordered_map<sparsepc::Index, sparsepc::Component<double>> candidates;
+    };
+
+    struct MyClass2 final
+    {
+        MyClass2()
+            :pcColumn{0}, color{}, graph{nullptr}
+        {
+        }
+
+        MyClass2(const MyClass2&) = default;
+        MyClass2& operator=(const MyClass2&) = default;
+
+        MyClass2(MyClass2&&) = default;
+        MyClass2& operator=(MyClass2&&) = default;
+
         std::size_t pcColumn;
         QString color;
-        std::unordered_map<sparsepc::Index, sparsepc::Component<double>> candidates;
-        JKQTPPlotElement* pcGraph;
+        JKQTPPlotElement* graph;
     };
 
     class LabWidget : public QWidget
@@ -81,6 +95,8 @@ namespace sparsely
         std::vector<std::reference_wrapper<sparsepc::Component<double>>> m_ValidatedComponents;
         std::vector<MyClass> m_SparsePCs;
         std::vector<MyClass> m_StandardPCs;
+        std::vector<MyClass2> m_SparsePCGraphs;
+        std::vector<MyClass2> m_StandardPCGraphs;
         double m_CummulativeVarianceStandardPCs;
         double m_CummulativeVarianceSparsePCs;
 

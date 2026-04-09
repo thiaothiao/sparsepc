@@ -69,7 +69,6 @@ namespace sparsely
             m_StandardPCs.emplace_back();
             auto& standardPC = m_StandardPCs.back();
             standardPC.iCandidate = m_N;
-            standardPC.color = m_Colors[j];
             auto& component = components[j];
             component.state = sparsepc::ComponentState::Validated;
             standardPC.candidates.emplace(m_N, std::move(components[j]));
@@ -82,8 +81,14 @@ namespace sparsely
 
         m_CummulativeVarianceStandardPCs = static_cast<double>(0);
 
+        m_StandardPCGraphs.clear();
+        m_StandardPCGraphs.reserve(m_StandardPCs.size());
+
         for (int j=0; j< m_StandardPCs.size(); ++j)
         {
+            auto& standardPCGraph = m_StandardPCGraphs.emplace_back();
+            standardPCGraph.color = m_Colors[j];
+
             auto& standardPC = m_StandardPCs[j];
 
             auto& component = standardPC.candidates.at(standardPC.iCandidate);
@@ -93,13 +98,13 @@ namespace sparsely
             QString formattedValueStr = QString::number(m_CummulativeVarianceStandardPCs, 'f', 2);
             QString formattedPCNumberStr = QString::number(j);
             QString curveName = formattedPCNumberStr;
-            standardPC.pcColumn = ds->addColumn(m_N, curveName);
+            standardPCGraph.pcColumn = ds->addColumn(m_N, curveName);
 
-            ds->setAll(standardPC.pcColumn, static_cast<double>(0));
+            ds->setAll(standardPCGraph.pcColumn, static_cast<double>(0));
 
             for (int i=0; i< m_N; ++i)
             {
-                ds->inc(standardPC.pcColumn, i, component.vector[i]);
+                ds->inc(standardPCGraph.pcColumn, i, component.vector[i]);
             }
             const auto plotType = m_PlotTypeComboBox->currentData().value<Enums::PlotType>();
             switch (plotType)
@@ -108,7 +113,7 @@ namespace sparsely
             {
                 auto* graph = new JKQTPFilledCurveXGraph(m_Plotter);
 
-                auto col = QColor(standardPC.color);
+                auto col = QColor(standardPCGraph.color);
                 graph->setLineStyle(m_Preferences.standardComponentsLineStyle);
                 graph->setLineWidth(m_Preferences.standardComponentsLineWidthFilledPlot);
                 graph->setLineColor(col);
@@ -121,9 +126,9 @@ namespace sparsely
                 graph->setBaseline(0.0);
 
                 graph->setXColumn(m_ColumnX);
-                graph->setYColumn(standardPC.pcColumn);
+                graph->setYColumn(standardPCGraph.pcColumn);
 
-                standardPC.pcGraph = graph;
+                standardPCGraph.graph = graph;
                 break;
             }
             case Enums::PlotType::IMPULSES:
@@ -133,13 +138,13 @@ namespace sparsely
                 graph->setLineWidth(m_Preferences.standardComponentsLineWidthImpulsesPlot);
                 graph->setDrawSymbols(true);
                 graph->setSymbolType(JKQTPGraphSymbols::JKQTPFilledCircle);
-                auto col = QColor(standardPC.color);
+                auto col = QColor(standardPCGraph.color);
                 graph->setColor(col);
 
                 graph->setXColumn(m_ColumnX);
-                graph->setYColumn(standardPC.pcColumn);
+                graph->setYColumn(standardPCGraph.pcColumn);
 
-                standardPC.pcGraph = graph;
+                standardPCGraph.graph = graph;
                 break;
             }
             default:
@@ -148,9 +153,9 @@ namespace sparsely
             }
             }
 
-            standardPC.pcGraph->setTitle(curveName + ": " + formattedValueStr);
+            standardPCGraph.graph->setTitle(curveName + ": " + formattedValueStr);
 
-            m_Plotter->addGraph(standardPC.pcGraph);
+            m_Plotter->addGraph(standardPCGraph.graph);
         }
     }
 
@@ -158,8 +163,14 @@ namespace sparsely
     {
         JKQTPDatastore* ds = m_Plotter->getDatastore();
         m_CummulativeVarianceSparsePCs = static_cast<double>(0);
+
+        m_SparsePCGraphs.clear();
+        m_SparsePCGraphs.reserve(m_SparsePCs.size());
         for (int j=0; j< m_SparsePCs.size(); ++j)
         {
+            auto& sparsePCGraph = m_SparsePCGraphs.emplace_back();
+            sparsePCGraph.color = m_Colors[j];
+
             auto& sparsePC = m_SparsePCs[j];
 
             auto& component = sparsePC.candidates.at(sparsePC.iCandidate);
@@ -175,13 +186,13 @@ namespace sparsely
             QString formattedValueStr = QString::number(cummulativeVariance, 'f', 2);
             QString formattedPCNumberStr = QString::number(j);
             QString curveName = formattedPCNumberStr;
-            sparsePC.pcColumn = ds->addColumn(m_N, curveName);
+            sparsePCGraph.pcColumn = ds->addColumn(m_N, curveName);
 
-            ds->setAll(sparsePC.pcColumn, static_cast<double>(0));
+            ds->setAll(sparsePCGraph.pcColumn, static_cast<double>(0));
 
             for (int i=0; i<m_N; ++i)
             {
-                ds->inc(sparsePC.pcColumn, i, component.vector[i]);
+                ds->inc(sparsePCGraph.pcColumn, i, component.vector[i]);
             }
 
             const auto plotType = m_PlotTypeComboBox->currentData().value<Enums::PlotType>();
@@ -191,7 +202,7 @@ namespace sparsely
             {
                 auto* graph = new JKQTPFilledCurveXGraph(m_Plotter);
 
-                auto col = QColor(sparsePC.color);
+                auto col = QColor(sparsePCGraph.color);
                 graph->setLineStyle(m_Preferences.sparseComponentsLineStyle);
                 graph->setLineWidth(m_Preferences.sparseComponentsLineWidthFilledPlot);
                 graph->setLineColor(col);
@@ -204,9 +215,9 @@ namespace sparsely
                 graph->setBaseline(0.0);
 
                 graph->setXColumn(m_ColumnX);
-                graph->setYColumn(sparsePC.pcColumn);
+                graph->setYColumn(sparsePCGraph.pcColumn);
 
-                sparsePC.pcGraph = graph;
+                sparsePCGraph.graph = graph;
                 break;
             }
             case Enums::PlotType::IMPULSES:
@@ -216,13 +227,13 @@ namespace sparsely
                 graph->setLineWidth(m_Preferences.sparseComponentsLineWidthImpulsesPlot);
                 graph->setDrawSymbols(true);
                 graph->setSymbolType(JKQTPGraphSymbols::JKQTPCircle);
-                auto col = QColor(sparsePC.color);
+                auto col = QColor(sparsePCGraph.color);
                 graph->setColor(col);
 
                 graph->setXColumn(m_ColumnX);
-                graph->setYColumn(sparsePC.pcColumn);
+                graph->setYColumn(sparsePCGraph.pcColumn);
 
-                sparsePC.pcGraph = graph;
+                sparsePCGraph.graph = graph;
                 break;
             }
             default:
@@ -231,9 +242,9 @@ namespace sparsely
             }
             }
 
-            sparsePC.pcGraph->setTitle(curveName + ": " + formattedValueStr);
+            sparsePCGraph.graph->setTitle(curveName + ": " + formattedValueStr);
 
-            m_Plotter->addGraph(sparsePC.pcGraph);
+            m_Plotter->addGraph(sparsePCGraph.graph);
         }
     }
 
@@ -254,15 +265,15 @@ namespace sparsely
             m_CummulativeVarianceSparsePCs += m_ValidatedComponents.back().get().value;
         }
 
-        m_SparsePCs.emplace_back();
 
-        auto& sparsePC = m_SparsePCs.back();
+        auto& sparsePC = m_SparsePCs.emplace_back();
+        auto& sparsePCGraph = m_SparsePCGraphs.emplace_back();
 
         sparsePC.iCandidate = -1;
 
-        sparsePC.color = m_Colors[m_ValidatedComponents.size()];
+        sparsePCGraph.color =  m_Colors[m_ValidatedComponents.size()];
 
-        m_ProgressBarGroupBox->setStyleSheet("QGroupBox::title { color: "+ sparsePC.color + "; }");
+        m_ProgressBarGroupBox->setStyleSheet("QGroupBox::title { color: "+ sparsePCGraph.color + "; }");
 
         m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(m_ProgressBarGroupBox);
 
@@ -330,7 +341,7 @@ namespace sparsely
             std::this_thread::sleep_for(1000ms);
         }
 
-        m_SliderGroupBox->setStyleSheet("QGroupBox::title { color: "+ sparsePC.color + "; }");
+        m_SliderGroupBox->setStyleSheet("QGroupBox::title { color: "+ sparsePCGraph.color + "; }");
 
         m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(m_SliderGroupBox);
 
@@ -349,13 +360,13 @@ namespace sparsely
 
         JKQTPDatastore* ds = m_Plotter->getDatastore();
 
-        sparsePC.pcColumn = ds->addColumn(m_N, curveName);
+        sparsePCGraph.pcColumn = ds->addColumn(m_N, curveName);
 
-        ds->setAll(sparsePC.pcColumn, static_cast<double>(0));
+        ds->setAll(sparsePCGraph.pcColumn, static_cast<double>(0));
 
         for (int i=0; i<m_N; ++i)
         {
-            ds->inc(sparsePC.pcColumn, i, component.vector[i]);
+            ds->inc(sparsePCGraph.pcColumn, i, component.vector[i]);
         }
 
         const auto plotType = m_PlotTypeComboBox->currentData().value<Enums::PlotType>();
@@ -365,7 +376,7 @@ namespace sparsely
         {
             auto* graph = new JKQTPFilledCurveXGraph(m_Plotter);
 
-            auto col = QColor(sparsePC.color);
+            auto col = QColor(sparsePCGraph.color);
             graph->setLineStyle(m_Preferences.sparseComponentsLineStyle);
             graph->setLineWidth(m_Preferences.sparseComponentsLineWidthFilledPlot);
             graph->setLineColor(col);
@@ -377,9 +388,9 @@ namespace sparsely
             graph->fillStyleBelow().setFillColor(col);
             graph->setBaseline(0.0);
             graph->setXColumn(m_ColumnX);
-            graph->setYColumn(sparsePC.pcColumn);
+            graph->setYColumn(sparsePCGraph.pcColumn);
 
-            sparsePC.pcGraph = graph;
+            sparsePCGraph.graph = graph;
             break;
         }
         case Enums::PlotType::IMPULSES:
@@ -389,13 +400,13 @@ namespace sparsely
             graph->setLineWidth(m_Preferences.sparseComponentsLineWidthImpulsesPlot);
             graph->setDrawSymbols(true);
             graph->setSymbolType(JKQTPGraphSymbols::JKQTPCircle);
-            auto col = QColor(sparsePC.color);
+            auto col = QColor(sparsePCGraph.color);
             graph->setColor(col);
 
             graph->setXColumn(m_ColumnX);
-            graph->setYColumn(sparsePC.pcColumn);
+            graph->setYColumn(sparsePCGraph.pcColumn);
 
-            sparsePC.pcGraph = graph;
+            sparsePCGraph.graph = graph;
             break;
         }
         default:
@@ -404,9 +415,9 @@ namespace sparsely
         }
         }
 
-        sparsePC.pcGraph->setTitle(curveName + ": " + formattedValueStr);
+        sparsePCGraph.graph->setTitle(curveName + ": " + formattedValueStr);
 
-        m_Plotter->addGraph(sparsePC.pcGraph);
+        m_Plotter->addGraph(sparsePCGraph.graph);
 
         if( m_Slider->value() != initialICandidate )
         {
@@ -425,8 +436,8 @@ namespace sparsely
             return;
         }
 
-        m_Plotter->deleteGraph(m_SparsePCs.back().pcGraph, true);
-        m_Plotter->getDatastore()->deleteColumn(m_SparsePCs.back().pcColumn, true);
+        m_Plotter->deleteGraph(m_SparsePCGraphs.back().graph, true);
+        m_Plotter->getDatastore()->deleteColumn(m_SparsePCGraphs.back().pcColumn, true);
 
         if(!m_ValidatedComponents.empty())
         {
@@ -440,9 +451,14 @@ namespace sparsely
             m_SparsePCs.pop_back();
         }
 
-        if(!m_SparsePCs.empty())
+        if(!m_SparsePCGraphs.empty())
         {
-            m_SliderGroupBox->setStyleSheet("QGroupBox::title { color: "+ m_SparsePCs.back().color + "; }");
+            m_SparsePCGraphs.pop_back();
+        }
+
+        if(!m_SparsePCs.empty() && !m_SparsePCGraphs.empty())
+        {
+            m_SliderGroupBox->setStyleSheet("QGroupBox::title { color: "+ m_SparsePCGraphs.back().color + "; }");
 
             m_Slider->setValue(m_SparsePCs.back().iCandidate);
         }
@@ -463,6 +479,7 @@ namespace sparsely
         }
 
         auto& sparsePC = m_SparsePCs.back();
+        auto& sparsePCGraph = m_SparsePCGraphs.back();
 
         sparsePC.iCandidate = value;
 
@@ -470,18 +487,18 @@ namespace sparsely
 
         JKQTPDatastore* ds = m_Plotter->getDatastore();
 
-        ds->setAll(sparsePC.pcColumn, static_cast<double>(0));
+        ds->setAll(sparsePCGraph.pcColumn, static_cast<double>(0));
 
         for (int i=0; i<m_N; ++i)
         {
-            ds->inc(sparsePC.pcColumn, i, candidate.vector[i]);
+            ds->inc(sparsePCGraph.pcColumn, i, candidate.vector[i]);
         }
 
         QString formattedValueStr = QString::number(m_CummulativeVarianceSparsePCs + candidate.value, 'f', 2);
         QString formattedPCNumberStr = QString::number(m_ValidatedComponents.size());
         QString curveName = formattedPCNumberStr;
 
-        sparsePC.pcGraph->setTitle(curveName + ": " + formattedValueStr);
+        sparsePCGraph.graph->setTitle(curveName + ": " + formattedValueStr);
 
         m_Plotter->redrawPlot();
     }
@@ -489,18 +506,18 @@ namespace sparsely
     void LabWidget::onSelectionChanged(int index)
     {// must replot all plots
         //m_PlotTypeComboBox->currentText();
-        for(auto& spc: m_SparsePCs)
+        for(auto& spcg: m_SparsePCGraphs)
         {
-            m_Plotter->deleteGraph(spc.pcGraph, true);
-            m_Plotter->getDatastore()->deleteColumn(spc.pcColumn, true);
-            spc.pcGraph = nullptr;
+            m_Plotter->deleteGraph(spcg.graph, true);
+            m_Plotter->getDatastore()->deleteColumn(spcg.pcColumn, true);
+            spcg.graph = nullptr;
         }
 
-        for(auto& spc: m_StandardPCs)
+        for(auto& spcg: m_StandardPCGraphs)
         {
-            m_Plotter->deleteGraph(spc.pcGraph, true);
-            m_Plotter->getDatastore()->deleteColumn(spc.pcColumn, true);
-            spc.pcGraph = nullptr;
+            m_Plotter->deleteGraph(spcg.graph, true);
+            m_Plotter->getDatastore()->deleteColumn(spcg.pcColumn, true);
+            spcg.graph = nullptr;
         }
 
         drawStandardPCs();
@@ -755,9 +772,9 @@ namespace sparsely
             createWidget();
             drawStandardPCs();
             drawSparsePCs();
-            if(!m_SparsePCs.empty())
+            if(!m_SparsePCGraphs.empty())
             {
-                m_SliderGroupBox->setStyleSheet("QGroupBox::title { color: "+ m_SparsePCs.back().color + "; }");
+                m_SliderGroupBox->setStyleSheet("QGroupBox::title { color: "+ m_SparsePCGraphs.back().color + "; }");
             }
         }
 
@@ -768,7 +785,6 @@ namespace sparsely
     QDataStream &operator<<(QDataStream &out, const MyClass &user)
     {
         out << static_cast<qint32>(user.iCandidate);
-        out << user.color;
         out << static_cast<qint32>(user.candidates.size());
         for(auto& [k, component]:user.candidates)
         {
@@ -792,7 +808,6 @@ namespace sparsely
     QDataStream &operator>>(QDataStream &in, MyClass &user)
     {
         in >> user.iCandidate;
-        in >> user.color;
         qint32 candidatesSize = -1;
         in >> candidatesSize;
         for(qint32 j = 0; j < candidatesSize; ++j)
