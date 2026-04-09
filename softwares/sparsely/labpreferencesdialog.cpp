@@ -1,4 +1,4 @@
-#include "preferencesdialog.h"
+#include "labpreferencesdialog.h"
 
 #include <QVBoxLayout>
 #include <QPushButton>
@@ -12,7 +12,7 @@
 #include <QJsonObject>
 #include <QDebug>
 
-#include "preferences.h"
+#include "labpreferences.h"
 
 namespace sparsely
 {

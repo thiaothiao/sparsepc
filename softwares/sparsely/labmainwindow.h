@@ -1,11 +1,13 @@
-#ifndef SPARSEPC_ATELIER_MAINWINDOW_HPP
-#define SPARSEPC_ATELIER_MAINWINDOW_HPP
+#ifndef SPARSEPC_MAINWINDOW_HPP
+#define SPARSEPC_MAINWINDOW_HPP
 
 #include <QMainWindow>
 #include <QWidget>
 #include <QStackedLayout>
 
+#include "labmodel.h"
 #include "labwidget.h"
+#include "labcontroller.h"
 
 namespace sparsely
 {
@@ -27,10 +29,13 @@ namespace sparsely
         void closeEvent(QCloseEvent *event) override;
 
     private:
-        QWidget* m_WelcomeWidget;
-        LabWidget* m_LabWidget;
         QStackedLayout* m_MainWidgetStackedLayout;
+        QWidget* m_WelcomeWidget;
+
+        LabModel m_LabModel;
+        LabWidget* m_LabWidget;
+        LabController* m_LabController;
     };
 }
 
-#endif //SPARSEPC_ATELIER_MAINWINDOW_HPP
+#endif //SPARSEPC_MAINWINDOW_HPP

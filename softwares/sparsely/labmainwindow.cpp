@@ -8,7 +8,7 @@
 
 #include "sparsepc/version.hpp"
 
-#include "preferencesdialog.h"
+#include "labpreferencesdialog.h"
 
 namespace sparsely
 {
@@ -79,6 +79,8 @@ namespace sparsely
 
         m_LabWidget = new LabWidget(this);
 
+        m_LabController = new LabController(m_LabModel, *m_LabWidget, this);
+
         m_MainWidgetStackedLayout->addWidget(m_WelcomeWidget);
         m_MainWidgetStackedLayout->addWidget(m_LabWidget);
 
@@ -100,7 +102,7 @@ namespace sparsely
         {
             if(m_LabWidget)
             {
-                m_LabWidget->init(fileName, true);
+                m_LabController->init(fileName, true);
                 m_MainWidgetStackedLayout->setCurrentWidget(m_LabWidget);
             }
         }
@@ -119,7 +121,7 @@ namespace sparsely
         {
             if(m_LabWidget)
             {
-                m_LabWidget->init(fileName, false);
+                m_LabController->init(fileName, false);
                 m_MainWidgetStackedLayout->setCurrentWidget(m_LabWidget);
             }
         }
@@ -134,7 +136,7 @@ namespace sparsely
 
             if (!fileName.isEmpty())
             {
-                m_LabWidget->saveProject(fileName);
+                m_LabController->saveProject(fileName);
             }
         }
     }
