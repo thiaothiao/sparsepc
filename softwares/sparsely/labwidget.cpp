@@ -29,23 +29,25 @@ namespace sparsely
     {
     }
 
-    void LabWidget::drawStandardPC(const sparsepc::Component<double>& component,
-        const QString& cumulativeVarianceString, const QString& curveName)
+    void LabWidget::addPCGraph(std::vector<MyClass2>& pcs, const sparsepc::Component<double>& component,
+        const QString& cumulativeVarianceString, const QString& curveName,
+        const Qt::PenStyle& lineStyle, double lineWidthFilledPlot,
+        double lineWidthImpulsesPlot, double fillingColorsAlpha)
     {
-        auto& standardPCGraph = m_StandardPCGraphs.emplace_back();
+        auto& pCGraph = pcs.emplace_back();
 
-        standardPCGraph.color = m_Colors[m_StandardPCGraphs.size()-1];
+        pCGraph.color = m_Colors[pcs.size()-1];
 
         JKQTPDatastore* ds = m_Plotter->getDatastore();
 
-        standardPCGraph.pcColumn = ds->addColumn(m_N, curveName);
-        standardPCGraph.xColumn = m_ColumnX;
+        pCGraph.pcColumn = ds->addColumn(m_N, curveName);
+        pCGraph.xColumn = m_ColumnX;
 
-        ds->setAll(standardPCGraph.pcColumn, static_cast<double>(0));
+        ds->setAll(pCGraph.pcColumn, static_cast<double>(0));
 
         for (int i=0; i< m_N; ++i)
         {
-            ds->inc(standardPCGraph.pcColumn, i, component.vector[i]);
+            ds->inc(pCGraph.pcColumn, i, component.vector[i]);
         }
         const auto plotType = m_PlotTypeComboBox->currentData().value<Enums::PlotType>();
         switch (plotType)
@@ -54,38 +56,38 @@ namespace sparsely
         {
             auto* graph = new JKQTPFilledCurveXGraph(m_Plotter);
 
-            auto col = QColor(standardPCGraph.color);
-            graph->setLineStyle(m_Preferences.standardComponentsLineStyle);
-            graph->setLineWidth(m_Preferences.standardComponentsLineWidthFilledPlot);
+            auto col = QColor(pCGraph.color);
+            graph->setLineStyle(lineStyle);
+            graph->setLineWidth(lineWidthFilledPlot);
             graph->setLineColor(col);
 
             graph->setFillMode(JKQTPFilledCurveXGraph::FillMode::SingleFilling);
 
-            col.setAlphaF(m_Preferences.standardComponentsFillingColorsAlpha);
+            col.setAlphaF(fillingColorsAlpha);
             graph->setFillColor(col);
             graph->fillStyleBelow().setFillColor(col);
             graph->setBaseline(0.0);
 
-            graph->setXColumn(standardPCGraph.xColumn);
-            graph->setYColumn(standardPCGraph.pcColumn);
+            graph->setXColumn(pCGraph.xColumn);
+            graph->setYColumn(pCGraph.pcColumn);
 
-            standardPCGraph.graph = graph;
+            pCGraph.graph = graph;
             break;
         }
         case Enums::PlotType::IMPULSES:
         {
             auto* graph = new JKQTPImpulsesVerticalGraph(m_Plotter);
-            graph->setLineStyle(m_Preferences.standardComponentsLineStyle);
-            graph->setLineWidth(m_Preferences.standardComponentsLineWidthImpulsesPlot);
+            graph->setLineStyle(lineStyle);
+            graph->setLineWidth(lineWidthImpulsesPlot);
             graph->setDrawSymbols(true);
             graph->setSymbolType(JKQTPGraphSymbols::JKQTPFilledCircle);
-            auto col = QColor(standardPCGraph.color);
+            auto col = QColor(pCGraph.color);
             graph->setColor(col);
 
-            graph->setXColumn(standardPCGraph.xColumn);
-            graph->setYColumn(standardPCGraph.pcColumn);
+            graph->setXColumn(pCGraph.xColumn);
+            graph->setYColumn(pCGraph.pcColumn);
 
-            standardPCGraph.graph = graph;
+            pCGraph.graph = graph;
             break;
         }
         default:
@@ -94,83 +96,32 @@ namespace sparsely
         }
         }
 
-        standardPCGraph.graph->setTitle(curveName + ": " + cumulativeVarianceString);
+        pCGraph.graph->setTitle(curveName + ": " + cumulativeVarianceString);
 
-        m_Plotter->addGraph(standardPCGraph.graph);
+        m_Plotter->addGraph(pCGraph.graph);
     }
 
-    void LabWidget::drawSparsePC(const sparsepc::Component<double>& component,
+    void LabWidget::addStandardPCGraph(const sparsepc::Component<double>& component,
         const QString& cumulativeVarianceString, const QString& curveName)
     {
-        auto& sparsePCGraph = m_SparsePCGraphs.emplace_back();
-
-        sparsePCGraph.color = m_Colors[m_SparsePCGraphs.size()-1];
-
-        JKQTPDatastore* ds = m_Plotter->getDatastore();
-
-        sparsePCGraph.pcColumn = ds->addColumn(m_N, curveName);
-        sparsePCGraph.xColumn = m_ColumnX;
-
-        ds->setAll(sparsePCGraph.pcColumn, static_cast<double>(0));
-
-        for (int i=0; i<m_N; ++i)
-        {
-            ds->inc(sparsePCGraph.pcColumn, i, component.vector[i]);
-        }
-
-        const auto plotType = m_PlotTypeComboBox->currentData().value<Enums::PlotType>();
-        switch (plotType)
-        {
-        case Enums::PlotType::FILLED:
-        {
-            auto* graph = new JKQTPFilledCurveXGraph(m_Plotter);
-
-            auto col = QColor(sparsePCGraph.color);
-            graph->setLineStyle(m_Preferences.sparseComponentsLineStyle);
-            graph->setLineWidth(m_Preferences.sparseComponentsLineWidthFilledPlot);
-            graph->setLineColor(col);
-
-            graph->setFillMode(JKQTPFilledCurveXGraph::FillMode::SingleFilling);
-
-            col.setAlphaF(m_Preferences.sparseComponentsFillingColorsAlpha);
-            graph->setFillColor(col);
-            graph->fillStyleBelow().setFillColor(col);
-            graph->setBaseline(0.0);
-
-            graph->setXColumn(sparsePCGraph.xColumn);
-            graph->setYColumn(sparsePCGraph.pcColumn);
-
-            sparsePCGraph.graph = graph;
-            break;
-        }
-        case Enums::PlotType::IMPULSES:
-        {
-            auto* graph = new JKQTPImpulsesVerticalGraph(m_Plotter);
-            graph->setLineStyle(m_Preferences.sparseComponentsLineStyle);
-            graph->setLineWidth(m_Preferences.sparseComponentsLineWidthImpulsesPlot);
-            graph->setDrawSymbols(true);
-            graph->setSymbolType(JKQTPGraphSymbols::JKQTPCircle);
-            auto col = QColor(sparsePCGraph.color);
-            graph->setColor(col);
-
-            graph->setXColumn(sparsePCGraph.xColumn);
-            graph->setYColumn(sparsePCGraph.pcColumn);
-
-            sparsePCGraph.graph = graph;
-            break;
-        }
-        default:
-        {
-            break;
-        }
-        }
-
-        sparsePCGraph.graph->setTitle(curveName + ": " + cumulativeVarianceString);
-
-        m_Plotter->addGraph(sparsePCGraph.graph);
+        addPCGraph(m_StandardPCGraphs, component, cumulativeVarianceString, curveName,
+            m_Preferences.standardComponentsLineStyle,
+            m_Preferences.standardComponentsLineWidthFilledPlot,
+            m_Preferences.standardComponentsLineWidthImpulsesPlot,
+            m_Preferences.standardComponentsFillingColorsAlpha);
     }
 
-    void LabWidget::updateDraw(const sparsepc::Component<double>& component,
+    void LabWidget::addSparsePCGraph(const sparsepc::Component<double>& component,
+        const QString& cumulativeVarianceString, const QString& curveName)
+    {
+        addPCGraph(m_SparsePCGraphs, component, cumulativeVarianceString, curveName,
+            m_Preferences.sparseComponentsLineStyle,
+            m_Preferences.sparseComponentsLineWidthFilledPlot,
+            m_Preferences.sparseComponentsLineWidthImpulsesPlot,
+            m_Preferences.sparseComponentsFillingColorsAlpha);
+    }
+
+    void LabWidget::updateLastSparsePCGraph(const sparsepc::Component<double>& component,
         const QString& cumulativeVarianceString, const QString& curveName)
     {
         if (m_SparsePCGraphs.empty())
@@ -194,7 +145,7 @@ namespace sparsely
         m_Plotter->redrawPlot();
     }
 
-    void LabWidget::removeLastSparsePCDraw(int sliderValue)
+    void LabWidget::removeLastSparsePCGraph(int sliderValue)
     {
         if(m_SparsePCGraphs.empty())
         {

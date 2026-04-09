@@ -62,16 +62,21 @@ namespace sparsely
 
         void zoomToFit();
 
-        void drawStandardPC(const sparsepc::Component<double>& component,
+        void addStandardPCGraph(const sparsepc::Component<double>& component,
             const QString& cumulativeVarianceString, const QString& curveName);
 
-        void drawSparsePC(const sparsepc::Component<double>& component,
+        void addSparsePCGraph(const sparsepc::Component<double>& component,
             const QString& cumulativeVarianceString, const QString& curveName);
 
-        void updateDraw(const sparsepc::Component<double>& component,
+        void addPCGraph(std::vector<MyClass2>& pcs, const sparsepc::Component<double>& component,
+            const QString& cumulativeVarianceString, const QString& curveName,
+            const Qt::PenStyle& lineStyle, double lineWidthFilledPlot,
+            double lineWidthImpulsesPlot, double fillingColorsAlpha);
+
+        void updateLastSparsePCGraph(const sparsepc::Component<double>& component,
             const QString& cumulativeVarianceString, const QString& curveName);
 
-        void removeLastSparsePCDraw(int sliderValue);
+        void removeLastSparsePCGraph(int sliderValue);
 
         void clearAlls();
 

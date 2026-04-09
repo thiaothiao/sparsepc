@@ -30,8 +30,8 @@ namespace sparsely
         void onSelectionChanged(int index);
 
     private:
-        void drawStandardPCs();
-        void drawSparsePCs();
+        void addStandardPCGraphs();
+        void addSparsePCGraphs();
         void connectWidget();
 
         int m_N = 0;

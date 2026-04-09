@@ -50,8 +50,8 @@ namespace sparsely
 
         m_LabWidget.createWidget(m_LabModel.getAddonName());
 
-        drawStandardPCs();
-        drawSparsePCs();
+        addStandardPCGraphs();
+        addSparsePCGraphs();
 
         m_LabWidget.reInitSlider(m_LabModel.getICandidate());
 
@@ -60,7 +60,7 @@ namespace sparsely
         m_LabWidget.zoomToFit();
     }
 
-    void LabController::drawStandardPCs()
+    void LabController::addStandardPCGraphs()
     {
         auto cummulativeVarianceStandardPCs = static_cast<double>(0);
 
@@ -75,11 +75,11 @@ namespace sparsely
             QString cumulativeVarianceString = QString::number(cummulativeVarianceStandardPCs, 'f', 2);
             QString curveName = QString::number(j);
 
-            m_LabWidget.drawStandardPC(component, cumulativeVarianceString, curveName);
+            m_LabWidget.addStandardPCGraph(component, cumulativeVarianceString, curveName);
         }
     }
 
-    void LabController::drawSparsePCs()
+    void LabController::addSparsePCGraphs()
     {
         m_LabModel.m_ValidatedComponents.clear();
 
@@ -98,7 +98,7 @@ namespace sparsely
                 m_LabModel.m_ValidatedComponents.push_back(component);
             }
 
-            m_LabWidget.drawSparsePC(component, cumulativeVarianceString, curveName);
+            m_LabWidget.addSparsePCGraph(component, cumulativeVarianceString, curveName);
         }
     }
 
@@ -142,7 +142,7 @@ namespace sparsely
 
         m_LabWidget.m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(m_LabWidget.m_SliderGroupBox);
 
-        m_LabWidget.drawSparsePC(component, cumulativeVarianceString, curveName);
+        m_LabWidget.addSparsePCGraph(component, cumulativeVarianceString, curveName);
     }
 
     void LabController::onRemoveLastSparseComponentButton()
@@ -152,7 +152,7 @@ namespace sparsely
             return;
         }
 
-        m_LabWidget.removeLastSparsePCDraw(m_LabModel.getICandidate());
+        m_LabWidget.removeLastSparsePCGraph(m_LabModel.getICandidate());
     }
 
     void LabController::updatePlot(int value)
@@ -172,14 +172,14 @@ namespace sparsely
             QString::number(m_LabModel.computeValidatedCumulativeVariance() + component.value, 'f', 2);
         QString curveName = QString::number(m_LabModel.getCurrentRank());
 
-        m_LabWidget.updateDraw(component, cumulativeVarianceString, curveName);
+        m_LabWidget.updateLastSparsePCGraph(component, cumulativeVarianceString, curveName);
     }
 
     void LabController::onSelectionChanged(int index)
     {
         m_LabWidget.clearAlls();
-        drawStandardPCs();
-        drawSparsePCs();
+        addStandardPCGraphs();
+        addSparsePCGraphs();
     }
 
     void LabController::saveProject(const QString& fileName)
