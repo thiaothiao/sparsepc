@@ -129,9 +129,9 @@ namespace sparsely
             return;
         }
 
-        JKQTPDatastore* ds = m_Plotter->getDatastore();
-
         auto& sparsePCGraph = m_SparsePCGraphs.back();
+
+        JKQTPDatastore* ds = m_Plotter->getDatastore();
 
         ds->setAll(sparsePCGraph.pcColumn, static_cast<double>(0));
 
