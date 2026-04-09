@@ -5,6 +5,7 @@
 #include <QWidget>
 #include <QStackedLayout>
 
+#include "labcontroller.h"
 #include "labwidget.h"
 
 namespace sparsely
@@ -29,6 +30,7 @@ namespace sparsely
     private:
         QWidget* m_WelcomeWidget;
         LabWidget* m_LabWidget;
+        LabController* m_LabController;
         QStackedLayout* m_MainWidgetStackedLayout;
     };
 }

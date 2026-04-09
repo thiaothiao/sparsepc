@@ -25,23 +25,6 @@
 
 namespace sparsely
 {
-    struct MyClass final
-    {
-        MyClass()
-            :iCandidate{-1}, candidates{}
-        {
-        }
-
-        MyClass(const MyClass&) = default;
-        MyClass& operator=(const MyClass&) = default;
-
-        MyClass(MyClass&&) = default;
-        MyClass& operator=(MyClass&&) = default;
-
-        int iCandidate;
-        std::unordered_map<sparsepc::Index, sparsepc::Component<double>> candidates;
-    };
-
     struct MyClass2 final
     {
         MyClass2()
@@ -67,38 +50,23 @@ namespace sparsely
     public:
         LabWidget(QWidget* parent = nullptr);
 
-        void init(const QString& fileName, bool newProject = true);
-
-        void saveProject(const QString& fileName);
-
-        void loadProject(const QString& fileName);
-
     public slots:
-        void onAddNewSparseComponent();
-        void updatePlot(int value);
-        void onRemoveLastSparseComponentButton();
         void updateSliderTitle(int value);
         void updateProgressBarTitle(int value);
-        void onSelectionChanged(int index);
 
-    private:
-        void drawStandardPCs();
-        void computeStandardPCs();
-        void drawSparsePCs();
-        void clearAllPlots();
+    //private:
+    public:
         void createWidget();
         void zoomToFit();
 
-        sparsepc::Matrix<double> m_Sigma;
+        void drawStandardPC(const sparsepc::Component<double>& component,
+                            const QString& cumulativeVarianceString, const QString& curveName);
+
         sparsepc::Index m_N = 0;
         std::size_t m_ColumnX;
-        std::vector<std::reference_wrapper<sparsepc::Component<double>>> m_ValidatedComponents;
-        std::vector<MyClass> m_SparsePCs;
-        std::vector<MyClass> m_StandardPCs;
+
         std::vector<MyClass2> m_SparsePCGraphs;
         std::vector<MyClass2> m_StandardPCGraphs;
-        double m_CummulativeVarianceStandardPCs;
-        double m_CummulativeVarianceSparsePCs;
 
         Preferences m_Preferences;
 
@@ -110,6 +78,8 @@ namespace sparsely
         QStackedLayout* m_SliderOrProgressBarWidgetStackedLayout;
         QComboBox* m_MethodComboBox;
         QComboBox* m_PlotTypeComboBox;
+        QPushButton* m_AddNewSparseComponentButton;
+        QPushButton* m_RemoveLastSparseComponentButton;
 
         QVector<QString> m_Colors;
 
