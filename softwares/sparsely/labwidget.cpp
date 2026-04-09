@@ -41,19 +41,6 @@ auto getPluginList()
 
 namespace sparsely
 {
-    void LabWidget::updateSliderTitle(int value)
-    {
-        m_SliderGroupBox->setTitle(QString::number(value));
-    }
-
-    void LabWidget::updateProgressBarTitle(int value)
-    {
-        const auto minValue = static_cast<double>(m_ProgressBar->minimum());
-        const auto maxValue = static_cast<double>(m_ProgressBar->maximum());
-        const auto percentage = static_cast<int>( (value - minValue) * 100.0 / (maxValue - minValue));
-        m_ProgressBarGroupBox->setTitle(QString::number(percentage));
-    }
-
     LabWidget::LabWidget(QWidget* parent)
         : QWidget(parent), m_Plotter{nullptr},
         m_SliderGroupBox{nullptr}, m_ProgressBarGroupBox{nullptr},
@@ -99,13 +86,13 @@ namespace sparsely
     }
 
     void LabWidget::drawStandardPC(const sparsepc::Component<double>& component,
-                                       const QString& cumulativeVarianceString, const QString& curveName)
+        const QString& cumulativeVarianceString, const QString& curveName)
     {
-        JKQTPDatastore* ds = m_Plotter->getDatastore();
-
         auto& standardPCGraph = m_StandardPCGraphs.emplace_back();
-        standardPCGraph.color =
-            m_Colors[m_StandardPCGraphs.size()-1];
+
+        standardPCGraph.color = m_Colors[m_StandardPCGraphs.size()-1];
+
+        JKQTPDatastore* ds = m_Plotter->getDatastore();
 
         standardPCGraph.pcColumn = ds->addColumn(m_N, curveName);
 
@@ -167,10 +154,151 @@ namespace sparsely
         m_Plotter->addGraph(standardPCGraph.graph);
     }
 
+    void LabWidget::drawSparsePC(const sparsepc::Component<double>& component,
+        const QString& cumulativeVarianceString, const QString& curveName)
+    {
+        auto& sparsePCGraph = m_SparsePCGraphs.emplace_back();
+
+        sparsePCGraph.color = m_Colors[m_SparsePCGraphs.size()-1];
+
+        JKQTPDatastore* ds = m_Plotter->getDatastore();
+
+        sparsePCGraph.pcColumn = ds->addColumn(m_N, curveName);
+
+        ds->setAll(sparsePCGraph.pcColumn, static_cast<double>(0));
+
+        for (int i=0; i<m_N; ++i)
+        {
+            ds->inc(sparsePCGraph.pcColumn, i, component.vector[i]);
+        }
+
+        const auto plotType = m_PlotTypeComboBox->currentData().value<Enums::PlotType>();
+        switch (plotType)
+        {
+        case Enums::PlotType::FILLED:
+        {
+            auto* graph = new JKQTPFilledCurveXGraph(m_Plotter);
+
+            auto col = QColor(sparsePCGraph.color);
+            graph->setLineStyle(m_Preferences.sparseComponentsLineStyle);
+            graph->setLineWidth(m_Preferences.sparseComponentsLineWidthFilledPlot);
+            graph->setLineColor(col);
+
+            graph->setFillMode(JKQTPFilledCurveXGraph::FillMode::SingleFilling);
+
+            col.setAlphaF(m_Preferences.sparseComponentsFillingColorsAlpha);
+            graph->setFillColor(col);
+            graph->fillStyleBelow().setFillColor(col);
+            graph->setBaseline(0.0);
+
+            graph->setXColumn(m_ColumnX);
+            graph->setYColumn(sparsePCGraph.pcColumn);
+
+            sparsePCGraph.graph = graph;
+            break;
+        }
+        case Enums::PlotType::IMPULSES:
+        {
+            auto* graph = new JKQTPImpulsesVerticalGraph(m_Plotter);
+            graph->setLineStyle(m_Preferences.sparseComponentsLineStyle);
+            graph->setLineWidth(m_Preferences.sparseComponentsLineWidthImpulsesPlot);
+            graph->setDrawSymbols(true);
+            graph->setSymbolType(JKQTPGraphSymbols::JKQTPCircle);
+            auto col = QColor(sparsePCGraph.color);
+            graph->setColor(col);
+
+            graph->setXColumn(m_ColumnX);
+            graph->setYColumn(sparsePCGraph.pcColumn);
+
+            sparsePCGraph.graph = graph;
+            break;
+        }
+        default:
+        {
+            break;
+        }
+        }
+
+        sparsePCGraph.graph->setTitle(curveName + ": " + cumulativeVarianceString);
+
+        m_Plotter->addGraph(sparsePCGraph.graph);
+    }
+
+    void LabWidget::updateDraw(const sparsepc::Component<double>& component,
+        const QString& cumulativeVarianceString, const QString& curveName)
+    {
+        if (m_SparsePCGraphs.empty())
+        {
+            return;
+        }
+
+        JKQTPDatastore* ds = m_Plotter->getDatastore();
+
+        auto& sparsePCGraph = m_SparsePCGraphs.back();
+
+        ds->setAll(sparsePCGraph.pcColumn, static_cast<double>(0));
+
+        for (int i=0; i<m_N; ++i)
+        {
+            ds->inc(sparsePCGraph.pcColumn, i, component.vector[i]);
+        }
+
+        sparsePCGraph.graph->setTitle(curveName + ": " + cumulativeVarianceString);
+
+        m_Plotter->redrawPlot();
+    }
+
+    void LabWidget::removeLastSparsePCDraw(int sliderValue)
+    {
+        if(m_SparsePCGraphs.empty())
+        {
+            return;
+        }
+
+        m_Plotter->deleteGraph(m_SparsePCGraphs.back().graph, true);
+        m_Plotter->getDatastore()->deleteColumn(m_SparsePCGraphs.back().pcColumn, true);
+
+        if(!m_SparsePCGraphs.empty())
+        {
+            m_SparsePCGraphs.pop_back();
+        }
+
+        if(!m_SparsePCGraphs.empty())
+        {
+            m_SliderGroupBox->setStyleSheet("QGroupBox::title { color: "+ m_SparsePCGraphs.back().color + "; }");
+
+            m_Slider->setValue(sliderValue);
+        }
+        else
+        {
+            m_SliderGroupBox->setStyleSheet("");
+            m_ProgressBarGroupBox->setStyleSheet("");
+        }
+    }
+
+    void LabWidget::clearAlls()
+    {
+        //m_PlotTypeComboBox->currentText();
+        for(auto& spcg: m_SparsePCGraphs)
+        {
+            m_Plotter->deleteGraph(spcg.graph, true);
+            m_Plotter->getDatastore()->deleteColumn(spcg.pcColumn, true);
+            spcg.graph = nullptr;
+        }
+
+        for(auto& spcg: m_StandardPCGraphs)
+        {
+            m_Plotter->deleteGraph(spcg.graph, true);
+            m_Plotter->getDatastore()->deleteColumn(spcg.pcColumn, true);
+            spcg.graph = nullptr;
+        }
+    }
+
     void LabWidget::createWidget()
     {
         m_Colors.reserve(m_Preferences.componentsColors.size());
-        for(const auto& colorString: m_Preferences.componentsColors)
+        //for(const auto& colorString: m_Preferences.componentsColors)
+        foreach(const auto& colorString, m_Preferences.componentsColors)
         {
             m_Colors.push_back(colorString);
         }
@@ -324,5 +452,28 @@ namespace sparsely
         m_Plotter->zoomToFit(true, false);
 
         m_Plotter->resize(400,300);
+    }
+
+    void LabWidget::reInitSlider(int value)
+    {
+        if(!m_SparsePCGraphs.empty())
+        {
+            m_SliderGroupBox->setStyleSheet("QGroupBox::title { color: "+ m_SparsePCGraphs.back().color + "; }");
+        }
+
+        m_Slider->setValue(value);
+    }
+
+    void LabWidget::updateSliderTitle(int value)
+    {
+        m_SliderGroupBox->setTitle(QString::number(value));
+    }
+
+    void LabWidget::updateProgressBarTitle(int value)
+    {
+        const auto minValue = static_cast<double>(m_ProgressBar->minimum());
+        const auto maxValue = static_cast<double>(m_ProgressBar->maximum());
+        const auto percentage = static_cast<int>( (value - minValue) * 100.0 / (maxValue - minValue));
+        m_ProgressBarGroupBox->setTitle(QString::number(percentage));
     }
 }

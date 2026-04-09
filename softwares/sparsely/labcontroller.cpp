@@ -26,657 +26,479 @@
 
 namespace
 {
-using BackwardGSPA = sparsepc::linearmodel::SparsePC<
-    sparsepc::linearmodel::BackwardGspcaModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
+    using BackwardGSPA = sparsepc::linearmodel::SparsePC<
+        sparsepc::linearmodel::BackwardGspcaModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
 
-using ForwardGSPCA = sparsepc::linearmodel::SparsePC<
-    sparsepc::linearmodel::ForwardGspcaModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
+    using ForwardGSPCA = sparsepc::linearmodel::SparsePC<
+        sparsepc::linearmodel::ForwardGspcaModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
 
-using DCA = sparsepc::linearmodel::SparsePC<
-    sparsepc::linearmodel::DcaModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
+    using DCA = sparsepc::linearmodel::SparsePC<
+        sparsepc::linearmodel::DcaModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
 
-using CustomSolver = sparsepc::linearmodel::SparsePC<
-    sparsepc::linearmodel::CustomSolverModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
+    using CustomSolver = sparsepc::linearmodel::SparsePC<
+        sparsepc::linearmodel::CustomSolverModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
 
-using DynamicLibSolver = sparsepc::linearmodel::SparsePC<
-    sparsepc::linearmodel::DynamicLibSolverModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
+    using DynamicLibSolver = sparsepc::linearmodel::SparsePC<
+        sparsepc::linearmodel::DynamicLibSolverModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
 
-auto getPluginList()
-{
-    QDir path(QDir::currentPath() + "/addons");
+    auto getPluginList()
+    {
+        QDir path(QDir::currentPath() + "/addons");
 
-    qDebug() << "current path is: " << path.currentPath();
+        qDebug() << "current path is: " << path.currentPath();
 
-    QStringList filters;
-    filters << "*.dll" << "*.so" << "*.dylib";
+        QStringList filters;
+        filters << "*.dll" << "*.so" << "*.dylib";
 
-    return path.entryInfoList(filters, QDir::Files | QDir::NoDotAndDotDot);
-}
+        return path.entryInfoList(filters, QDir::Files | QDir::NoDotAndDotDot);
+    }
 }
 
 namespace sparsely
 {
-void LabController::computeStandardPCs()
-{
-    using Index = sparsepc::Index;
-    const DCA::Param param{{static_cast<Index>(m_N),
-                            static_cast<Index>(m_N), static_cast<Index>(m_N)} };
-    auto components = DCA{ param }.run(m_Sigma);
-    m_StandardPCs.clear();
-    m_StandardPCs.reserve(components.size());
-    for (int j=0; j < components.size(); ++j)
+    LabController::LabController(LabWidget& labWidget, QObject* parent)
+        : QObject(parent), m_LabWidget{labWidget}, m_Sigma{}, m_ValidatedComponents{},
+        m_SparsePCs{}, m_StandardPCs{}, m_CummulativeVarianceStandardPCs{0.0},
+        m_CummulativeVarianceSparsePCs{0}
     {
-        m_StandardPCs.emplace_back();
-        auto& standardPC = m_StandardPCs.back();
-        standardPC.iCandidate = m_N;
-        auto& component = components[j];
-        component.state = sparsepc::ComponentState::Validated;
-        standardPC.candidates.emplace(m_N, std::move(components[j]));
-    }
-}
+        // TODO preferences as a singleton
+        qDebug() << "Loading prefernces ...";
+        m_Preferences = Preferences::load(
+            QDir(QDir::currentPath() + "/configurations").absoluteFilePath("sparsely.json"));
+        qDebug() << "... preferences done.";
+        qDebug() << "Loading addons ...";
 
-void LabController::drawStandardPCs()
-{
-    JKQTPDatastore* ds = m_LabWidget.m_Plotter->getDatastore();
-
-    m_CummulativeVarianceStandardPCs = static_cast<double>(0);
-
-    m_LabWidget.m_StandardPCGraphs.clear();
-    m_LabWidget.m_StandardPCGraphs.reserve(m_StandardPCs.size());
-
-    for (int j=0; j< m_StandardPCs.size(); ++j)
-    {
-        auto& standardPC = m_StandardPCs[j];
-
-        auto& component = standardPC.candidates.at(standardPC.iCandidate);
-
-        m_CummulativeVarianceStandardPCs += component.value;
-
-        QString cumulativeVarianceString = QString::number(m_CummulativeVarianceStandardPCs, 'f', 2);
-        QString curveName = QString::number(j);
-
-        m_LabWidget.drawStandardPC(component, cumulativeVarianceString, curveName);
-    }
-}
-
-void LabController::drawSparsePCs()
-{
-    JKQTPDatastore* ds = m_LabWidget.m_Plotter->getDatastore();
-    m_CummulativeVarianceSparsePCs = static_cast<double>(0);
-
-    m_LabWidget.m_SparsePCGraphs.clear();
-    m_LabWidget.m_SparsePCGraphs.reserve(m_SparsePCs.size());
-    for (int j=0; j< m_SparsePCs.size(); ++j)
-    {
-        auto& sparsePC = m_SparsePCs[j];
-
-        auto& component = sparsePC.candidates.at(sparsePC.iCandidate);
-
-        const auto cummulativeVariance = m_CummulativeVarianceSparsePCs + component.value;
-
-        if(component.state == sparsepc::ComponentState::Validated)
+        const auto pluginList = getPluginList();
+        if(!pluginList.empty())
         {
-            m_ValidatedComponents.push_back(component);
-            m_CummulativeVarianceSparsePCs = cummulativeVariance;
+            m_DynamicLibSolverLoaders.reserve(pluginList.size());
+            m_DynamicLibSolverNames.reserve(pluginList.size());
+
+            for (const auto &fileInfo : pluginList)
+            {
+                QString noExtensionAbsolutePath = QDir(fileInfo.absolutePath()).filePath(fileInfo.baseName());
+                qDebug() << "Loading " << noExtensionAbsolutePath << "...";
+                m_DynamicLibSolverLoaders.push_back(
+                    std::make_unique<QLibrary>(noExtensionAbsolutePath));
+                if(m_DynamicLibSolverLoaders.back()->load())
+                {
+                    m_DynamicLibSolverNames.push_back(fileInfo.baseName());
+                    qDebug() << " ...loaded.";
+                }
+                else
+                {
+                    qDebug() << " ...loading failed.";
+                    m_DynamicLibSolverLoaders.pop_back();
+                }
+            }
+
+            //foreach(auto fileName, path.entryList(QDir::Files))
+
+            qDebug() << "...Addons loaded.";
+        }
+    }
+
+    void LabController::connectWidget()
+    {
+        QObject::connect(m_LabWidget.m_PlotTypeComboBox, qOverload<int>(&QComboBox::currentIndexChanged),
+                         this, &LabController::onSelectionChanged);
+        QObject::connect(m_LabWidget.m_Slider, qOverload<int>(&QSlider::valueChanged),
+                         this, &LabController::updatePlot);
+        QObject::connect(m_LabWidget.m_AddNewSparseComponentButton, &QPushButton::clicked,
+                         this, &LabController::onAddNewSparseComponent);
+        QObject::connect(m_LabWidget.m_RemoveLastSparseComponentButton, &QPushButton::clicked,
+                         this, &LabController::onRemoveLastSparseComponentButton);
+    }
+
+    void LabController::init(const QString& fileName, bool newProject)
+    {
+        if(m_Sigma.size() != 0)
+        {
+            // should popup a project already loaded.
+            return;
         }
 
-        QString formattedValueStr = QString::number(cummulativeVariance, 'f', 2);
-        QString curveName = QString::number(j);
-
-        auto& sparsePCGraph = m_LabWidget.m_SparsePCGraphs.emplace_back();
-        sparsePCGraph.color = m_LabWidget.m_Colors[m_LabWidget.m_SparsePCGraphs.size()-1];
-
-        sparsePCGraph.pcColumn = ds->addColumn(m_N, curveName);
-
-        ds->setAll(sparsePCGraph.pcColumn, static_cast<double>(0));
-
-        for (int i=0; i<m_N; ++i)
+        if(newProject)
         {
-            ds->inc(sparsePCGraph.pcColumn, i, component.vector[i]);
+            m_Sigma = sparsepc::openData<double>(fileName.toStdString(), ';');
+
+            m_N = m_Sigma.cols();
+
+            m_ValidatedComponents.clear();
+            m_ValidatedComponents.reserve(m_N);
+            m_SparsePCs.clear();
+            m_SparsePCs.reserve(m_N);
+
+            m_LabWidget.m_N = m_N;
+
+            m_LabWidget.createWidget();
+
+            computeStandardPCs();
+            drawStandardPCs();
+        }
+        else
+        {
+            loadProject(fileName);
+
+            m_LabWidget.m_N = m_N;
+
+            m_LabWidget.createWidget();
+
+            drawStandardPCs();
+            drawSparsePCs();
         }
 
-        const auto plotType = m_LabWidget.m_PlotTypeComboBox->currentData().value<Enums::PlotType>();
-        switch (plotType)
+        if(!m_SparsePCs.empty())
         {
-        case Enums::PlotType::FILLED:
+            m_LabWidget.reInitSlider(m_SparsePCs.back().iCandidate);
+        }
+
+        connectWidget();
+
+        m_LabWidget.zoomToFit();
+    }
+
+    void LabController::computeStandardPCs()
+    {
+        using Index = sparsepc::Index;
+        const DCA::Param param{{static_cast<Index>(m_N),
+                                static_cast<Index>(m_N), static_cast<Index>(m_N)} };
+        auto components = DCA{ param }.run(m_Sigma);
+        m_StandardPCs.clear();
+        m_StandardPCs.reserve(components.size());
+        for (int j=0; j < components.size(); ++j)
         {
-            auto* graph = new JKQTPFilledCurveXGraph(m_LabWidget.m_Plotter);
+            m_StandardPCs.emplace_back();
+            auto& standardPC = m_StandardPCs.back();
+            standardPC.iCandidate = m_N;
+            auto& component = components[j];
+            component.state = sparsepc::ComponentState::Validated;
+            standardPC.candidates.emplace(m_N, std::move(components[j]));
+        }
+    }
 
-            auto col = QColor(sparsePCGraph.color);
-            graph->setLineStyle(m_Preferences.sparseComponentsLineStyle);
-            graph->setLineWidth(m_Preferences.sparseComponentsLineWidthFilledPlot);
-            graph->setLineColor(col);
+    void LabController::drawStandardPCs()
+    {
+        m_CummulativeVarianceStandardPCs = static_cast<double>(0);
 
-            graph->setFillMode(JKQTPFilledCurveXGraph::FillMode::SingleFilling);
+        m_LabWidget.m_StandardPCGraphs.clear();
+        m_LabWidget.m_StandardPCGraphs.reserve(m_StandardPCs.size());
 
-            col.setAlphaF(m_Preferences.sparseComponentsFillingColorsAlpha);
-            graph->setFillColor(col);
-            graph->fillStyleBelow().setFillColor(col);
-            graph->setBaseline(0.0);
+        for (int j=0; j< m_StandardPCs.size(); ++j)
+        {
+            auto& standardPC = m_StandardPCs[j];
 
-            graph->setXColumn(m_LabWidget.m_ColumnX);
-            graph->setYColumn(sparsePCGraph.pcColumn);
+            auto& component = standardPC.candidates.at(standardPC.iCandidate);
 
-            sparsePCGraph.graph = graph;
+            m_CummulativeVarianceStandardPCs += component.value;
+
+            QString cumulativeVarianceString = QString::number(m_CummulativeVarianceStandardPCs, 'f', 2);
+            QString curveName = QString::number(j);
+
+            m_LabWidget.drawStandardPC(component, cumulativeVarianceString, curveName);
+        }
+    }
+
+    void LabController::drawSparsePCs()
+    {
+        m_CummulativeVarianceSparsePCs = static_cast<double>(0);
+
+        m_LabWidget.m_SparsePCGraphs.clear();
+        m_LabWidget.m_SparsePCGraphs.reserve(m_SparsePCs.size());
+        for (int j=0; j< m_SparsePCs.size(); ++j)
+        {
+            auto& sparsePC = m_SparsePCs[j];
+
+            auto& component = sparsePC.candidates.at(sparsePC.iCandidate);
+
+            const auto cummulativeVariance = m_CummulativeVarianceSparsePCs + component.value;
+
+            if(component.state == sparsepc::ComponentState::Validated)
+            {
+                m_ValidatedComponents.push_back(component);
+                m_CummulativeVarianceSparsePCs = cummulativeVariance;
+            }
+
+            QString cumulativeVarianceString = QString::number(cummulativeVariance, 'f', 2);
+            QString curveName = QString::number(j);
+
+            m_LabWidget.drawSparsePC(component, cumulativeVarianceString, curveName);
+        }
+    }
+
+    void LabController::onAddNewSparseComponent()
+    {
+        if(!m_SparsePCs.empty())
+        {// validate current selected sparse component
+            auto& candidates = m_SparsePCs.back().candidates;
+            const auto iCandidate = m_SparsePCs.back().iCandidate;
+
+            m_ValidatedComponents.push_back(candidates.at(iCandidate));
+            m_ValidatedComponents.back().get().state = sparsepc::ComponentState::Validated;
+            m_CummulativeVarianceSparsePCs += m_ValidatedComponents.back().get().value;
+        }
+
+
+        auto& sparsePC = m_SparsePCs.emplace_back();
+
+        sparsePC.iCandidate = -1;
+
+        const auto newSparsePCColor = m_LabWidget.m_Colors[m_SparsePCs.size()-1];
+
+        m_LabWidget.m_ProgressBarGroupBox->setStyleSheet("QGroupBox::title { color: "+ newSparsePCColor + "; }");
+
+        m_LabWidget.m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(m_LabWidget.m_ProgressBarGroupBox);
+
+        m_LabWidget.m_ProgressBar->setValue(0);
+
+        const auto method = m_LabWidget.m_MethodComboBox->currentData().value<Enums::Method>();
+        switch (method)
+        {
+        case Enums::Method::DCA:
+        {
+            sparsePC.candidates = DCA::computeNextComponentCandidates(
+                m_Sigma, DCA::ModelParam(1), m_ValidatedComponents, m_LabWidget.m_ProgressBar);
             break;
         }
-        case Enums::PlotType::IMPULSES:
+        case Enums::Method::BGSPCA:
         {
-            auto* graph = new JKQTPImpulsesVerticalGraph(m_LabWidget.m_Plotter);
-            graph->setLineStyle(m_Preferences.sparseComponentsLineStyle);
-            graph->setLineWidth(m_Preferences.sparseComponentsLineWidthImpulsesPlot);
-            graph->setDrawSymbols(true);
-            graph->setSymbolType(JKQTPGraphSymbols::JKQTPCircle);
-            auto col = QColor(sparsePCGraph.color);
-            graph->setColor(col);
-
-            graph->setXColumn(m_LabWidget.m_ColumnX);
-            graph->setYColumn(sparsePCGraph.pcColumn);
-
-            sparsePCGraph.graph = graph;
+            sparsePC.candidates = BackwardGSPA::computeNextComponentCandidates(
+                m_Sigma, BackwardGSPA::ModelParam(1), m_ValidatedComponents, m_LabWidget.m_ProgressBar);
+            break;
+        }
+        case Enums::Method::FGSPCA:
+        {
+            sparsePC.candidates = ForwardGSPCA::computeNextComponentCandidates(
+                m_Sigma, ForwardGSPCA::ModelParam(1), m_ValidatedComponents, m_LabWidget.m_ProgressBar);
+            break;
+        }
+        case Enums::Method::CUSTOM:
+        {
+            sparsePC.candidates = CustomSolver::computeNextComponentCandidates(
+                m_Sigma, CustomSolver::ModelParam(1), m_ValidatedComponents, m_LabWidget.m_ProgressBar);
+            break;
+        }
+        case Enums::Method::USERDYNAMICLIB:
+        {
+            auto& library = m_DynamicLibSolverLoaders.at(0);
+            if(library)
+            {
+                auto computeSparseEigenVector =
+                    (ComputeSparseEigenVector)library->resolve("computeSparseEigenVector");
+                if (computeSparseEigenVector)
+                {
+                    sparsePC.candidates = DynamicLibSolver::computeNextComponentCandidates(
+                        m_Sigma, DynamicLibSolver::ModelParam(computeSparseEigenVector), m_ValidatedComponents, m_LabWidget.m_ProgressBar);
+                }
+            }
             break;
         }
         default:
         {
+            sparsePC.candidates = DCA::computeNextComponentCandidates(
+                m_Sigma, DCA::ModelParam(1), m_ValidatedComponents, m_LabWidget.m_ProgressBar);
             break;
         }
         }
 
-        sparsePCGraph.graph->setTitle(curveName + ": " + formattedValueStr);
-
-        m_LabWidget.m_Plotter->addGraph(sparsePCGraph.graph);
-    }
-}
-
-void LabController::onAddNewSparseComponent()
-{
-    if(!m_SparsePCs.empty())
-    {// validate current selected sparse component
-        auto& candidates = m_SparsePCs.back().candidates;
-        const auto iCandidate = m_SparsePCs.back().iCandidate;
-
-        m_ValidatedComponents.push_back(candidates.at(iCandidate));
-        m_ValidatedComponents.back().get().state = sparsepc::ComponentState::Validated;
-        m_CummulativeVarianceSparsePCs += m_ValidatedComponents.back().get().value;
-    }
-
-
-    auto& sparsePC = m_SparsePCs.emplace_back();
-    auto& sparsePCGraph = m_LabWidget.m_SparsePCGraphs.emplace_back();
-
-    sparsePC.iCandidate = -1;
-
-    sparsePCGraph.color =  m_LabWidget.m_Colors[m_ValidatedComponents.size()];
-
-    m_LabWidget.m_ProgressBarGroupBox->setStyleSheet("QGroupBox::title { color: "+ sparsePCGraph.color + "; }");
-
-    m_LabWidget.m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(m_LabWidget.m_ProgressBarGroupBox);
-
-    m_LabWidget.m_ProgressBar->setValue(0);
-
-    const auto method = m_LabWidget.m_MethodComboBox->currentData().value<Enums::Method>();
-    switch (method)
-    {
-    case Enums::Method::DCA:
-    {
-        sparsePC.candidates = DCA::computeNextComponentCandidates(
-            m_Sigma, DCA::ModelParam(1), m_ValidatedComponents, m_LabWidget.m_ProgressBar);
-        break;
-    }
-    case Enums::Method::BGSPCA:
-    {
-        sparsePC.candidates = BackwardGSPA::computeNextComponentCandidates(
-            m_Sigma, BackwardGSPA::ModelParam(1), m_ValidatedComponents, m_LabWidget.m_ProgressBar);
-        break;
-    }
-    case Enums::Method::FGSPCA:
-    {
-        sparsePC.candidates = ForwardGSPCA::computeNextComponentCandidates(
-            m_Sigma, ForwardGSPCA::ModelParam(1), m_ValidatedComponents, m_LabWidget.m_ProgressBar);
-        break;
-    }
-    case Enums::Method::CUSTOM:
-    {
-        sparsePC.candidates = CustomSolver::computeNextComponentCandidates(
-            m_Sigma, CustomSolver::ModelParam(1), m_ValidatedComponents, m_LabWidget.m_ProgressBar);
-        break;
-    }
-    case Enums::Method::USERDYNAMICLIB:
-    {
-        auto& library = m_DynamicLibSolverLoaders.at(0);
-        if(library)
+        for(auto& [k, candidate]: sparsePC.candidates)
         {
-            auto computeSparseEigenVector =
-                (ComputeSparseEigenVector)library->resolve("computeSparseEigenVector");
-            if (computeSparseEigenVector)
-            {
-                sparsePC.candidates = DynamicLibSolver::computeNextComponentCandidates(
-                    m_Sigma, DynamicLibSolver::ModelParam(computeSparseEigenVector), m_ValidatedComponents, m_LabWidget.m_ProgressBar);
-            }
+            candidate.state = sparsepc::ComponentState::Unvalidated;
         }
-        break;
+
+        sparsePC.iCandidate = m_LabWidget.m_Slider->value();
+
+        {
+            using namespace std::chrono_literals;
+            std::this_thread::sleep_for(2000ms);
+        }
+
+        m_LabWidget.m_ProgressBar->setValue(m_N);
+
+        {
+            using namespace std::chrono_literals;
+            std::this_thread::sleep_for(1000ms);
+        }
+
+        const auto& component = sparsePC.candidates.at(sparsePC.iCandidate);
+
+        QString cumulativeVarianceString = QString::number(m_CummulativeVarianceSparsePCs + component.value, 'f', 2);
+        QString curveName = QString::number(m_ValidatedComponents.size());
+
+        m_LabWidget.m_SliderGroupBox->setStyleSheet("QGroupBox::title { color: "+ newSparsePCColor + "; }");
+
+        m_LabWidget.m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(m_LabWidget.m_SliderGroupBox);
+
+        m_LabWidget.drawSparsePC(component, cumulativeVarianceString, curveName);
     }
-    default:
+
+    void LabController::onRemoveLastSparseComponentButton()
     {
-        sparsePC.candidates = DCA::computeNextComponentCandidates(
-            m_Sigma, DCA::ModelParam(1), m_ValidatedComponents, m_LabWidget.m_ProgressBar);
-        break;
-    }
-    }
+        if(m_SparsePCs.empty())
+        {
+            return;
+        }
 
-    {
-        using namespace std::chrono_literals;
-        std::this_thread::sleep_for(2000ms);
-    }
+        if(!m_ValidatedComponents.empty())
+        {
+            m_ValidatedComponents.back().get().state = sparsepc::ComponentState::Unvalidated;
+            m_CummulativeVarianceSparsePCs -= m_ValidatedComponents.back().get().value;
+            m_ValidatedComponents.pop_back();
+        }
 
-    m_LabWidget.m_ProgressBar->setValue(m_N);
-
-    {
-        using namespace std::chrono_literals;
-        std::this_thread::sleep_for(1000ms);
-    }
-
-    m_LabWidget.m_SliderGroupBox->setStyleSheet("QGroupBox::title { color: "+ sparsePCGraph.color + "; }");
-
-    m_LabWidget.m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(m_LabWidget.m_SliderGroupBox);
-
-    for(auto& [k, candidate]: sparsePC.candidates)
-    {
-        candidate.state = sparsepc::ComponentState::Unvalidated;
-    }
-
-    const int initialICandidate = m_N/2;
-
-    const auto& component = sparsePC.candidates.at(initialICandidate);
-
-    QString formattedValueStr = QString::number(m_CummulativeVarianceSparsePCs + component.value, 'f', 2);
-    QString curveName = QString::number(m_ValidatedComponents.size());
-
-    JKQTPDatastore* ds = m_LabWidget.m_Plotter->getDatastore();
-
-    sparsePCGraph.pcColumn = ds->addColumn(m_N, curveName);
-
-    ds->setAll(sparsePCGraph.pcColumn, static_cast<double>(0));
-
-    for (int i=0; i<m_N; ++i)
-    {
-        ds->inc(sparsePCGraph.pcColumn, i, component.vector[i]);
-    }
-
-    const auto plotType = m_LabWidget.m_PlotTypeComboBox->currentData().value<Enums::PlotType>();
-    switch (plotType)
-    {
-    case Enums::PlotType::FILLED:
-    {
-        auto* graph = new JKQTPFilledCurveXGraph(m_LabWidget.m_Plotter);
-
-        auto col = QColor(sparsePCGraph.color);
-        graph->setLineStyle(m_Preferences.sparseComponentsLineStyle);
-        graph->setLineWidth(m_Preferences.sparseComponentsLineWidthFilledPlot);
-        graph->setLineColor(col);
-
-        graph->setFillMode(JKQTPFilledCurveXGraph::FillMode::SingleFilling);
-
-        col.setAlphaF(m_Preferences.sparseComponentsFillingColorsAlpha);
-        graph->setFillColor(col);
-        graph->fillStyleBelow().setFillColor(col);
-        graph->setBaseline(0.0);
-        graph->setXColumn(m_LabWidget.m_ColumnX);
-        graph->setYColumn(sparsePCGraph.pcColumn);
-
-        sparsePCGraph.graph = graph;
-        break;
-    }
-    case Enums::PlotType::IMPULSES:
-    {
-        auto* graph = new JKQTPImpulsesVerticalGraph(m_LabWidget.m_Plotter);
-        graph->setLineStyle(m_Preferences.sparseComponentsLineStyle);
-        graph->setLineWidth(m_Preferences.sparseComponentsLineWidthImpulsesPlot);
-        graph->setDrawSymbols(true);
-        graph->setSymbolType(JKQTPGraphSymbols::JKQTPCircle);
-        auto col = QColor(sparsePCGraph.color);
-        graph->setColor(col);
-
-        graph->setXColumn(m_LabWidget.m_ColumnX);
-        graph->setYColumn(sparsePCGraph.pcColumn);
-
-        sparsePCGraph.graph = graph;
-        break;
-    }
-    default:
-    {
-        break;
-    }
-    }
-
-    sparsePCGraph.graph->setTitle(curveName + ": " + formattedValueStr);
-
-    m_LabWidget.m_Plotter->addGraph(sparsePCGraph.graph);
-
-    if( m_LabWidget.m_Slider->value() != initialICandidate )
-    {
-        m_LabWidget.m_Slider->setValue(initialICandidate);
-    }
-    else
-    {
-        updatePlot(initialICandidate);
-    }
-}
-
-void LabController::onRemoveLastSparseComponentButton()
-{
-    if(m_SparsePCs.empty())
-    {
-        return;
-    }
-
-    m_LabWidget.m_Plotter->deleteGraph(m_LabWidget.m_SparsePCGraphs.back().graph, true);
-    m_LabWidget.m_Plotter->getDatastore()->deleteColumn(m_LabWidget.m_SparsePCGraphs.back().pcColumn, true);
-
-    if(!m_ValidatedComponents.empty())
-    {
-        m_ValidatedComponents.back().get().state = sparsepc::ComponentState::Unvalidated;
-        m_CummulativeVarianceSparsePCs -= m_ValidatedComponents.back().get().value;
-        m_ValidatedComponents.pop_back();
-    }
-
-    if(!m_SparsePCs.empty())
-    {
         m_SparsePCs.pop_back();
+
+        const int sliderValue = m_SparsePCs.empty()? 0 : m_SparsePCs.back().iCandidate;
+
+        m_LabWidget.removeLastSparsePCDraw(sliderValue);
     }
 
-    if(!m_LabWidget.m_SparsePCGraphs.empty())
+    void LabController::updatePlot(int value)
     {
-        m_LabWidget.m_SparsePCGraphs.pop_back();
-    }
-
-    if(!m_SparsePCs.empty() && !m_LabWidget.m_SparsePCGraphs.empty())
-    {
-        m_LabWidget.m_SliderGroupBox->setStyleSheet("QGroupBox::title { color: "+ m_LabWidget.m_SparsePCGraphs.back().color + "; }");
-
-        m_LabWidget.m_Slider->setValue(m_SparsePCs.back().iCandidate);
-    }
-    else
-    {
-        m_LabWidget.m_SliderGroupBox->setStyleSheet("");
-        m_LabWidget.m_ProgressBarGroupBox->setStyleSheet("");
-    }
-
-    m_LabWidget.m_Plotter->redrawPlot();
-}
-
-void LabController::updatePlot(int value)
-{
-    if (m_SparsePCs.empty())
-    {
-        return;
-    }
-
-    auto& sparsePC = m_SparsePCs.back();
-    auto& sparsePCGraph = m_LabWidget.m_SparsePCGraphs.back();
-
-    sparsePC.iCandidate = value;
-
-    const auto& candidate = sparsePC.candidates.at(sparsePC.iCandidate);
-
-    JKQTPDatastore* ds = m_LabWidget.m_Plotter->getDatastore();
-
-    ds->setAll(sparsePCGraph.pcColumn, static_cast<double>(0));
-
-    for (int i=0; i<m_N; ++i)
-    {
-        ds->inc(sparsePCGraph.pcColumn, i, candidate.vector[i]);
-    }
-
-    QString formattedValueStr = QString::number(m_CummulativeVarianceSparsePCs + candidate.value, 'f', 2);
-    QString formattedPCNumberStr = QString::number(m_ValidatedComponents.size());
-    QString curveName = formattedPCNumberStr;
-
-    sparsePCGraph.graph->setTitle(curveName + ": " + formattedValueStr);
-
-    m_LabWidget.m_Plotter->redrawPlot();
-}
-
-void LabController::onSelectionChanged(int index)
-{// must replot all plots
-    //m_PlotTypeComboBox->currentText();
-    for(auto& spcg: m_LabWidget.m_SparsePCGraphs)
-    {
-        m_LabWidget.m_Plotter->deleteGraph(spcg.graph, true);
-        m_LabWidget.m_Plotter->getDatastore()->deleteColumn(spcg.pcColumn, true);
-        spcg.graph = nullptr;
-    }
-
-    for(auto& spcg: m_LabWidget.m_StandardPCGraphs)
-    {
-        m_LabWidget.m_Plotter->deleteGraph(spcg.graph, true);
-        m_LabWidget.m_Plotter->getDatastore()->deleteColumn(spcg.pcColumn, true);
-        spcg.graph = nullptr;
-    }
-
-    drawStandardPCs();
-    drawSparsePCs();
-
-    m_LabWidget.m_Plotter->redrawPlot();
-}
-
-LabController::LabController(LabWidget& labWidget, QObject* parent)
-    : QObject(parent), m_LabWidget{labWidget}, m_Sigma{}, m_ValidatedComponents{},
-    m_SparsePCs{}, m_StandardPCs{}, m_CummulativeVarianceStandardPCs{0.0},
-    m_CummulativeVarianceSparsePCs{0}
-{
-    // TODO preferences as a singleton
-    qDebug() << "Loading prefernces ...";
-    m_Preferences = Preferences::load(
-        QDir(QDir::currentPath() + "/configurations").absoluteFilePath("sparsely.json"));
-    qDebug() << "... preferences done.";
-    qDebug() << "Loading addons ...";
-
-    const auto pluginList = getPluginList();
-    if(!pluginList.empty())
-    {
-        m_DynamicLibSolverLoaders.reserve(pluginList.size());
-        m_DynamicLibSolverNames.reserve(pluginList.size());
-
-        for (const auto &fileInfo : pluginList)
+        if (m_SparsePCs.empty())
         {
-            QString noExtensionAbsolutePath = QDir(fileInfo.absolutePath()).filePath(fileInfo.baseName());
-            qDebug() << "Loading " << noExtensionAbsolutePath << "...";
-            m_DynamicLibSolverLoaders.push_back(
-                std::make_unique<QLibrary>(noExtensionAbsolutePath));
-            if(m_DynamicLibSolverLoaders.back()->load())
-            {
-                m_DynamicLibSolverNames.push_back(fileInfo.baseName());
-                qDebug() << " ...loaded.";
-            }
-            else
-            {
-                qDebug() << " ...loading failed.";
-                m_DynamicLibSolverLoaders.pop_back();
-            }
+            return;
         }
 
-        //foreach(auto fileName, path.entryList(QDir::Files))
+        auto& sparsePC = m_SparsePCs.back();
 
-        qDebug() << "...Addons loaded.";
-    }
-}
+        sparsePC.iCandidate = value;
 
-void LabController::connectWidget()
-{
-    QObject::connect(m_LabWidget.m_PlotTypeComboBox, qOverload<int>(&QComboBox::currentIndexChanged),
-                     this, &LabController::onSelectionChanged);
-    QObject::connect(m_LabWidget.m_Slider, qOverload<int>(&QSlider::valueChanged),
-                     this, &LabController::updatePlot);
-    QObject::connect(m_LabWidget.m_AddNewSparseComponentButton, &QPushButton::clicked,
-                     this, &LabController::onAddNewSparseComponent);
-    QObject::connect(m_LabWidget.m_RemoveLastSparseComponentButton, &QPushButton::clicked,
-                     this, &LabController::onRemoveLastSparseComponentButton);
-}
+        const auto& component = sparsePC.candidates.at(sparsePC.iCandidate);
 
-void LabController::init(const QString& fileName, bool newProject)
-{
-    if(m_Sigma.size() != 0)
-    {
-        // should popup a project already loaded.
-        return;
+        QString cumulativeVarianceString = QString::number(m_CummulativeVarianceSparsePCs + component.value, 'f', 2);
+        QString curveName = QString::number(m_ValidatedComponents.size());
+
+        m_LabWidget.updateDraw(component, cumulativeVarianceString, curveName);
     }
 
-    if(newProject)
-    {
-        m_Sigma = sparsepc::openData<double>(fileName.toStdString(), ';');
+    void LabController::onSelectionChanged(int index)
+    {// must replot all plots
 
-        m_N = m_Sigma.cols();
-
-        m_ValidatedComponents.clear();
-        m_ValidatedComponents.reserve(m_N);
-        m_SparsePCs.clear();
-        m_SparsePCs.reserve(m_N);
-
-        m_LabWidget.m_N = m_N;
-
-        m_LabWidget.createWidget();
-        connectWidget();
-        computeStandardPCs();
-        drawStandardPCs();
-    }
-    else
-    {
-        loadProject(fileName);
-
-        m_LabWidget.createWidget();
-
-        connectWidget();
+        m_LabWidget.clearAlls();
 
         drawStandardPCs();
         drawSparsePCs();
-        if(!m_LabWidget.m_SparsePCGraphs.empty())
-        {
-            m_LabWidget.m_SliderGroupBox->setStyleSheet("QGroupBox::title { color: "+ m_LabWidget.m_SparsePCGraphs.back().color + "; }");
-        }
     }
 
-    m_LabWidget.zoomToFit();
-}
-
-// write operator
-QDataStream &operator<<(QDataStream &out, const MyClass &user)
-{
-    out << static_cast<qint32>(user.iCandidate);
-    out << static_cast<qint32>(user.candidates.size());
-    for(auto& [k, component]:user.candidates)
+    // write operator
+    QDataStream &operator<<(QDataStream &out, const MyClass &user)
     {
-        out << static_cast<qint32>(k);
-        out << static_cast<qint32>(std::to_underlying(component.state));
-        out << static_cast<double>(component.value);
-        out << static_cast<qint32>(component.vector.size());
-        out.writeRawData(reinterpret_cast<const char*>(
-                             component.vector.data()), component.vector.size() * sizeof(double));
-        out << static_cast<qint32>(component.q.size());
-        if(component.q.size() != 0)
+        out << static_cast<qint32>(user.iCandidate);
+        out << static_cast<qint32>(user.candidates.size());
+        for(auto& [k, component]:user.candidates)
         {
+            out << static_cast<qint32>(k);
+            out << static_cast<qint32>(std::to_underlying(component.state));
+            out << static_cast<double>(component.value);
+            out << static_cast<qint32>(component.vector.size());
             out.writeRawData(reinterpret_cast<const char*>(
-                                 component.q.data()), component.q.size() * sizeof(double));
+                                 component.vector.data()), component.vector.size() * sizeof(double));
+            out << static_cast<qint32>(component.q.size());
+            if(component.q.size() != 0)
+            {
+                out.writeRawData(reinterpret_cast<const char*>(
+                                     component.q.data()), component.q.size() * sizeof(double));
+            }
         }
+        return out;
     }
-    return out;
-}
 
-// read operator
-QDataStream &operator>>(QDataStream &in, MyClass &user)
-{
-    in >> user.iCandidate;
-    qint32 candidatesSize = -1;
-    in >> candidatesSize;
-    for(qint32 j = 0; j < candidatesSize; ++j)
+    // read operator
+    QDataStream &operator>>(QDataStream &in, MyClass &user)
     {
-        qint32 valInt = -1;
-        in >> valInt;
-        auto& component = user.candidates[valInt];
-        in >> valInt;
-        component.state = static_cast<sparsepc::ComponentState>(valInt);
-        auto val = static_cast<double>(-1);
-        in >> val;
-        component.value = val;
-        in >> valInt;
-        component.vector = sparsepc::Vector<double>(valInt);
-        in.readRawData(reinterpret_cast<char*>(
-                           component.vector.data()), valInt * sizeof(double));
-
-        in >> valInt;
-        if(valInt != 0)
+        in >> user.iCandidate;
+        qint32 candidatesSize = -1;
+        in >> candidatesSize;
+        for(qint32 j = 0; j < candidatesSize; ++j)
         {
-            component.q = sparsepc::Vector<double>(valInt);
+            qint32 valInt = -1;
+            in >> valInt;
+            auto& component = user.candidates[valInt];
+            in >> valInt;
+            component.state = static_cast<sparsepc::ComponentState>(valInt);
+            auto val = static_cast<double>(-1);
+            in >> val;
+            component.value = val;
+            in >> valInt;
+            component.vector = sparsepc::Vector<double>(valInt);
             in.readRawData(reinterpret_cast<char*>(
-                               component.q.data()), valInt * sizeof(double));
+                               component.vector.data()), valInt * sizeof(double));
+
+            in >> valInt;
+            if(valInt != 0)
+            {
+                component.q = sparsepc::Vector<double>(valInt);
+                in.readRawData(reinterpret_cast<char*>(
+                                   component.q.data()), valInt * sizeof(double));
+            }
         }
+
+        return in;
     }
 
-    return in;
-}
-
-void LabController::saveProject(const QString& filename)
-{
-    if(m_Sigma.size() == 0)
+    void LabController::saveProject(const QString& filename)
     {
-        // should popup we do not save an empty project.
-        return;
+        if(m_Sigma.size() == 0)
+        {
+            // should popup we do not save an empty project.
+            return;
+        }
+
+        QFile file(filename);
+        if (file.open(QIODevice::WriteOnly))
+        {// Serialization
+            QDataStream out(&file);
+            out.setVersion(QDataStream::Qt_6_0);// version for forward/backward compatibility
+            out << static_cast<qint32>(m_N);
+            out.writeRawData(reinterpret_cast<const char*>(m_Sigma.data()), m_N * m_N * sizeof(double));
+            const auto standardPCsSize = static_cast<qint32>(m_StandardPCs.size());
+            out << standardPCsSize;
+            for(qint32 j = 0; j < standardPCsSize; ++j)
+            {
+                out << m_StandardPCs[j] ;
+            }
+            const auto sparsePCsSize = static_cast<qint32>(m_SparsePCs.size());
+            out << sparsePCsSize;
+            for(qint32 j = 0; j < sparsePCsSize; ++j)
+            {
+                out << m_SparsePCs[j];
+            }
+            file.close();
+        }
     }
 
-    QFile file(filename);
-    if (file.open(QIODevice::WriteOnly))
-    {// Serialization
-        QDataStream out(&file);
-        out.setVersion(QDataStream::Qt_6_0);// version for forward/backward compatibility
-        out << static_cast<qint32>(m_N);
-        out.writeRawData(reinterpret_cast<const char*>(m_Sigma.data()), m_N * m_N * sizeof(double));
-        const auto standardPCsSize = static_cast<qint32>(m_StandardPCs.size());
-        out << standardPCsSize;
-        for(qint32 j = 0; j < standardPCsSize; ++j)
-        {
-            out << m_StandardPCs[j] ;
+    void LabController::loadProject(const QString& fileName)
+    {
+        QFile file(fileName);
+        if (file.open(QIODevice::ReadOnly))
+        {// Deserialization
+            QDataStream in(&file);
+            in.setVersion(QDataStream::Qt_6_0);
+            qint32 intVal = -1;
+            in >> intVal;
+            m_N = intVal;
+            m_Sigma.resize(m_N, m_N);
+            in.readRawData(reinterpret_cast<char*>(m_Sigma.data()), m_N * m_N * sizeof(double));
+            m_StandardPCs.clear();
+            m_StandardPCs.reserve(m_N);
+            m_SparsePCs.clear();
+            m_SparsePCs.reserve(m_N);
+            in >> intVal;
+            for(qint32 j = 0; j < intVal; ++j)
+            {
+                MyClass myClass;
+                in >> myClass;
+                m_StandardPCs.push_back(std::move(myClass));
+            }
+            in >> intVal;
+            for(qint32 j = 0; j < intVal; ++j)
+            {
+                MyClass myClass;
+                in >> myClass;
+                m_SparsePCs.push_back(std::move(myClass));
+            }
+            file.close();
         }
-        const auto sparsePCsSize = static_cast<qint32>(m_SparsePCs.size());
-        out << sparsePCsSize;
-        for(qint32 j = 0; j < sparsePCsSize; ++j)
-        {
-            out << m_SparsePCs[j];
-        }
-        file.close();
     }
-}
-
-void LabController::loadProject(const QString& fileName)
-{
-    QFile file(fileName);
-    if (file.open(QIODevice::ReadOnly))
-    {// Deserialization
-        QDataStream in(&file);
-        in.setVersion(QDataStream::Qt_6_0);
-        qint32 intVal = -1;
-        in >> intVal;
-        m_N = intVal;
-        m_Sigma.resize(m_N, m_N);
-        in.readRawData(reinterpret_cast<char*>(m_Sigma.data()), m_N * m_N * sizeof(double));
-        m_StandardPCs.clear();
-        m_StandardPCs.reserve(m_N);
-        m_SparsePCs.clear();
-        m_SparsePCs.reserve(m_N);
-        in >> intVal;
-        for(qint32 j = 0; j < intVal; ++j)
-        {
-            MyClass myClass;
-            in >> myClass;
-            m_StandardPCs.push_back(std::move(myClass));
-        }
-        in >> intVal;
-        for(qint32 j = 0; j < intVal; ++j)
-        {
-            MyClass myClass;
-            in >> myClass;
-            m_SparsePCs.push_back(std::move(myClass));
-        }
-        file.close();
-    }
-}
 }

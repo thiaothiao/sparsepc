@@ -60,7 +60,19 @@ namespace sparsely
         void zoomToFit();
 
         void drawStandardPC(const sparsepc::Component<double>& component,
-                            const QString& cumulativeVarianceString, const QString& curveName);
+            const QString& cumulativeVarianceString, const QString& curveName);
+
+        void drawSparsePC(const sparsepc::Component<double>& component,
+            const QString& cumulativeVarianceString, const QString& curveName);
+
+        void updateDraw(const sparsepc::Component<double>& component,
+            const QString& cumulativeVarianceString, const QString& curveName);
+
+        void removeLastSparsePCDraw(int sliderValue);
+
+        void clearAlls();
+
+        void reInitSlider(int value);
 
         sparsepc::Index m_N = 0;
         std::size_t m_ColumnX;
