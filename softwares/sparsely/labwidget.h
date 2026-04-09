@@ -76,7 +76,9 @@ namespace sparsely
 
         void reInitSlider(int value);
 
-        sparsepc::Index m_N = 0;
+        void setN(int n);
+
+        int m_N = 0;
         std::size_t m_ColumnX;
 
         std::vector<MyClass2> m_SparsePCGraphs;
