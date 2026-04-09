@@ -104,14 +104,7 @@ namespace sparsely
 
     void LabController::onAddNewSparseComponent()
     {
-        if(!m_LabModel.m_SparsePCs.empty())
-        {// validate current selected sparse component
-            auto& candidates = m_LabModel.m_SparsePCs.back().candidates;
-            const auto iCandidate = m_LabModel.m_SparsePCs.back().iCandidate;
-
-            m_LabModel.m_ValidatedComponents.push_back(candidates.at(iCandidate));
-            m_LabModel.m_ValidatedComponents.back().get().state = sparsepc::ComponentState::Validated;
-        }
+        m_LabModel.validateCurrentSparsePC();
 
         const auto newSparsePCColor = m_LabWidget.m_Colors[m_LabModel.m_SparsePCs.size()];
 

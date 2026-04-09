@@ -216,6 +216,18 @@ namespace sparsely
         return true;
     }
 
+    void LabModel::validateCurrentSparsePC()
+    {
+        if(!m_SparsePCs.empty())
+        {// validate current selected sparse component
+            auto& candidates = m_SparsePCs.back().candidates;
+            const auto iCandidate = m_SparsePCs.back().iCandidate;
+
+            m_ValidatedComponents.push_back(candidates.at(iCandidate));
+            m_ValidatedComponents.back().get().state = sparsepc::ComponentState::Validated;
+        }
+    }
+
     double LabModel::computeValidatedCumulativeVariance() const
     {
         auto sum = 0.0;

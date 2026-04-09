@@ -61,6 +61,8 @@ namespace sparsely
 
         double computeCumulativeVariance() const;
 
+        void validateCurrentSparsePC();
+
         int getICandidate() const;
 
         int getCurrentRank() const;
