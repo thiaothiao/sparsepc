@@ -27,7 +27,7 @@ namespace sparsely
     struct MyClass2 final
     {
         MyClass2()
-            :pcColumn{0}, color{}, graph{nullptr}
+            :xColumn{0}, pcColumn{0}, color{}, graph{nullptr}
         {
         }
 
@@ -37,6 +37,7 @@ namespace sparsely
         MyClass2(MyClass2&&) = default;
         MyClass2& operator=(MyClass2&&) = default;
 
+        std::size_t xColumn;
         std::size_t pcColumn;
         QString color;
         JKQTPPlotElement* graph;

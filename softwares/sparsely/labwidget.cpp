@@ -39,6 +39,7 @@ namespace sparsely
         JKQTPDatastore* ds = m_Plotter->getDatastore();
 
         standardPCGraph.pcColumn = ds->addColumn(m_N, curveName);
+        standardPCGraph.xColumn = m_ColumnX;
 
         ds->setAll(standardPCGraph.pcColumn, static_cast<double>(0));
 
@@ -65,7 +66,7 @@ namespace sparsely
             graph->fillStyleBelow().setFillColor(col);
             graph->setBaseline(0.0);
 
-            graph->setXColumn(m_ColumnX);
+            graph->setXColumn(standardPCGraph.xColumn);
             graph->setYColumn(standardPCGraph.pcColumn);
 
             standardPCGraph.graph = graph;
@@ -81,7 +82,7 @@ namespace sparsely
             auto col = QColor(standardPCGraph.color);
             graph->setColor(col);
 
-            graph->setXColumn(m_ColumnX);
+            graph->setXColumn(standardPCGraph.xColumn);
             graph->setYColumn(standardPCGraph.pcColumn);
 
             standardPCGraph.graph = graph;
@@ -108,6 +109,7 @@ namespace sparsely
         JKQTPDatastore* ds = m_Plotter->getDatastore();
 
         sparsePCGraph.pcColumn = ds->addColumn(m_N, curveName);
+        sparsePCGraph.xColumn = m_ColumnX;
 
         ds->setAll(sparsePCGraph.pcColumn, static_cast<double>(0));
 
@@ -135,7 +137,7 @@ namespace sparsely
             graph->fillStyleBelow().setFillColor(col);
             graph->setBaseline(0.0);
 
-            graph->setXColumn(m_ColumnX);
+            graph->setXColumn(sparsePCGraph.xColumn);
             graph->setYColumn(sparsePCGraph.pcColumn);
 
             sparsePCGraph.graph = graph;
@@ -151,7 +153,7 @@ namespace sparsely
             auto col = QColor(sparsePCGraph.color);
             graph->setColor(col);
 
-            graph->setXColumn(m_ColumnX);
+            graph->setXColumn(sparsePCGraph.xColumn);
             graph->setYColumn(sparsePCGraph.pcColumn);
 
             sparsePCGraph.graph = graph;

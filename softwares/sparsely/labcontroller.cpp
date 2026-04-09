@@ -176,9 +176,8 @@ namespace sparsely
     }
 
     void LabController::onSelectionChanged(int index)
-    {// must replot all plots
+    {
         m_LabWidget.clearAlls();
-
         drawStandardPCs();
         drawSparsePCs();
     }
