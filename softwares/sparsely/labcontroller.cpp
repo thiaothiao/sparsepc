@@ -43,21 +43,17 @@ namespace sparsely
             return;
         }
 
-        m_N = m_LabModel.m_N;
+        m_N = m_LabModel.getN();
+        m_LabWidget.setN( m_N);
 
         m_LabWidget.setPreferences(m_Preferences);
-
-        m_LabWidget.m_N = m_N;
 
         m_LabWidget.createWidget(m_LabModel.getAddonName());
 
         drawStandardPCs();
+        drawSparsePCs();
 
-        if(!m_LabModel.m_SparsePCs.empty())
-        {
-            drawSparsePCs();
-            m_LabWidget.reInitSlider(m_LabModel.m_SparsePCs.back().iCandidate);
-        }
+        m_LabWidget.reInitSlider(m_LabModel.getICandidate());
 
         connectWidget();
 
@@ -67,9 +63,6 @@ namespace sparsely
     void LabController::drawStandardPCs()
     {
         auto cummulativeVarianceStandardPCs = static_cast<double>(0);
-
-        m_LabWidget.m_StandardPCGraphs.clear();
-        m_LabWidget.m_StandardPCGraphs.reserve(m_LabModel.m_StandardPCs.size());
 
         for (int j=0; j< m_LabModel.m_StandardPCs.size(); ++j)
         {
@@ -90,8 +83,6 @@ namespace sparsely
     {
         m_LabModel.m_ValidatedComponents.clear();
 
-        m_LabWidget.m_SparsePCGraphs.clear();
-        m_LabWidget.m_SparsePCGraphs.reserve(m_LabModel.m_SparsePCs.size());
         for (int j=0; j< m_LabModel.m_SparsePCs.size(); ++j)
         {
             auto& sparsePC = m_LabModel.m_SparsePCs[j];

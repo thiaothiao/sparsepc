@@ -65,6 +65,8 @@ namespace sparsely
 
         int getCurrentRank() const;
 
+        int getN() const;
+
         QString getAddonName() const;
 
         sparsepc::Matrix<double> m_Sigma;

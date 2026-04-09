@@ -230,12 +230,16 @@ namespace sparsely
             spcg.graph = nullptr;
         }
 
+        m_SparsePCGraphs.clear();
+
         for(auto& spcg: m_StandardPCGraphs)
         {
             m_Plotter->deleteGraph(spcg.graph, true);
             m_Plotter->getDatastore()->deleteColumn(spcg.pcColumn, true);
             spcg.graph = nullptr;
         }
+
+        m_StandardPCGraphs.clear();
     }
 
     void LabWidget::setPreferences(const Preferences& preferences)
@@ -264,6 +268,9 @@ namespace sparsely
         //m_Plotter->getPlotter()->setUseAntiAliasingForGraphs(true); // nicer (but slower) plotting
         //m_Plotter->getPlotter()->setUseAntiAliasingForSystem(true); // nicer (but slower) plotting
         //m_Plotter->getPlotter()->setUseAntiAliasingForText(true); // nicer (but slower) text rendering
+
+        m_StandardPCGraphs.reserve(m_Preferences.componentsColors.size());
+        m_SparsePCGraphs.reserve(m_Preferences.componentsColors.size());
 
         JKQTPDatastore* datastore = m_Plotter->getDatastore();
         m_ColumnX = datastore->addLinearColumn(m_N, 0, m_N-1, "xi");
@@ -416,6 +423,11 @@ namespace sparsely
     void LabWidget::updateSliderTitle(int value)
     {
         m_SliderGroupBox->setTitle(QString::number(value));
+    }
+
+    void LabWidget::setN(int n)
+    {
+        m_N = n;
     }
 
     void LabWidget::updateProgressBarTitle(int value)
