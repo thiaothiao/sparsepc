@@ -244,6 +244,11 @@ namespace sparsely
         return m_ValidatedComponents.size();
     }
 
+    int LabModel::getN() const
+    {
+        return m_N;
+    }
+
     QString LabModel::getAddonName() const
     {
         return m_DynamicLibSolverNames.empty() ? ""
