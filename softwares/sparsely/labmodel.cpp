@@ -236,7 +236,7 @@ namespace sparsely
 
     int LabModel::getICandidate() const
     {
-        return m_SparsePCs.empty()? 0 : m_SparsePCs.back().iCandidate;
+        return m_SparsePCs.empty() ? 1 : m_SparsePCs.back().iCandidate;
     }
 
     int LabModel::getCurrentRank() const
