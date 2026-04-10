@@ -71,8 +71,12 @@ namespace sparsely
 
         QString getAddonName() const;
 
+        double computeVarianceRatio(double variance) const;
+
         sparsepc::Matrix<double> m_Sigma;
-        sparsepc::Index m_N = 0;
+        sparsepc::Index m_N;
+        double m_Trace;
+
 
         std::vector<std::reference_wrapper<sparsepc::Component<double>>> m_ValidatedComponents;
         std::vector<MyClass> m_SparsePCs;

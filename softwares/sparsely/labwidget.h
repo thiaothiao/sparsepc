@@ -84,7 +84,7 @@ namespace sparsely
 
         void setN(int n);
 
-        int m_N = 0;
+        int m_N;
         std::size_t m_ColumnX;
 
         std::vector<MyClass2> m_SparsePCGraphs;

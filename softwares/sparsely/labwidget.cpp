@@ -25,7 +25,8 @@ namespace sparsely
         m_SliderGroupBox{nullptr}, m_ProgressBarGroupBox{nullptr},
         m_Slider{nullptr}, m_ProgressBar{nullptr},
         m_SliderOrProgressBarWidgetStackedLayout{nullptr},
-        m_MethodComboBox{nullptr}, m_PlotTypeComboBox{nullptr}, m_Colors{}
+        m_MethodComboBox{nullptr}, m_PlotTypeComboBox{nullptr}, m_Colors{},
+        m_N{0}, m_ColumnX{0}
     {
     }
 
