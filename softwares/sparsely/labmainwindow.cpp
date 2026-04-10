@@ -39,7 +39,7 @@ namespace sparsely
         : QMainWindow(parent)
     {
         constexpr std::string_view version = SPARSEPC_MACRO_STRINGIFY(SPARSEPC_VERSION);
-        this->setWindowTitle("SPARSELY Software - SPARSE principal component LaboratorY");
+        this->setWindowTitle(tr("SPARSELY Software - SPARSE principal component LaboratorY"));
         this->setMinimumSize(640, 500);
 
          auto* newAction = new QAction(QIcon::fromTheme(QIcon::ThemeIcon::DocumentNew),
@@ -76,11 +76,9 @@ namespace sparsely
         preferencesAction->setShortcuts(QKeySequence::Preferences);
         preferencesAction->setMenuRole(QAction::PreferencesRole);
 
-        // Connect to a slot that opens your settings dialog
         QObject::connect(preferencesAction, &QAction::triggered, this,
                          &LabMainWindow::showPreferences);
 
-        // Add it to a menu (e.g., the Edit menu)
         auto* editMenu = menuBar()->addMenu(tr("&Edit"));
         editMenu->addAction(preferencesAction);
 

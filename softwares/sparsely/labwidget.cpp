@@ -272,25 +272,25 @@ namespace sparsely
 
         auto* processingsGoupboxLayout = new QHBoxLayout(processingsGoupbox);
 
-        auto* plotTypeGroupBox = new QGroupBox("Plot", this);
+        auto* plotTypeGroupBox = new QGroupBox(tr("Plot"), this);
         auto* plotTypeGroupBoxLayout = new QHBoxLayout(plotTypeGroupBox);
 
         m_PlotTypeComboBox = new QComboBox(this);
-        m_PlotTypeComboBox->addItem("Filled", QVariant::fromValue(Enums::PlotType::FILLED));
-        m_PlotTypeComboBox->addItem("Impulses", QVariant::fromValue(Enums::PlotType::IMPULSES));
+        m_PlotTypeComboBox->addItem(tr("Filled"), QVariant::fromValue(Enums::PlotType::FILLED));
+        m_PlotTypeComboBox->addItem(tr("Impulses"), QVariant::fromValue(Enums::PlotType::IMPULSES));
         m_PlotTypeComboBox->setCurrentIndex(m_Preferences.plotType == Enums::PlotType::FILLED ? 0 : 1);
 
         plotTypeGroupBoxLayout->addWidget(m_PlotTypeComboBox);
         processingsGoupboxLayout->addWidget(plotTypeGroupBox);
 
-        auto* methodGroupBox = new QGroupBox("Method", this);
+        auto* methodGroupBox = new QGroupBox(tr("Method"), this);
         auto* methodGroupBoxLayout = new QHBoxLayout(methodGroupBox);
 
         m_MethodComboBox = new QComboBox(this);
-        m_MethodComboBox->addItem("Dca", QVariant::fromValue(Enums::Method::DCA));
-        m_MethodComboBox->addItem("Forward Gspca", QVariant::fromValue(Enums::Method::FGSPCA));
-        m_MethodComboBox->addItem("Backward Gspca", QVariant::fromValue(Enums::Method::BGSPCA));
-        m_MethodComboBox->addItem("Custom", QVariant::fromValue(Enums::Method::CUSTOM));
+        m_MethodComboBox->addItem(tr("Dca"), QVariant::fromValue(Enums::Method::DCA));
+        m_MethodComboBox->addItem(tr("Forward Gspca"), QVariant::fromValue(Enums::Method::FGSPCA));
+        m_MethodComboBox->addItem(tr("Backward Gspca"), QVariant::fromValue(Enums::Method::BGSPCA));
+        m_MethodComboBox->addItem(tr("Custom"), QVariant::fromValue(Enums::Method::CUSTOM));
         if(!addonName.isEmpty())
         {
             m_MethodComboBox->addItem(addonName, QVariant::fromValue(Enums::Method::USERDYNAMICLIB));
@@ -335,17 +335,17 @@ namespace sparsely
 
         processingsGoupboxLayout->addWidget(methodGroupBox);
 
-        auto* actionGroupBox = new QGroupBox("Sparse component", this);
+        auto* actionGroupBox = new QGroupBox(tr("Sparse component"), this);
         auto* actionGroupBoxLayout = new QHBoxLayout(actionGroupBox);
 
         processingsGoupboxLayout->addWidget(actionGroupBox);
 
         m_AddNewSparseComponentButton
-            = new QPushButton("Add new", this);
+            = new QPushButton(tr("Add new"), this);
         actionGroupBoxLayout->addWidget(m_AddNewSparseComponentButton);
 
         m_RemoveLastSparseComponentButton =
-            new QPushButton("Remove last", this);
+            new QPushButton(tr("Remove last"), this);
         actionGroupBoxLayout->addWidget(m_RemoveLastSparseComponentButton);
 
         QObject::connect(m_ProgressBar, &QProgressBar::valueChanged,

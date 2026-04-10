@@ -22,7 +22,7 @@ namespace
         }
 
         qDebug() << "Fieee opened:";
-        file.write(doc.toJson());//QJsonDocument::Indented));
+        file.write(doc.toJson());
         file.close();
     }
 
