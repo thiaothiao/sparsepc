@@ -4,8 +4,6 @@
         <file alias="logo_transparent.png">images/logo_transparent.png</file>
     </qresource>
     <qresource prefix="/images">
-        <file alias="text.png">images/text.png</file>
-        <file alias="text_transparent.png">images/text_transparent.png</file>
         <file alias="welcome.png">images/welcome.png</file>
         <file alias="welcome_transparent.png">images/welcome_transparent.png</file>
     </qresource>
