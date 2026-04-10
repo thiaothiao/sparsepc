@@ -148,12 +148,11 @@ namespace sparsely
 
     void LabMainWindow::close(bool checked)
     {
-        save(checked);
         QCoreApplication::quit();
     }
 
     void LabMainWindow::closeEvent(QCloseEvent *event)
-    {// closing via X button
+    {
         save(true);
         if(event)
         {
