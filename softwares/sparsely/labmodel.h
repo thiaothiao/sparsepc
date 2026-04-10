@@ -84,8 +84,6 @@ namespace sparsely
 
         std::vector<std::unique_ptr<QLibrary>> m_DynamicLibSolverLoaders;
         QVector<QString> m_DynamicLibSolverNames;
-
-        //LabWidget& m_LabWidget;
     };
 }
 #endif //SPARSEPC_MODEL_HPP

@@ -26,7 +26,7 @@ namespace sparsely
         QWidget *container = new QWidget(this);
         QVBoxLayout* containerLayout = new QVBoxLayout(container);
 
-        auto* maximumNumberOfComponentsGroupBox = new QGroupBox("Maximum number of pcs", this);
+        auto* maximumNumberOfComponentsGroupBox = new QGroupBox(tr("Maximum number of pcs"), this);
         auto* maximumNumberOfComponentsGroupBoxLayout =
             new QVBoxLayout(maximumNumberOfComponentsGroupBox);
 
@@ -40,7 +40,7 @@ namespace sparsely
         QObject::connect(m_MaximumNumberOfComponentsSpinBox, qOverload<int>(&QSpinBox::valueChanged),
                 this, &PreferencesDialog::onMaximumNumberOfComponentsValueChanged);
 
-        auto* componentsColorsGroupBox = new QGroupBox("Components colors", this);
+        auto* componentsColorsGroupBox = new QGroupBox(tr("Components colors"), this);
         auto* componentsColorsGroupBoxLayout = new QVBoxLayout(componentsColorsGroupBox);
 
         m_ComponentsColorsLineEdit = new QLineEdit(this);
@@ -54,7 +54,7 @@ namespace sparsely
                 this, &PreferencesDialog::onComponentsColorsChanged);
 
         auto* standardComponentsLineWidthFilledPlotGroupBox =
-            new QGroupBox("Standard pcs filled plot line width", this);
+            new QGroupBox(tr("Standard pcs filled plot line width"), this);
         auto* standardComponentsLineWidthFilledPlotGroupBoxLayout =
             new QVBoxLayout(standardComponentsLineWidthFilledPlotGroupBox);
 
@@ -72,7 +72,7 @@ namespace sparsely
                 &PreferencesDialog::onStandardComponentsLineWidthFilledPlotValueChanged);
 
         auto* sparseComponentsLineWidthFilledPlotGroupBox =
-            new QGroupBox("Sparse pcs filled plot line width", this);
+            new QGroupBox(tr("Sparse pcs filled plot line width"), this);
         auto* sparseComponentsLineWidthFilledPlotGroupBoxLayout =
             new QVBoxLayout(sparseComponentsLineWidthFilledPlotGroupBox);
 
@@ -90,7 +90,7 @@ namespace sparsely
                 &PreferencesDialog::onSparseComponentsLineWidthFilledPlotValueChanged);
 
         auto* standardComponentsLineWidthImpulsesPlotGroupBox =
-            new QGroupBox("Standard pcs impulses plot line width", this);
+            new QGroupBox(tr("Standard pcs impulses plot line width"), this);
         auto* standardComponentsLineWidthImpulsesPlotGroupBoxLayout =
             new QVBoxLayout(standardComponentsLineWidthImpulsesPlotGroupBox);
 
@@ -108,7 +108,7 @@ namespace sparsely
                          &PreferencesDialog::onStandardComponentsLineWidthImpulsesPlotValueChanged);
 
         auto* sparseComponentsLineWidthImpulsesPlotGroupBox =
-            new QGroupBox("Sparse pcs impulses plot line width", this);
+            new QGroupBox(tr("Sparse pcs impulses plot line width"), this);
         auto* sparseComponentsLineWidthImpulsesPlotGroupBoxLayout =
             new QVBoxLayout(sparseComponentsLineWidthImpulsesPlotGroupBox);
 
@@ -127,13 +127,13 @@ namespace sparsely
                          &PreferencesDialog::onSparseComponentsLineWidthImpulsesPlotValueChanged);
 
         auto* standardComponentsLineStyleGroupBox =
-            new QGroupBox("Standard pcs line style", this);
+            new QGroupBox(tr("Standard pcs line style"), this);
         auto* standardComponentsLineStyleGroupBoxLayout =
             new QVBoxLayout(standardComponentsLineStyleGroupBox);
 
         m_StandardComponentsLineStyleComboBox = new QComboBox(this) ;
-        m_StandardComponentsLineStyleComboBox->addItem("Solid", QVariant::fromValue(Qt::SolidLine));
-        m_StandardComponentsLineStyleComboBox->addItem("Dot", QVariant::fromValue(Qt::DotLine));
+        m_StandardComponentsLineStyleComboBox->addItem(tr("Solid"), QVariant::fromValue(Qt::SolidLine));
+        m_StandardComponentsLineStyleComboBox->addItem(tr("Dot"), QVariant::fromValue(Qt::DotLine));
         m_StandardComponentsLineStyleComboBox->setCurrentIndex(
             (prefs.standardComponentsLineStyle == Qt::SolidLine) ? 0 : 1);
 
@@ -146,13 +146,13 @@ namespace sparsely
                          this, &PreferencesDialog::onStandardComponentsLineStyleSelectionChanged);
 
         auto* sparseComponentsLineStyleGroupBox =
-            new QGroupBox("Sparse pcs line style", this);
+            new QGroupBox(tr("Sparse pcs line style"), this);
         auto* sparseComponentsLineStyleGroupBoxLayout =
             new QVBoxLayout(sparseComponentsLineStyleGroupBox);
 
         m_SparseComponentsLineStyleComboBox = new QComboBox(this) ;
-        m_SparseComponentsLineStyleComboBox->addItem("Solid", QVariant::fromValue(Qt::SolidLine));
-        m_SparseComponentsLineStyleComboBox->addItem("Dot", QVariant::fromValue(Qt::DotLine));
+        m_SparseComponentsLineStyleComboBox->addItem(tr("Solid"), QVariant::fromValue(Qt::SolidLine));
+        m_SparseComponentsLineStyleComboBox->addItem(tr("Dot"), QVariant::fromValue(Qt::DotLine));
 
         m_SparseComponentsLineStyleComboBox->setCurrentIndex(
             (prefs.sparseComponentsLineStyle == Qt::SolidLine) ? 0 : 1);
@@ -166,7 +166,7 @@ namespace sparsely
                          this, &PreferencesDialog::onSparseComponentsLineStyleSelectionChanged);
 
         auto* standardComponentsFillingColorsAlphaGroupBox =
-            new QGroupBox("Standard pcs filling colors alpha", this);
+            new QGroupBox(tr("Standard pcs filling colors alpha"), this);
         auto* standardComponentsFillingColorsAlphaGroupBoxLayout =
             new QVBoxLayout(standardComponentsFillingColorsAlphaGroupBox);
 
@@ -186,7 +186,7 @@ namespace sparsely
              &PreferencesDialog::onStandardComponentsFillingColorsAlphaValueChanged);
 
         auto* sparseComponentsFillingColorsAlphaGroupBox =
-            new QGroupBox("Sparse pcs filling colors alpha", this);
+            new QGroupBox(tr("Sparse pcs filling colors alpha"), this);
         auto* sparseComponentsFillingColorsAlphaGroupBoxLayout =
             new QVBoxLayout(sparseComponentsFillingColorsAlphaGroupBox);
 
@@ -205,12 +205,12 @@ namespace sparsely
              qOverload<double>(&QDoubleSpinBox::valueChanged), this,
              &PreferencesDialog::onSparseComponentsFillingColorsAlphaValueChanged);
 
-        auto* plotTypeGroupBox = new QGroupBox("Plot", this);
+        auto* plotTypeGroupBox = new QGroupBox(tr("Plot"), this);
         auto* plotTypeGroupBoxLayout = new QVBoxLayout(plotTypeGroupBox);
 
         m_PlotTypeComboBox = new QComboBox(this) ;
-        m_PlotTypeComboBox->addItem("Filled", QVariant::fromValue(Enums::PlotType::FILLED));
-        m_PlotTypeComboBox->addItem("Impulses", QVariant::fromValue(Enums::PlotType::IMPULSES));
+        m_PlotTypeComboBox->addItem(tr("Filled"), QVariant::fromValue(Enums::PlotType::FILLED));
+        m_PlotTypeComboBox->addItem(tr("Impulses"), QVariant::fromValue(Enums::PlotType::IMPULSES));
         m_PlotTypeComboBox->setCurrentIndex(prefs.plotType == Enums::PlotType::FILLED ? 0 : 1);
 
         plotTypeGroupBoxLayout->addWidget(m_PlotTypeComboBox);
@@ -220,15 +220,15 @@ namespace sparsely
         QObject::connect(m_PlotTypeComboBox, qOverload<int>(&QComboBox::currentIndexChanged),
             this, &PreferencesDialog::onPlotTypeSelectionChanged);
 
-        auto* methodGroupBox = new QGroupBox("Method", this);
+        auto* methodGroupBox = new QGroupBox(tr("Method"), this);
         auto* methodGroupBoxLayout = new QVBoxLayout(methodGroupBox);
 
         m_MethodComboBox = new QComboBox(this) ;
-        m_MethodComboBox->addItem("Dca", QVariant::fromValue(Enums::Method::DCA));
-        m_MethodComboBox->addItem("Forward Gspca", QVariant::fromValue(Enums::Method::FGSPCA));
-        m_MethodComboBox->addItem("Backward Gspca", QVariant::fromValue(Enums::Method::BGSPCA));
-        m_MethodComboBox->addItem("Custom", QVariant::fromValue(Enums::Method::CUSTOM));
-        m_MethodComboBox->addItem("User Dynamic Lib", QVariant::fromValue(Enums::Method::USERDYNAMICLIB));
+        m_MethodComboBox->addItem(tr("Dca"), QVariant::fromValue(Enums::Method::DCA));
+        m_MethodComboBox->addItem(tr("Forward Gspca"), QVariant::fromValue(Enums::Method::FGSPCA));
+        m_MethodComboBox->addItem(tr("Backward Gspca"), QVariant::fromValue(Enums::Method::BGSPCA));
+        m_MethodComboBox->addItem(tr("Custom"), QVariant::fromValue(Enums::Method::CUSTOM));
+        m_MethodComboBox->addItem(tr("User Dynamic Lib"), QVariant::fromValue(Enums::Method::USERDYNAMICLIB));
 
         switch (prefs.method)
         {// should use a map type ontainer!
@@ -271,7 +271,7 @@ namespace sparsely
         QObject::connect(m_MethodComboBox, qOverload<int>(&QComboBox::currentIndexChanged),
                          this, &PreferencesDialog::onMethodSelectionChanged);
 
-        m_SavePushButton = new QPushButton("Save", this);
+        m_SavePushButton = new QPushButton(tr("Save"), this);
         containerLayout->addWidget(m_SavePushButton);
         m_SavePushButton->setDisabled(true);
         QObject::connect(m_SavePushButton, &QPushButton::clicked, this, &PreferencesDialog::onSave);
