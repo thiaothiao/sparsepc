@@ -4,11 +4,34 @@
 #include <QMenu>
 #include <QAction>
 #include <QFileDialog>
+#include <QFileInfo>
+#include <QSettings>
+#include <QStandardPaths>
 #include <QDebug>
+
 
 #include "sparsepc/version.hpp"
 
 #include "labpreferencesdialog.h"
+
+namespace
+{
+    void saveLastFolder(const QString& path)
+    {
+        QSettings settings("Indilo", "Sparsely");
+        settings.setValue("lastFolder", path);
+    }
+
+    QString getLastFolder()
+    {
+        const QSettings settings("Indilo", "Sparsely");
+
+        const auto defaultPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+
+        return settings.value("lastFolder", defaultPath).toString();
+    }
+
+}
 
 namespace sparsely
 {
@@ -91,15 +114,18 @@ namespace sparsely
 
     void LabMainWindow::newFile(bool checked)
     {
-        const QString fileName = QFileDialog::getOpenFileName(
-            this,                        // Parent widget
-            "Open File",                 // Dialog title
-            "/home",                     // Starting directory
-            "Text Files (*.csv)" // File filters
+        const auto lastDir = getLastFolder();
+
+        const auto fileName = QFileDialog::getOpenFileName(
+            this,
+            tr("Open File"),
+            lastDir,
+            tr("Text Files (*.csv)")
             );
 
         if (!fileName.isEmpty())
         {
+            saveLastFolder(QFileInfo(fileName).dir().path());
             if(m_LabWidget)
             {
                 m_LabController->init(fileName, true);
@@ -110,15 +136,18 @@ namespace sparsely
 
     void LabMainWindow::open(bool checked)
     {
-        const QString fileName = QFileDialog::getOpenFileName(
-            this,                        // Parent widget
-            "Open File",                 // Dialog title
-            "/home",                     // Starting directory
-            "Files (*.sparsely)" // File filters
+        const auto lastDir = getLastFolder();
+
+        const auto fileName = QFileDialog::getOpenFileName(
+            this,
+            tr("Open File"),
+            lastDir,
+            tr("Files (*.sparsely)")
             );
 
         if (!fileName.isEmpty())
         {
+            saveLastFolder(QFileInfo(fileName).dir().path());
             if(m_LabWidget)
             {
                 m_LabController->init(fileName, false);
@@ -136,11 +165,17 @@ namespace sparsely
                 return;
             }
 
-            const auto fileName = QFileDialog::getSaveFileName(this,
-                tr("Save File"), "/home/user/data.sparsely", tr("Files (*.sparsely)"));
+            const auto lastDir = getLastFolder();
+
+            const auto fileName = QFileDialog::getSaveFileName(
+                this,
+                tr("Save File"),
+                lastDir,
+                tr("Files (*.sparsely)"));
 
             if (!fileName.isEmpty())
             {
+                saveLastFolder(QFileInfo(fileName).dir().path());
                 m_LabController->saveProject(fileName);
             }
         }
@@ -165,7 +200,6 @@ namespace sparsely
         PreferencesDialog dialog(this);
         if (dialog.exec() == QDialog::Accepted)
         {
-            // Appliquer les nouveaux réglages ici
             qDebug() << "Accepted";
         }
     }
