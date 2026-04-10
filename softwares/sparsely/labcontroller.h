@@ -34,7 +34,7 @@ namespace sparsely
         void addSparsePCGraphs();
         void connectWidget();
 
-        int m_N = 0;
+        int m_N;
 
         Preferences m_Preferences;
 

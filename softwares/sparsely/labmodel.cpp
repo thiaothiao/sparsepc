@@ -52,7 +52,8 @@ namespace
 namespace sparsely
 {
     LabModel::LabModel()
-        : m_Sigma{}, m_ValidatedComponents{}, m_SparsePCs{}, m_StandardPCs{}
+        : m_Sigma{}, m_ValidatedComponents{}, m_SparsePCs{}, m_StandardPCs{},
+            m_N{0}, m_Trace{0.0}
     {
         qDebug() << "Loading addons ...";
 
@@ -99,6 +100,8 @@ namespace sparsely
             m_Sigma = sparsepc::openData<double>(fileName.toStdString(), ';');
 
             m_N = m_Sigma.cols();
+
+            m_Trace = m_Sigma.trace();
 
             m_ValidatedComponents.clear();
             m_ValidatedComponents.reserve(m_N);
@@ -267,6 +270,11 @@ namespace sparsely
             : m_DynamicLibSolverNames.at(0);
     }
 
+    double LabModel::computeVarianceRatio(double variance) const
+    {
+        return variance / m_Trace;
+    }
+
     // write operator
     QDataStream &operator<<(QDataStream &out, const MyClass &user)
     {
@@ -366,6 +374,7 @@ namespace sparsely
             m_N = intVal;
             m_Sigma.resize(m_N, m_N);
             in.readRawData(reinterpret_cast<char*>(m_Sigma.data()), m_N * m_N * sizeof(double));
+            m_Trace = m_Sigma.trace();
             m_StandardPCs.clear();
             m_StandardPCs.reserve(m_N);
             m_SparsePCs.clear();

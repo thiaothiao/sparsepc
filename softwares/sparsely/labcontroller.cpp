@@ -11,10 +11,18 @@
 #include <QDir>
 #include <QDebug>
 
+namespace
+{
+    auto toString(double value)
+    {
+        return QString::number(value, 'f', 1);
+    }
+}
+
 namespace sparsely
 {
     LabController::LabController(LabModel& labModel, LabWidget& labWidget, QObject* parent)
-        : QObject(parent), m_LabModel{labModel}, m_LabWidget{labWidget}
+    : QObject(parent), m_LabModel{labModel}, m_LabWidget{labWidget}, m_N{0}
     {
         // TODO preferences as a singleton
         qDebug() << "Loading prefernces ...";
@@ -71,11 +79,12 @@ namespace sparsely
             auto& component = standardPC.candidates.at(standardPC.iCandidate);
 
             cummulativeVarianceStandardPCs += component.value;
-
-            QString cumulativeVarianceString = QString::number(cummulativeVarianceStandardPCs, 'f', 2);
+            const auto cumulativeVariancePercentage =
+                m_LabModel.computeVarianceRatio(cummulativeVarianceStandardPCs) * 100.0;
+            QString cumulativeVariancePercentageString = toString(cumulativeVariancePercentage);
             QString curveName = QString::number(j);
 
-            m_LabWidget.addStandardPCGraph(component, cumulativeVarianceString, curveName);
+            m_LabWidget.addStandardPCGraph(component, cumulativeVariancePercentageString, curveName);
         }
     }
 
@@ -89,8 +98,10 @@ namespace sparsely
 
             auto& component = sparsePC.candidates.at(sparsePC.iCandidate);
 
-            QString cumulativeVarianceString =
-                 QString::number(m_LabModel.computeValidatedCumulativeVariance() + component.value, 'f', 2);
+            const auto cumulativeVariancePercentage =
+                m_LabModel.computeVarianceRatio(m_LabModel.computeValidatedCumulativeVariance() + component.value)
+                * 100.0;
+            QString cumulativeVariancePercentageString = toString(cumulativeVariancePercentage);
              QString curveName = QString::number(m_LabModel.getCurrentRank());
 
             if(component.state == sparsepc::ComponentState::Validated)
@@ -98,7 +109,7 @@ namespace sparsely
                 m_LabModel.m_ValidatedComponents.push_back(component);
             }
 
-            m_LabWidget.addSparsePCGraph(component, cumulativeVarianceString, curveName);
+            m_LabWidget.addSparsePCGraph(component, cumulativeVariancePercentageString, curveName);
         }
     }
 
@@ -136,15 +147,19 @@ namespace sparsely
 
         const auto& component = sparsePC.candidates.at(sparsePC.iCandidate);
 
-        QString cumulativeVarianceString
-            = QString::number(m_LabModel.computeValidatedCumulativeVariance() + component.value, 'f', 2);
+        const auto cumulativeVariancePercentage =
+            m_LabModel.computeVarianceRatio(m_LabModel.computeValidatedCumulativeVariance() + component.value)
+            * 100.0;
+
+        QString cumulativeVariancePercentageString = toString(cumulativeVariancePercentage);
+
         QString curveName = QString::number(m_LabModel.getCurrentRank());
 
         m_LabWidget.m_SliderGroupBox->setStyleSheet("QGroupBox::title { color: "+ newSparsePCColor + "; }");
 
         m_LabWidget.m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(m_LabWidget.m_SliderGroupBox);
 
-        m_LabWidget.addSparsePCGraph(component, cumulativeVarianceString, curveName);
+        m_LabWidget.addSparsePCGraph(component, cumulativeVariancePercentageString, curveName);
     }
 
     void LabController::onRemoveLastSparseComponentButton()
@@ -170,11 +185,15 @@ namespace sparsely
 
         const auto& component = sparsePC.candidates.at(sparsePC.iCandidate);
 
-        QString cumulativeVarianceString =
-            QString::number(m_LabModel.computeValidatedCumulativeVariance() + component.value, 'f', 2);
+        const auto cumulativeVariancePercentage =
+            m_LabModel.computeVarianceRatio(m_LabModel.computeValidatedCumulativeVariance() + component.value)
+            * 100.0;
+
+        QString cumulativeVariancePercentageString = toString(cumulativeVariancePercentage);
+
         QString curveName = QString::number(m_LabModel.getCurrentRank());
 
-        m_LabWidget.updateLastSparsePCGraph(component, cumulativeVarianceString, curveName);
+        m_LabWidget.updateLastSparsePCGraph(component, cumulativeVariancePercentageString, curveName);
     }
 
     void LabController::onSelectionChanged(int index)
