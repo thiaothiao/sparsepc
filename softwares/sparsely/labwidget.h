@@ -33,7 +33,6 @@ namespace sparsely
 
         MyClass2(const MyClass2&) = default;
         MyClass2& operator=(const MyClass2&) = default;
-
         MyClass2(MyClass2&&) = default;
         MyClass2& operator=(MyClass2&&) = default;
 
@@ -54,48 +53,25 @@ namespace sparsely
         void updateSliderTitle(int value);
         void updateProgressBarTitle(int value);
 
-    //private:
     public:
-        void setPreferences(const Preferences& preferences);
-
+        void setPreferences(Preferences* preferences);
         void createWidget(const QString& addonName);
-
         void zoomToFit();
-
         void addStandardPCGraph(const sparsepc::Component<double>& component,
             const QString& cumulativeVarianceString, const QString& curveName);
-
         void addSparsePCGraph(const sparsepc::Component<double>& component,
             const QString& cumulativeVarianceString, const QString& curveName);
-
-        void addPCGraph(std::vector<MyClass2>& pcs, const sparsepc::Component<double>& component,
-            const QString& cumulativeVarianceString, const QString& curveName,
-            const Qt::PenStyle& lineStyle, double lineWidthFilledPlot,
-            double lineWidthImpulsesPlot, double fillingColorsAlpha);
-
         void updateLastSparsePCGraph(const sparsepc::Component<double>& component,
             const QString& cumulativeVarianceString, const QString& curveName);
-
         void removeLastSparsePCGraph(int sliderValue);
-
         void clearAlls();
-
         void reInitSlider(int value);
-
         void setSliderColor(const QString& colorString);
         void setProgressBarColor(const QString& colorString);
-
         void setN(int n);
-
-        int m_N;
-        std::size_t m_ColumnX;
 
         std::vector<MyClass2> m_SparsePCGraphs;
         std::vector<MyClass2> m_StandardPCGraphs;
-
-        Preferences m_Preferences;
-
-        JKQTPlotter* m_Plotter;
         QGroupBox* m_SliderGroupBox;
         QGroupBox* m_ProgressBarGroupBox;
         QSlider* m_Slider;
@@ -105,11 +81,20 @@ namespace sparsely
         QComboBox* m_PlotTypeComboBox;
         QPushButton* m_AddNewSparseComponentButton;
         QPushButton* m_RemoveLastSparseComponentButton;
-
         QVector<QString> m_Colors;
-
         std::vector<std::unique_ptr<QLibrary>> m_DynamicLibSolverLoaders;
         QVector<QString> m_DynamicLibSolverNames;
+
+    private:
+        void addPCGraph(std::vector<MyClass2>& pcs, const sparsepc::Component<double>& component,
+            const QString& cumulativeVarianceString, const QString& curveName,
+            const Qt::PenStyle& lineStyle, double lineWidthFilledPlot,
+            double lineWidthImpulsesPlot, double fillingColorsAlpha);
+
+        int m_N;
+        std::size_t m_ColumnX;
+        Preferences* m_Preferences;
+        JKQTPlotter* m_Plotter;
     };
 }
 #endif //SPARSEPC_WIDGET_HPP

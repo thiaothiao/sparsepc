@@ -331,7 +331,7 @@ namespace sparsely
         return in;
     }
 
-    void LabModel::saveProject(const QString& filename)
+    void LabModel::saveProject(const QString& filename) const
     {
         if(m_Sigma.size() == 0)
         {

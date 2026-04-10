@@ -42,46 +42,28 @@ namespace sparsely
         LabModel();
 
         bool init(const QString& fileName, bool newProject = true);
-
-        void saveProject(const QString& fileName);
-
+        void saveProject(const QString& fileName) const;
         void loadProject(const QString& fileName);
-
-    public:
-
-        void onSelectionChanged(int index);
 
     public:
         void computeStandardPCs();
         MyClass& computeSparsePC(const Enums::Method& method, QProgressBar* progressBar);
-
         bool removeLastSparsePC();
-
         double computeValidatedCumulativeVariance() const;
-
         double computeCumulativeVariance() const;
-
         void validateCurrentSparsePC();
-
         int getICandidate() const;
-
         int getCurrentRank() const;
-
         int getN() const;
-
         QString getAddonName() const;
-
         double computeVarianceRatio(double variance) const;
 
         sparsepc::Matrix<double> m_Sigma;
         sparsepc::Index m_N;
         double m_Trace;
-
-
         std::vector<std::reference_wrapper<sparsepc::Component<double>>> m_ValidatedComponents;
         std::vector<MyClass> m_SparsePCs;
         std::vector<MyClass> m_StandardPCs;
-
         std::vector<std::unique_ptr<QLibrary>> m_DynamicLibSolverLoaders;
         QVector<QString> m_DynamicLibSolverNames;
     };

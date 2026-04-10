@@ -19,10 +19,8 @@ namespace sparsely
 
         void init(const QString& fileName, bool newProject = true);
 
-        void saveProject(const QString& fileName);
-
+        void saveProject(const QString& fileName) const;
         void loadProject(const QString& fileName);
-
         bool projectIsEmpty() const;
 
     public slots:
@@ -37,9 +35,7 @@ namespace sparsely
         void connectWidget();
 
         int m_N;
-
         Preferences m_Preferences;
-
         LabWidget& m_LabWidget;
         LabModel& m_LabModel;
     };
