@@ -82,6 +82,9 @@ namespace sparsely
 
         void reInitSlider(int value);
 
+        void setSliderColor(const QString& colorString);
+        void setProgressBarColor(const QString& colorString);
+
         void setN(int n);
 
         int m_N;

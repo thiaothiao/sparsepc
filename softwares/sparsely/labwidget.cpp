@@ -163,13 +163,12 @@ namespace sparsely
 
         if(!m_SparsePCGraphs.empty())
         {
-            m_SliderGroupBox->setStyleSheet("QGroupBox::title { color: "+ m_SparsePCGraphs.back().color + "; }");
-
+            setSliderColor(m_SparsePCGraphs.back().color);
             m_Slider->setValue(sliderValue);
         }
         else
         {
-            m_SliderGroupBox->setStyleSheet("");
+            setSliderColor("blue");
             m_ProgressBarGroupBox->setStyleSheet("");
         }
     }
@@ -246,6 +245,8 @@ namespace sparsely
 
         m_Slider->setRange(1, m_N);
         m_Slider->setSingleStep(1);
+        m_Slider->setMaximumHeight(18);
+        setSliderColor("blue");
 
         m_ProgressBarGroupBox = new QGroupBox("0%", this);
         auto* progressBarGroupBoxLayout = new QHBoxLayout(m_ProgressBarGroupBox);
@@ -369,7 +370,7 @@ namespace sparsely
     {
         if(!m_SparsePCGraphs.empty())
         {
-            m_SliderGroupBox->setStyleSheet("QGroupBox::title { color: "+ m_SparsePCGraphs.back().color + "; }");
+            setSliderColor(m_SparsePCGraphs.back().color);
         }
 
         m_Slider->setValue(value);
@@ -391,5 +392,32 @@ namespace sparsely
         const auto maxValue = static_cast<double>(m_ProgressBar->maximum());
         const auto percentage = static_cast<int>( (value - minValue) * 100.0 / (maxValue - minValue));
         m_ProgressBarGroupBox->setTitle(QString::number(percentage)+"%");
+    }
+
+    void LabWidget::setProgressBarColor(const QString& colorString)
+    {
+        m_ProgressBarGroupBox->setStyleSheet("QGroupBox::title { color: "+ colorString + "; }");
+        m_ProgressBar->setStyleSheet("QProgressBar::chunk { background-color:"+ colorString + "; }");
+    }
+
+    void LabWidget::setSliderColor(const QString& colorString)
+    {
+        m_SliderGroupBox->setStyleSheet("QGroupBox::title { color: "+ colorString + "; }");
+        m_Slider->setStyleSheet(
+            "QSlider::groove:horizontal {"
+            "    border: 1px solid #999;"
+            "    background: #eee;"
+            "    height: 2px;"
+            "}"
+            "QSlider::handle:horizontal {"
+            "    background: "+ colorString + ";"
+            "    width: 9px;"
+            "    height: 18px;"
+            "    margin: -7px 0;" // Pulls handle outside groove
+            "}"
+            "QSlider::sub-page:horizontal {"
+            "    background: "+ colorString + ";"
+            "}"
+        );
     }
 }

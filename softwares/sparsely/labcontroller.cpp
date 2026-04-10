@@ -119,9 +119,7 @@ namespace sparsely
 
         const auto newSparsePCColor = m_LabWidget.m_Colors[m_LabModel.m_SparsePCs.size()];
 
-        m_LabWidget.m_ProgressBarGroupBox->setStyleSheet("QGroupBox::title { color: "+ newSparsePCColor + "; }");
-
-        m_LabWidget.m_ProgressBar->setStyleSheet("QProgressBar::chunk { background-color:"+ newSparsePCColor + "; }");
+        m_LabWidget.setProgressBarColor(newSparsePCColor);
 
         m_LabWidget.m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(m_LabWidget.m_ProgressBarGroupBox);
 
@@ -154,8 +152,7 @@ namespace sparsely
         QString cumulativeVariancePercentageString = toString(cumulativeVariancePercentage);
 
         QString curveName = QString::number(m_LabModel.getCurrentRank());
-
-        m_LabWidget.m_SliderGroupBox->setStyleSheet("QGroupBox::title { color: "+ newSparsePCColor + "; }");
+        m_LabWidget.setSliderColor(newSparsePCColor);
 
         m_LabWidget.m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(m_LabWidget.m_SliderGroupBox);
 
