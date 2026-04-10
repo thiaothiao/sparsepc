@@ -73,7 +73,7 @@ namespace sparsely
         QPixmap pixmap(":/images/welcome.png");
         topLevelLabel->setPixmap(pixmap);
         topLevelLabel->setMask(pixmap.mask());
-        welcomeWidgeLayout->addWidget(topLevelLabel);
+        welcomeWidgeLayout->addWidget(topLevelLabel, 0, Qt::AlignCenter);
 
         m_WelcomeWidget->setStyleSheet("background-color: white;");
 
