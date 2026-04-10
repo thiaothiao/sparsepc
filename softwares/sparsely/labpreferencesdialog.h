@@ -18,7 +18,7 @@ namespace sparsely
     public:
         PreferencesDialog(QWidget *parent = nullptr);
 
-    public slots:
+    private slots:
         void onMaximumNumberOfComponentsValueChanged(int value);
         void onComponentsColorsChanged(const QString &text);
         void onStandardComponentsLineWidthFilledPlotValueChanged(double value);

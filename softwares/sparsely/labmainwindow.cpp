@@ -179,7 +179,7 @@ namespace sparsely
         }
     }
 
-    void LabMainWindow::close(bool checked)
+    void LabMainWindow::close(bool checked) const
     {
         QCoreApplication::quit();
     }

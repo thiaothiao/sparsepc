@@ -170,7 +170,7 @@ namespace sparsely
         return Preferences::fromJson(loadJson(fileName));
     }
 
-    void Preferences::save(const QString& fileName)
+    void Preferences::save(const QString& fileName) const
     {
         saveJson(toJson(), fileName);
     }
