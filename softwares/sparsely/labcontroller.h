@@ -23,6 +23,8 @@ namespace sparsely
 
         void loadProject(const QString& fileName);
 
+        bool projectIsEmpty() const;
+
     public slots:
         void onAddNewSparseComponent();
         void updatePlot(int value);

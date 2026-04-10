@@ -131,6 +131,11 @@ namespace sparsely
     {
         if(m_LabWidget)
         {
+            if(m_LabController->projectIsEmpty())
+            {
+                return;
+            }
+
             const auto fileName = QFileDialog::getSaveFileName(this,
                 tr("Save File"), "/home/user/data.sparsely", tr("Files (*.sparsely)"));
 
@@ -143,12 +148,11 @@ namespace sparsely
 
     void LabMainWindow::close(bool checked)
     {
-        save(true);
         QCoreApplication::quit();
     }
 
     void LabMainWindow::closeEvent(QCloseEvent *event)
-    {// closing via X button
+    {
         save(true);
         if(event)
         {
