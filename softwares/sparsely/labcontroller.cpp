@@ -209,4 +209,9 @@ namespace sparsely
     {
         m_LabModel.loadProject(fileName);
     }
+
+    bool LabController::projectIsEmpty() const
+    {
+        return m_N == 0;
+    }
 }
