@@ -110,6 +110,8 @@ namespace sparsely
 
         m_LabWidget.m_ProgressBarGroupBox->setStyleSheet("QGroupBox::title { color: "+ newSparsePCColor + "; }");
 
+        m_LabWidget.m_ProgressBar->setStyleSheet("QProgressBar::chunk { background-color:"+ newSparsePCColor + "; }");
+
         m_LabWidget.m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(m_LabWidget.m_ProgressBarGroupBox);
 
         m_LabWidget.m_ProgressBar->setValue(0);

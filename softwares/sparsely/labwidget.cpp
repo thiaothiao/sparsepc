@@ -255,6 +255,7 @@ namespace sparsely
         m_ProgressBar->setRange(0, m_N);
         m_ProgressBar->setValue(0);
         m_ProgressBar->setTextVisible(false);
+        m_ProgressBar->setMaximumHeight(10);
 
         m_SliderOrProgressBarWidgetStackedLayout->addWidget(m_SliderGroupBox);
         m_SliderOrProgressBarWidgetStackedLayout->addWidget(m_ProgressBarGroupBox);
@@ -388,6 +389,6 @@ namespace sparsely
         const auto minValue = static_cast<double>(m_ProgressBar->minimum());
         const auto maxValue = static_cast<double>(m_ProgressBar->maximum());
         const auto percentage = static_cast<int>( (value - minValue) * 100.0 / (maxValue - minValue));
-        m_ProgressBarGroupBox->setTitle(QString::number(percentage));
+        m_ProgressBarGroupBox->setTitle(QString::number(percentage)+"%");
     }
 }
