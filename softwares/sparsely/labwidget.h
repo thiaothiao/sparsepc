@@ -83,8 +83,6 @@ namespace sparsely
         QPushButton* m_AddNewSparseComponentButton;
         QPushButton* m_RemoveLastSparseComponentButton;
         QVector<QString> m_Colors;
-        std::vector<std::unique_ptr<QLibrary>> m_DynamicLibSolverLoaders;
-        QVector<QString> m_DynamicLibSolverNames;
 
     private:
         void addPCGraph(std::vector<MyClass2>& pcs, const sparsepc::Component<double>& component,

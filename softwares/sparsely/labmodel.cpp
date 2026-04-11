@@ -64,7 +64,7 @@ namespace sparsely
             m_DynamicLibSolverLoaders.reserve(pluginList.size());
             m_DynamicLibSolverNames.reserve(pluginList.size());
 
-            for (const auto &fileInfo : pluginList)
+            foreach(const auto& fileInfo, pluginList)
             {
                 QString noExtensionAbsolutePath = QDir(fileInfo.absolutePath()).filePath(fileInfo.baseName());
                 qDebug() << "Loading " << noExtensionAbsolutePath << "...";
@@ -81,8 +81,6 @@ namespace sparsely
                     m_DynamicLibSolverLoaders.pop_back();
                 }
             }
-
-            //foreach(auto fileName, path.entryList(QDir::Files))
 
             qDebug() << "...Addons loaded.";
         }
