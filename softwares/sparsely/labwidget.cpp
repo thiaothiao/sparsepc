@@ -175,7 +175,6 @@ namespace sparsely
     void LabWidget::createWidget(const Preferences& preferences, const QString& addonName)
     {
         m_Colors.reserve(preferences.componentsColors.size());
-        //for(const auto& colorString: preferences.componentsColors)
         foreach(const auto& colorString, preferences.componentsColors)
         {
             m_Colors.push_back(colorString);
