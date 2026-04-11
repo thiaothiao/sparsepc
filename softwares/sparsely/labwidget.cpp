@@ -187,9 +187,8 @@ namespace sparsely
         auto* plotGroupbox = new QGroupBox(this);
         layout->addWidget(plotGroupbox, 0, 0);
         auto* plotGroupboxLayout = new QHBoxLayout(plotGroupbox);
-        m_Plotter = new JKQTPlotter(this);
-        m_Plotter->setWindowTitle("Plotter!!!!");
-        m_Plotter->setPlotUpdateEnabled(true);
+        m_Plotter = new JKQTPlotter();
+        m_Plotter->setPlotUpdateEnabled(false);
 
         //m_Plotter->getPlotter()->setUseAntiAliasingForGraphs(true); // nicer (but slower) plotting
         //m_Plotter->getPlotter()->setUseAntiAliasingForSystem(true); // nicer (but slower) plotting
@@ -198,7 +197,7 @@ namespace sparsely
         m_StandardPCGraphs.reserve(m_Preferences->componentsColors.size());
         m_SparsePCGraphs.reserve(m_Preferences->componentsColors.size());
         JKQTPDatastore* datastore = m_Plotter->getDatastore();
-        m_ColumnX = datastore->addLinearColumn(m_N, 0, m_N-1, "xi");
+        m_ColumnX = datastore->addLinearColumn(m_N, 0, m_N-1);
         plotGroupboxLayout->addWidget(m_Plotter);
         auto* sliderOrProgressWidget = new QWidget(this);
         layout->addWidget(sliderOrProgressWidget, 1, 0);
@@ -298,6 +297,16 @@ namespace sparsely
         QObject::connect(m_Slider, qOverload<int>(&QSlider::valueChanged),
                          this, &LabWidget::updateSliderTitle);
         processingsGoupboxLayout->addStretch(1);
+    }
+
+    void LabWidget::sePlotUpdateEnabled(bool enable)
+    {
+        m_Plotter->setPlotUpdateEnabled(enable);
+    }
+
+    void LabWidget::redrawPlot()
+    {
+        m_Plotter->redrawPlot();
     }
 
     void LabWidget::zoomToFit()

@@ -53,11 +53,14 @@ namespace sparsely
         m_LabWidget.setN( m_N);
         m_LabWidget.setPreferences(&m_Preferences);
         m_LabWidget.createWidget(m_LabModel.getAddonName());
+        m_LabWidget.sePlotUpdateEnabled(false);
         addStandardPCGraphs();
         addSparsePCGraphs();
         m_LabWidget.reInitSlider(m_LabModel.getICandidate());
         connectWidget();
         m_LabWidget.zoomToFit();
+        m_LabWidget.sePlotUpdateEnabled(true);
+        m_LabWidget.redrawPlot();
     }
 
     void LabController::addStandardPCGraphs()
@@ -156,9 +159,12 @@ namespace sparsely
 
     void LabController::onSelectionChanged(int index)
     {
+        m_LabWidget.sePlotUpdateEnabled(false);
         m_LabWidget.clearAlls();
         addStandardPCGraphs();
         addSparsePCGraphs();
+        m_LabWidget.sePlotUpdateEnabled(true);
+        m_LabWidget.redrawPlot();
     }
 
     void LabController::saveProject(const QString& fileName) const
