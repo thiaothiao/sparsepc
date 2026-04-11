@@ -1,6 +1,8 @@
 #ifndef SPARSEPC_CONTROLLER_HPP
 #define SPARSEPC_CONTROLLER_HPP
 
+#include <functional>
+
 #include <QString>
 #include <QObject>
 
@@ -36,8 +38,8 @@ namespace sparsely
 
         int m_N;
         Preferences m_Preferences;
-        LabWidget& m_LabWidget;
-        LabModel& m_LabModel;
+        std::reference_wrapper<LabWidget> m_LabWidget;
+        std::reference_wrapper<LabModel> m_LabModel;
     };
 }
 #endif //SPARSEPC_CONTROLLER_HPP

@@ -299,7 +299,7 @@ namespace sparsely
         processingsGoupboxLayout->addStretch(1);
     }
 
-    void LabWidget::sePlotUpdateEnabled(bool enable)
+    void LabWidget::setPlotUpdateEnabled(bool enable)
     {
         m_Plotter->setPlotUpdateEnabled(enable);
     }
