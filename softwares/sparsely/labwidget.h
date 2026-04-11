@@ -56,7 +56,7 @@ namespace sparsely
     public:
         void setPreferences(Preferences* preferences);
         void createWidget(const QString& addonName);
-        void sePlotUpdateEnabled(bool enable);
+        void setPlotUpdateEnabled(bool enable);
         void redrawPlot();
         void zoomToFit();
         void addStandardPCGraph(const sparsepc::Component<double>& component,
