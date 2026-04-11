@@ -3,11 +3,7 @@
 #include <thread>
 #include <functional>
 
-#include <QPushButton>
-#include <QSlider>
-#include <QProgressBar>
 #include <QFile>
-#include <QColor>
 #include <QString>
 #include <QDir>
 #include <QDebug>
@@ -83,7 +79,7 @@ namespace sparsely
         const DeferredUpdateForPlots deferredUpdateForPlots(labWidget);
         addStandardPCGraphs();
         addSparsePCGraphs();
-        labWidget.reInitSlider(labModel.getICandidate());
+        labWidget.reInitSlider(labModel.getiWinner());
         connectWidget();
         labWidget.zoomToFit();
     }
@@ -96,7 +92,7 @@ namespace sparsely
         for (int j=0; j< labModel.m_StandardPCs.size(); ++j)
         {
             auto& standardPC = labModel.m_StandardPCs[j];
-            auto& component = standardPC.candidates.at(standardPC.iCandidate);
+            auto& component = standardPC.candidates.at(standardPC.iWinner);
             cummulativeVarianceStandardPCs += component.value;
             const auto cumulativeVariancePercentage =
                 labModel.computeVarianceRatio(cummulativeVarianceStandardPCs) * 100.0;
@@ -113,7 +109,7 @@ namespace sparsely
         for (int j=0; j< labModel.m_SparsePCs.size(); ++j)
         {
             auto& sparsePC = labModel.m_SparsePCs[j];
-            auto& component = sparsePC.candidates.at(sparsePC.iCandidate);
+            auto& component = sparsePC.candidates.at(sparsePC.iWinner);
             const auto cumulativeVariancePercentage =
                 labModel.computeVarianceRatio(labModel.computeValidatedCumulativeVariance() + component.value)
                 * 100.0;
@@ -138,7 +134,7 @@ namespace sparsely
         labWidget.m_ProgressBar->setValue(0);
         const auto method = labWidget.m_MethodComboBox->currentData().value<Enums::Method>();
         auto& sparsePC = labModel.computeSparsePC(method, labWidget.m_ProgressBar);
-        sparsePC.iCandidate = labWidget.m_Slider->value();
+        sparsePC.iWinner = labWidget.m_Slider->value();
         {
             using namespace std::chrono_literals;
             std::this_thread::sleep_for(2000ms);
@@ -148,7 +144,7 @@ namespace sparsely
             using namespace std::chrono_literals;
             std::this_thread::sleep_for(1000ms);
         }
-        const auto& component = sparsePC.candidates.at(sparsePC.iCandidate);
+        const auto& component = sparsePC.candidates.at(sparsePC.iWinner);
         const auto cumulativeVariancePercentage =
             labModel.computeVarianceRatio(labModel.computeValidatedCumulativeVariance() + component.value)
             * 100.0;
@@ -168,7 +164,7 @@ namespace sparsely
             return;
         }
 
-        labWidget.removeLastSparsePCGraph(labModel.getICandidate());
+        labWidget.removeLastSparsePCGraph(labModel.getiWinner());
     }
 
     void LabController::updatePlot(int value)
@@ -181,8 +177,8 @@ namespace sparsely
         }
 
         auto& sparsePC = labModel.m_SparsePCs.back();
-        sparsePC.iCandidate = value;
-        const auto& component = sparsePC.candidates.at(sparsePC.iCandidate);
+        sparsePC.iWinner = value;
+        const auto& component = sparsePC.candidates.at(sparsePC.iWinner);
         const auto cumulativeVariancePercentage =
             labModel.computeVarianceRatio(labModel.computeValidatedCumulativeVariance() + component.value)
             * 100.0;

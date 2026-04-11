@@ -1,6 +1,5 @@
 #include "labmodel.h"
 
-#include <thread>
 #include <utility>
 #include <ranges>
 
@@ -119,18 +118,18 @@ namespace sparsely
         {
             m_StandardPCs.emplace_back();
             auto& standardPC = m_StandardPCs.back();
-            standardPC.iCandidate = m_N;
+            standardPC.iWinner = m_N;
             auto& component = components[j];
             component.state = sparsepc::ComponentState::Validated;
             standardPC.candidates.emplace(m_N, std::move(components[j]));
         }
     }
 
-    MyClass& LabModel::computeSparsePC(const Enums::Method& method, QProgressBar* progressBar)
+    Nominees& LabModel::computeSparsePC(const Enums::Method& method, QProgressBar* progressBar)
     {
         auto& sparsePC = m_SparsePCs.emplace_back();
 
-        sparsePC.iCandidate = m_N/2;
+        sparsePC.iWinner = m_N/2;
 
         switch (method)
         {
@@ -213,9 +212,9 @@ namespace sparsely
         if(!m_SparsePCs.empty())
         {// validate current selected sparse component
             auto& candidates = m_SparsePCs.back().candidates;
-            const auto iCandidate = m_SparsePCs.back().iCandidate;
+            const auto iWinner = m_SparsePCs.back().iWinner;
 
-            m_ValidatedComponents.push_back(candidates.at(iCandidate));
+            m_ValidatedComponents.push_back(candidates.at(iWinner));
             m_ValidatedComponents.back().get().state = sparsepc::ComponentState::Validated;
         }
     }
@@ -234,12 +233,12 @@ namespace sparsely
     {
         return m_SparsePCs.empty() ? computeValidatedCumulativeVariance()
             : (computeValidatedCumulativeVariance()
-                + m_SparsePCs.back().candidates.at(m_SparsePCs.back().iCandidate).value);
+                + m_SparsePCs.back().candidates.at(m_SparsePCs.back().iWinner).value);
     }
 
-    int LabModel::getICandidate() const
+    int LabModel::getiWinner() const
     {
-        return m_SparsePCs.empty() ? 1 : m_SparsePCs.back().iCandidate;
+        return m_SparsePCs.empty() ? 1 : m_SparsePCs.back().iWinner;
     }
 
     int LabModel::getCurrentRank() const
@@ -264,9 +263,9 @@ namespace sparsely
     }
 
     // write operator
-    QDataStream &operator<<(QDataStream &out, const MyClass &user)
+    QDataStream &operator<<(QDataStream &out, const Nominees &user)
     {
-        out << static_cast<qint32>(user.iCandidate);
+        out << static_cast<qint32>(user.iWinner);
         out << static_cast<qint32>(user.candidates.size());
         for(auto& [k, component]:user.candidates)
         {
@@ -287,9 +286,9 @@ namespace sparsely
     }
 
     // read operator
-    QDataStream &operator>>(QDataStream &in, MyClass &user)
+    QDataStream &operator>>(QDataStream &in, Nominees &user)
     {
-        in >> user.iCandidate;
+        in >> user.iWinner;
         qint32 candidatesSize = -1;
         in >> candidatesSize;
         for(qint32 j = 0; j < candidatesSize; ++j)
@@ -370,16 +369,16 @@ namespace sparsely
             in >> intVal;
             for(qint32 j = 0; j < intVal; ++j)
             {
-                MyClass myClass;
-                in >> myClass;
-                m_StandardPCs.push_back(std::move(myClass));
+                Nominees Nominees;
+                in >> Nominees;
+                m_StandardPCs.push_back(std::move(Nominees));
             }
             in >> intVal;
             for(qint32 j = 0; j < intVal; ++j)
             {
-                MyClass myClass;
-                in >> myClass;
-                m_SparsePCs.push_back(std::move(myClass));
+                Nominees Nominees;
+                in >> Nominees;
+                m_SparsePCs.push_back(std::move(Nominees));
             }
             file.close();
         }
