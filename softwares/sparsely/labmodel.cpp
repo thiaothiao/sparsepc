@@ -4,17 +4,7 @@
 #include <utility>
 #include <ranges>
 
-#include <QHBoxLayout>
-#include <QVBoxLayout>
-#include <QGridLayout>
-#include <QStackedLayout>
-#include <QGroupBox>
-#include <QPushButton>
-#include <QSlider>
-#include <QProgressBar>
-#include <QPen>
 #include <QFile>
-#include <QColor>
 #include <QString>
 #include <QDataStream>
 #include <QDir>

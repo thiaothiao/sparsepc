@@ -14,9 +14,10 @@
 
 namespace
 {
-    auto toString(double value)
+    auto generateGraphName(int componentRank, double cumulativeVariancePercentage)
     {
-        return QString::number(value, 'f', 1);
+        return  QString::number(
+                   componentRank) + ": " + QString::number(cumulativeVariancePercentage, 'f', 1);
     }
 
     class DeferredUpdateForPlots final
@@ -99,9 +100,8 @@ namespace sparsely
             cummulativeVarianceStandardPCs += component.value;
             const auto cumulativeVariancePercentage =
                 labModel.computeVarianceRatio(cummulativeVarianceStandardPCs) * 100.0;
-            const QString cumulativeVariancePercentageString = toString(cumulativeVariancePercentage);
-            const QString curveName = QString::number(j);
-            labWidget.addStandardPCGraph(m_Preferences, component, cumulativeVariancePercentageString, curveName);
+            labWidget.addStandardPCGraph(m_Preferences, component,
+                generateGraphName(j, cumulativeVariancePercentage));
         }
     }
 
@@ -117,13 +117,13 @@ namespace sparsely
             const auto cumulativeVariancePercentage =
                 labModel.computeVarianceRatio(labModel.computeValidatedCumulativeVariance() + component.value)
                 * 100.0;
-            const QString cumulativeVariancePercentageString = toString(cumulativeVariancePercentage);
-            const QString curveName = QString::number(labModel.getCurrentRank());
+            const auto componentRank = labModel.getCurrentRank();
             if(component.state == sparsepc::ComponentState::Validated)
             {
                 labModel.m_ValidatedComponents.push_back(component);
             }
-            labWidget.addSparsePCGraph(m_Preferences, component, cumulativeVariancePercentageString, curveName);
+            labWidget.addSparsePCGraph(m_Preferences, component,
+                generateGraphName(componentRank, cumulativeVariancePercentage));
         }
     }
 
@@ -152,11 +152,11 @@ namespace sparsely
         const auto cumulativeVariancePercentage =
             labModel.computeVarianceRatio(labModel.computeValidatedCumulativeVariance() + component.value)
             * 100.0;
-        const QString cumulativeVariancePercentageString = toString(cumulativeVariancePercentage);
-        const QString curveName = QString::number(labModel.getCurrentRank());
+        const auto componentRank = labModel.getCurrentRank();
         labWidget.setSliderColor(newSparsePCColor);
         labWidget.m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(labWidget.m_SliderGroupBox);
-        labWidget.addSparsePCGraph(m_Preferences, component, cumulativeVariancePercentageString, curveName);
+        labWidget.addSparsePCGraph(m_Preferences, component,
+            generateGraphName(componentRank, cumulativeVariancePercentage));
     }
 
     void LabController::onRemoveLastSparseComponentButton()
@@ -186,9 +186,9 @@ namespace sparsely
         const auto cumulativeVariancePercentage =
             labModel.computeVarianceRatio(labModel.computeValidatedCumulativeVariance() + component.value)
             * 100.0;
-        const QString cumulativeVariancePercentageString = toString(cumulativeVariancePercentage);
-        const QString curveName = QString::number(labModel.getCurrentRank());
-        labWidget.updateLastSparsePCGraph(component, cumulativeVariancePercentageString, curveName);
+        const auto componentRank = labModel.getCurrentRank();
+        labWidget.updateLastSparsePCGraph(component,
+            generateGraphName(componentRank, cumulativeVariancePercentage));
     }
 
     void LabController::onSelectionChanged(int index)

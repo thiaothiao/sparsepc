@@ -31,14 +31,13 @@ namespace sparsely
     }
 
     void LabWidget::addPCGraph(std::vector<MyClass2>& pcs, const sparsepc::Component<double>& component,
-        const QString& cumulativeVarianceString, const QString& curveName,
-        const Qt::PenStyle& lineStyle, double lineWidthFilledPlot,
+        const QString& legend, const Qt::PenStyle& lineStyle, double lineWidthFilledPlot,
         double lineWidthImpulsesPlot, double fillingColorsAlpha)
     {
         auto& pCGraph = pcs.emplace_back();
         pCGraph.color = m_Colors[pcs.size()-1];
         JKQTPDatastore* ds = m_Plotter->getDatastore();
-        pCGraph.pcColumn = ds->addColumn(m_N, curveName);
+        pCGraph.pcColumn = ds->addColumn(m_N);
         pCGraph.xColumn = m_ColumnX;
         ds->setAll(pCGraph.pcColumn, static_cast<double>(0));
         for (int i=0; i< m_N; ++i)
@@ -85,15 +84,14 @@ namespace sparsely
         }
         }
 
-        pCGraph.graph->setTitle(curveName + ": " + cumulativeVarianceString);
+        pCGraph.graph->setTitle(legend);
         m_Plotter->addGraph(pCGraph.graph);
     }
 
     void LabWidget::addStandardPCGraph(const Preferences& preferences,
-        const sparsepc::Component<double>& component,
-        const QString& cumulativeVarianceString, const QString& curveName)
+        const sparsepc::Component<double>& component, const QString& legend)
     {
-        addPCGraph(m_StandardPCGraphs, component, cumulativeVarianceString, curveName,
+        addPCGraph(m_StandardPCGraphs, component, legend,
             preferences.standardComponentsLineStyle,
             preferences.standardComponentsLineWidthFilledPlot,
             preferences.standardComponentsLineWidthImpulsesPlot,
@@ -101,10 +99,9 @@ namespace sparsely
     }
 
     void LabWidget::addSparsePCGraph(const Preferences& preferences,
-        const sparsepc::Component<double>& component,
-        const QString& cumulativeVarianceString, const QString& curveName)
+        const sparsepc::Component<double>& component, const QString& legend)
     {
-        addPCGraph(m_SparsePCGraphs, component, cumulativeVarianceString, curveName,
+        addPCGraph(m_SparsePCGraphs, component, legend,
             preferences.sparseComponentsLineStyle,
             preferences.sparseComponentsLineWidthFilledPlot,
             preferences.sparseComponentsLineWidthImpulsesPlot,
@@ -112,7 +109,7 @@ namespace sparsely
     }
 
     void LabWidget::updateLastSparsePCGraph(const sparsepc::Component<double>& component,
-        const QString& cumulativeVarianceString, const QString& curveName)
+        const QString& legend)
     {
         if (m_SparsePCGraphs.empty())
         {
@@ -125,7 +122,7 @@ namespace sparsely
         {
             ds->inc(sparsePCGraph.pcColumn, i, component.vector[i]);
         }
-        sparsePCGraph.graph->setTitle(curveName + ": " + cumulativeVarianceString);
+        sparsePCGraph.graph->setTitle(legend);
         m_Plotter->redrawPlot();
     }
 
