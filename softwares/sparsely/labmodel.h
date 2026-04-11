@@ -1,7 +1,6 @@
 #ifndef SPARSEPC_MODEL_HPP
 #define SPARSEPC_MODEL_HPP
 
-#include <cstddef>
 #include <vector>
 #include <unordered_map>
 #include <functional>
