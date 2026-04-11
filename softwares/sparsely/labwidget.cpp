@@ -23,7 +23,7 @@ namespace sparsely
     LabWidget::LabWidget(QWidget* parent)
         : QWidget(parent), m_Plotter{nullptr},
         m_SliderGroupBox{nullptr}, m_ProgressBarGroupBox{nullptr},
-        m_Slider{nullptr}, m_ProgressBar{nullptr}, m_Preferences{nullptr},
+        m_Slider{nullptr}, m_ProgressBar{nullptr},
         m_SliderOrProgressBarWidgetStackedLayout{nullptr},
         m_MethodComboBox{nullptr}, m_PlotTypeComboBox{nullptr}, m_Colors{},
         m_N{0}, m_ColumnX{0}
@@ -89,24 +89,26 @@ namespace sparsely
         m_Plotter->addGraph(pCGraph.graph);
     }
 
-    void LabWidget::addStandardPCGraph(const sparsepc::Component<double>& component,
+    void LabWidget::addStandardPCGraph(const Preferences& preferences,
+        const sparsepc::Component<double>& component,
         const QString& cumulativeVarianceString, const QString& curveName)
     {
         addPCGraph(m_StandardPCGraphs, component, cumulativeVarianceString, curveName,
-            m_Preferences->standardComponentsLineStyle,
-            m_Preferences->standardComponentsLineWidthFilledPlot,
-            m_Preferences->standardComponentsLineWidthImpulsesPlot,
-            m_Preferences->standardComponentsFillingColorsAlpha);
+            preferences.standardComponentsLineStyle,
+            preferences.standardComponentsLineWidthFilledPlot,
+            preferences.standardComponentsLineWidthImpulsesPlot,
+            preferences.standardComponentsFillingColorsAlpha);
     }
 
-    void LabWidget::addSparsePCGraph(const sparsepc::Component<double>& component,
+    void LabWidget::addSparsePCGraph(const Preferences& preferences,
+        const sparsepc::Component<double>& component,
         const QString& cumulativeVarianceString, const QString& curveName)
     {
         addPCGraph(m_SparsePCGraphs, component, cumulativeVarianceString, curveName,
-            m_Preferences->sparseComponentsLineStyle,
-            m_Preferences->sparseComponentsLineWidthFilledPlot,
-            m_Preferences->sparseComponentsLineWidthImpulsesPlot,
-            m_Preferences->sparseComponentsFillingColorsAlpha);
+            preferences.sparseComponentsLineStyle,
+            preferences.sparseComponentsLineWidthFilledPlot,
+            preferences.sparseComponentsLineWidthImpulsesPlot,
+            preferences.sparseComponentsFillingColorsAlpha);
     }
 
     void LabWidget::updateLastSparsePCGraph(const sparsepc::Component<double>& component,
@@ -170,16 +172,11 @@ namespace sparsely
         m_StandardPCGraphs.clear();
     }
 
-    void LabWidget::setPreferences(Preferences* preferences)
+    void LabWidget::createWidget(const Preferences& preferences, const QString& addonName)
     {
-        m_Preferences = preferences;
-    }
-
-    void LabWidget::createWidget(const QString& addonName)
-    {
-        m_Colors.reserve(m_Preferences->componentsColors.size());
-        //for(const auto& colorString: m_Preferences->componentsColors)
-        foreach(const auto& colorString, m_Preferences->componentsColors)
+        m_Colors.reserve(preferences.componentsColors.size());
+        //for(const auto& colorString: preferences.componentsColors)
+        foreach(const auto& colorString, preferences.componentsColors)
         {
             m_Colors.push_back(colorString);
         }
@@ -194,8 +191,8 @@ namespace sparsely
         //m_Plotter->getPlotter()->setUseAntiAliasingForSystem(true); // nicer (but slower) plotting
         //m_Plotter->getPlotter()->setUseAntiAliasingForText(true); // nicer (but slower) text rendering
 
-        m_StandardPCGraphs.reserve(m_Preferences->componentsColors.size());
-        m_SparsePCGraphs.reserve(m_Preferences->componentsColors.size());
+        m_StandardPCGraphs.reserve(preferences.componentsColors.size());
+        m_SparsePCGraphs.reserve(preferences.componentsColors.size());
         JKQTPDatastore* datastore = m_Plotter->getDatastore();
         m_ColumnX = datastore->addLinearColumn(m_N, 0, m_N-1);
         plotGroupboxLayout->addWidget(m_Plotter);
@@ -233,7 +230,7 @@ namespace sparsely
         m_PlotTypeComboBox = new QComboBox(this);
         m_PlotTypeComboBox->addItem(tr("Filled"), QVariant::fromValue(Enums::PlotType::FILLED));
         m_PlotTypeComboBox->addItem(tr("Impulses"), QVariant::fromValue(Enums::PlotType::IMPULSES));
-        m_PlotTypeComboBox->setCurrentIndex(m_Preferences->plotType == Enums::PlotType::FILLED ? 0 : 1);
+        m_PlotTypeComboBox->setCurrentIndex(preferences.plotType == Enums::PlotType::FILLED ? 0 : 1);
         plotTypeGroupBoxLayout->addWidget(m_PlotTypeComboBox);
         processingsGoupboxLayout->addWidget(plotTypeGroupBox);
         auto* methodGroupBox = new QGroupBox(tr("Method"), this);
@@ -247,7 +244,7 @@ namespace sparsely
         {
             m_MethodComboBox->addItem(addonName, QVariant::fromValue(Enums::Method::USERDYNAMICLIB));
         }
-        switch (m_Preferences->method)
+        switch (preferences.method)
         {// should use a map type ontainer!
         case Enums::Method::DCA:
         {
@@ -277,7 +274,7 @@ namespace sparsely
         }
 
         if(!addonName.isEmpty() &&
-            m_Preferences->method == Enums::Method::USERDYNAMICLIB)
+            preferences.method == Enums::Method::USERDYNAMICLIB)
         {
             m_MethodComboBox->setCurrentIndex(4);
         }

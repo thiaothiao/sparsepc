@@ -49,7 +49,6 @@ namespace sparsely
     LabController::LabController(LabModel& labModel, LabWidget& labWidget, QObject* parent)
     : QObject(parent), m_LabModel{labModel}, m_LabWidget{labWidget}, m_N{0}
     {
-        // TODO preferences as a singleton?
         qDebug() << "Loading prefernces ...";
         m_Preferences = Preferences::load(
             QDir(QDir::currentPath() + "/configurations").absoluteFilePath("sparsely.json"));
@@ -79,8 +78,7 @@ namespace sparsely
         }
         m_N = labModel.getN();
         labWidget.setN( m_N);
-        labWidget.setPreferences(&m_Preferences);
-        labWidget.createWidget(labModel.getAddonName());
+        labWidget.createWidget(m_Preferences, labModel.getAddonName());
         const DeferredUpdateForPlots deferredUpdateForPlots(labWidget);
         addStandardPCGraphs();
         addSparsePCGraphs();
@@ -103,7 +101,7 @@ namespace sparsely
                 labModel.computeVarianceRatio(cummulativeVarianceStandardPCs) * 100.0;
             const QString cumulativeVariancePercentageString = toString(cumulativeVariancePercentage);
             const QString curveName = QString::number(j);
-            labWidget.addStandardPCGraph(component, cumulativeVariancePercentageString, curveName);
+            labWidget.addStandardPCGraph(m_Preferences, component, cumulativeVariancePercentageString, curveName);
         }
     }
 
@@ -125,7 +123,7 @@ namespace sparsely
             {
                 labModel.m_ValidatedComponents.push_back(component);
             }
-            labWidget.addSparsePCGraph(component, cumulativeVariancePercentageString, curveName);
+            labWidget.addSparsePCGraph(m_Preferences, component, cumulativeVariancePercentageString, curveName);
         }
     }
 
@@ -158,7 +156,7 @@ namespace sparsely
         const QString curveName = QString::number(labModel.getCurrentRank());
         labWidget.setSliderColor(newSparsePCColor);
         labWidget.m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(labWidget.m_SliderGroupBox);
-        labWidget.addSparsePCGraph(component, cumulativeVariancePercentageString, curveName);
+        labWidget.addSparsePCGraph(m_Preferences, component, cumulativeVariancePercentageString, curveName);
     }
 
     void LabController::onRemoveLastSparseComponentButton()
