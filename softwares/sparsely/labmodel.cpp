@@ -2,6 +2,7 @@
 
 #include <thread>
 #include <utility>
+#include <ranges>
 
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -233,13 +234,12 @@ namespace sparsely
 
     double LabModel::computeValidatedCumulativeVariance() const
     {
-        auto sum = 0.0;
-        for(const auto& validatedComponent: m_ValidatedComponents)
-        {
-            sum += validatedComponent.get().value;
-        }
-
-        return sum;
+        return std::ranges::fold_left
+        (
+            m_ValidatedComponents,
+            0.0,
+            [](double done, const sparsepc::Component<double>& c) { return done + c.value; }
+        );
     }
 
     double LabModel::computeCumulativeVariance() const
