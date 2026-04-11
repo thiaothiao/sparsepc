@@ -3,7 +3,6 @@
 
 #include <cstddef>
 #include <vector>
-#include <memory>
 
 #include <QString>
 #include <QWidget>
@@ -24,17 +23,17 @@
 
 namespace sparsely
 {
-    struct MyClass2 final
+    struct GraphInfo final
     {
-        MyClass2()
+        GraphInfo()
             :xColumn{0}, pcColumn{0}, color{}, graph{nullptr}
         {
         }
 
-        MyClass2(const MyClass2&) = default;
-        MyClass2& operator=(const MyClass2&) = default;
-        MyClass2(MyClass2&&) = default;
-        MyClass2& operator=(MyClass2&&) = default;
+        GraphInfo(const GraphInfo&) = default;
+        GraphInfo& operator=(const GraphInfo&) = default;
+        GraphInfo(GraphInfo&&) = default;
+        GraphInfo& operator=(GraphInfo&&) = default;
 
         std::size_t xColumn;
         std::size_t pcColumn;
@@ -71,8 +70,8 @@ namespace sparsely
         void setProgressBarColor(const QString& colorString);
         void setN(int n);
 
-        std::vector<MyClass2> m_SparsePCGraphs;
-        std::vector<MyClass2> m_StandardPCGraphs;
+        std::vector<GraphInfo> m_SparsePCGraphs;
+        std::vector<GraphInfo> m_StandardPCGraphs;
         QGroupBox* m_SliderGroupBox;
         QGroupBox* m_ProgressBarGroupBox;
         QSlider* m_Slider;
@@ -85,7 +84,7 @@ namespace sparsely
         QVector<QString> m_Colors;
 
     private:
-        void addPCGraph(std::vector<MyClass2>& pcs, const sparsepc::Component<double>& component,
+        void addPCGraph(std::vector<GraphInfo>& pcs, const sparsepc::Component<double>& component,
             const QString& legend, const Qt::PenStyle& lineStyle, double lineWidthFilledPlot,
             double lineWidthImpulsesPlot, double fillingColorsAlpha);
 

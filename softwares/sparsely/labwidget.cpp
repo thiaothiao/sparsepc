@@ -30,7 +30,7 @@ namespace sparsely
     {
     }
 
-    void LabWidget::addPCGraph(std::vector<MyClass2>& pcs, const sparsepc::Component<double>& component,
+    void LabWidget::addPCGraph(std::vector<GraphInfo>& pcs, const sparsepc::Component<double>& component,
         const QString& legend, const Qt::PenStyle& lineStyle, double lineWidthFilledPlot,
         double lineWidthImpulsesPlot, double fillingColorsAlpha)
     {

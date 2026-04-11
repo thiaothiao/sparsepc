@@ -28,10 +28,8 @@ namespace sparsely
         Preferences& operator=(const Preferences&) = default;
         Preferences(Preferences&&) = default;
         Preferences& operator=(Preferences&&) = default;
-
         QJsonObject toJson() const;
         static Preferences fromJson(const QJsonObject& obj);
-
         void save(const QString& fileName) const;
         static Preferences load(const QString& fileName);
 

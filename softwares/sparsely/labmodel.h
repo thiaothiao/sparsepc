@@ -17,52 +17,47 @@
 
 namespace sparsely
 {
-    struct MyClass final
+    struct Nominees final
     {
-        MyClass()
-            :iCandidate{-1}, candidates{}
+        Nominees()
+            :iWinner{-1}, candidates{}
         {
         }
+        Nominees(const Nominees&) = default;
+        Nominees& operator=(const Nominees&) = default;
+        Nominees(Nominees&&) = default;
+        Nominees& operator=(Nominees&&) = default;
 
-        MyClass(const MyClass&) = default;
-        MyClass& operator=(const MyClass&) = default;
-
-        MyClass(MyClass&&) = default;
-        MyClass& operator=(MyClass&&) = default;
-
-        int iCandidate;
+        int iWinner;
         std::unordered_map<sparsepc::Index, sparsepc::Component<double>> candidates;
     };
 
     class LabModel final
     {
-
     public:
         LabModel();
-
         bool init(const QString& fileName, bool newProject = true);
         void saveProject(const QString& fileName) const;
         void loadProject(const QString& fileName);
-
-    public:
         void computeStandardPCs();
-        MyClass& computeSparsePC(const Enums::Method& method, QProgressBar* progressBar);
+        Nominees& computeSparsePC(const Enums::Method& method, QProgressBar* progressBar);
         bool removeLastSparsePC();
         double computeValidatedCumulativeVariance() const;
         double computeCumulativeVariance() const;
         void validateCurrentSparsePC();
-        int getICandidate() const;
+        int getiWinner() const;
         int getCurrentRank() const;
         int getN() const;
         QString getAddonName() const;
         double computeVarianceRatio(double variance) const;
 
+        std::vector<std::reference_wrapper<sparsepc::Component<double>>> m_ValidatedComponents;
+        std::vector<Nominees> m_SparsePCs;
+        std::vector<Nominees> m_StandardPCs;
+    private:
         sparsepc::Matrix<double> m_Sigma;
         sparsepc::Index m_N;
         double m_Trace;
-        std::vector<std::reference_wrapper<sparsepc::Component<double>>> m_ValidatedComponents;
-        std::vector<MyClass> m_SparsePCs;
-        std::vector<MyClass> m_StandardPCs;
         std::vector<std::unique_ptr<QLibrary>> m_DynamicLibSolverLoaders;
         QVector<QString> m_DynamicLibSolverNames;
     };
