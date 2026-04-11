@@ -54,14 +54,13 @@ namespace sparsely
         void updateProgressBarTitle(int value);
 
     public:
-        void setPreferences(Preferences* preferences);
-        void createWidget(const QString& addonName);
+        void createWidget(const Preferences& preferences, const QString& addonName);
         void setPlotUpdateEnabled(bool enable);
         void redrawPlot();
         void zoomToFit();
-        void addStandardPCGraph(const sparsepc::Component<double>& component,
+        void addStandardPCGraph(const Preferences& preferences, const sparsepc::Component<double>& component,
             const QString& cumulativeVarianceString, const QString& curveName);
-        void addSparsePCGraph(const sparsepc::Component<double>& component,
+        void addSparsePCGraph(const Preferences& preferences, const sparsepc::Component<double>& component,
             const QString& cumulativeVarianceString, const QString& curveName);
         void updateLastSparsePCGraph(const sparsepc::Component<double>& component,
             const QString& cumulativeVarianceString, const QString& curveName);
@@ -95,7 +94,6 @@ namespace sparsely
 
         int m_N;
         std::size_t m_ColumnX;
-        Preferences* m_Preferences;
         JKQTPlotter* m_Plotter;
     };
 }
