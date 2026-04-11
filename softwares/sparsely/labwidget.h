@@ -59,11 +59,11 @@ namespace sparsely
         void redrawPlot();
         void zoomToFit();
         void addStandardPCGraph(const Preferences& preferences, const sparsepc::Component<double>& component,
-            const QString& cumulativeVarianceString, const QString& curveName);
+            const QString& legend);
         void addSparsePCGraph(const Preferences& preferences, const sparsepc::Component<double>& component,
-            const QString& cumulativeVarianceString, const QString& curveName);
+            const QString& legend);
         void updateLastSparsePCGraph(const sparsepc::Component<double>& component,
-            const QString& cumulativeVarianceString, const QString& curveName);
+            const QString& legend);
         void removeLastSparsePCGraph(int sliderValue);
         void clearAlls();
         void reInitSlider(int value);
@@ -86,8 +86,7 @@ namespace sparsely
 
     private:
         void addPCGraph(std::vector<MyClass2>& pcs, const sparsepc::Component<double>& component,
-            const QString& cumulativeVarianceString, const QString& curveName,
-            const Qt::PenStyle& lineStyle, double lineWidthFilledPlot,
+            const QString& legend, const Qt::PenStyle& lineStyle, double lineWidthFilledPlot,
             double lineWidthImpulsesPlot, double fillingColorsAlpha);
 
         int m_N;
