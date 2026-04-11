@@ -179,10 +179,8 @@ namespace sparsepc
             inverse.diagonal().array() =
                 static_cast<Scalar>(1) / (static_cast<Scalar>(1) + static_cast<Scalar>(1e-4));
 
-            for (const ComponentType& aValidatedComponent: validatedComponents)
+            for (const Component& validatedComponent: validatedComponents)
             {
-                auto validatedComponent = static_cast<const Component&>(aValidatedComponent);
-
                 const auto& q = validatedComponent.q;
 
                 B -= q * q.transpose();
