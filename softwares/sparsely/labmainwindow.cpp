@@ -16,13 +16,15 @@ namespace
 {
     void saveLastFolder(const QString& path)
     {
-        QSettings settings(QString::fromStdString(std::string(sparsely::meta::VENDOR)), "Sparsely");
+        QSettings settings(QString::fromStdString(std::string(sparsely::metadata::appVendor)),
+            QString::fromStdString(std::string(sparsely::metadata::appName)));
         settings.setValue("lastFolder", path);
     }
 
     QString getLastFolder()
     {
-        const QSettings settings(QString::fromStdString(std::string(sparsely::meta::VENDOR)), "Sparsely");
+        const QSettings settings(QString::fromStdString(std::string(sparsely::metadata::appVendor)),
+            QString::fromStdString(std::string(sparsely::metadata::appName)));
 
         const auto defaultPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
 
@@ -36,8 +38,7 @@ namespace sparsely
     LabMainWindow::LabMainWindow(QWidget* parent)
         : QMainWindow(parent)
     {
-        //this->setWindowTitle(tr("SPARSELY Software - ?????"));
-        this->setWindowTitle(QString::fromStdString(std::string(sparsely::meta::PROJECT_DESCRIPTION)));
+        this->setWindowTitle(QString::fromStdString(std::string(sparsely::metadata::appTitle)));
         this->setMinimumSize(640, 500);
 
          auto* newAction = new QAction(QIcon::fromTheme(QIcon::ThemeIcon::DocumentNew),

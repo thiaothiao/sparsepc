@@ -5,13 +5,15 @@
 
 namespace sparsely 
 {
-	namespace meta 
+	namespace metadata 
 	{
-		inline constexpr std::string_view APP_VERSION = "@PROJECT_VERSION@";
-		inline constexpr std::string_view APP_NAME    = "@PROJECT_NAME@";
-		inline constexpr std::string_view VENDOR      = "@PROJECT_VENDOR@";
-		inline constexpr std::string_view BUILD_TIME  = "@BUILD_TIMESTAMP@";
-		inline constexpr std::string_view PROJECT_DESCRIPTION = "@PROJECT_DESCRIPTION@";
+	        inline constexpr std::string_view appVersion = "@appVersion@";
+		inline constexpr std::string_view exeName    = "@exeName@";
+		inline constexpr std::string_view appName    = "@appName@";
+		inline constexpr std::string_view appVendor  = "@appVendor@";
+		inline constexpr std::string_view buildTime  = "@buildTime@";
+		inline constexpr std::string_view appTitle   = "@appTitle@";
+		inline constexpr std::string_view appDomain  = "@appDomain@";
 	}
 }
 

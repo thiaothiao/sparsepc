@@ -1,12 +1,15 @@
-project(sparsely 
-        VERSION 1.0.0 
-        DESCRIPTION "SPARSELY Software - SPARSE principal component LaboratorY"
-        LANGUAGES CXX)
-		
+set(appName "Sparsely")
+set(exeName "sparsely")
+set(appVersion "1.0.0")
+set(appTitle "SPARSELY Software - SPARSE principal component LaboratorY")
+set(appVendor "Indilo")
+set(appDomain "?.com")
+string(TIMESTAMP buildTime "%Y-%m-%d %H:%M:%S")
 
-# Optional: Add custom metadata
-set(PROJECT_VENDOR "Indilo")
-string(TIMESTAMP BUILD_TIMESTAMP "%Y-%m-%d %H:%M:%S")
+project(${exeName}
+        VERSION ${appVersion}
+        DESCRIPTION ${appTitle}
+        LANGUAGES CXX)
 
 # Generate the header file
 configure_file(
@@ -30,46 +33,46 @@ endif()
 
 qt_standard_project_setup()
 qt_add_resources(sources resources.qrc)
-qt_add_executable(${PROJECT_NAME} ${sources} ${appiconrc})
+qt_add_executable(${exeName} ${sources} ${appiconrc})
 
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core)
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets)
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Gui)
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::PrintSupport)
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Svg)
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Xml)
+target_link_libraries(${exeName} PRIVATE Qt6::Core)
+target_link_libraries(${exeName} PRIVATE Qt6::Widgets)
+target_link_libraries(${exeName} PRIVATE Qt6::Gui)
+target_link_libraries(${exeName} PRIVATE Qt6::PrintSupport)
+target_link_libraries(${exeName} PRIVATE Qt6::Svg)
+target_link_libraries(${exeName} PRIVATE Qt6::Xml)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE JKQTPlotter6::JKQTPlotter6)
-target_link_libraries(${PROJECT_NAME} PRIVATE JKQTPlotter6::JKQTCommon6)
-target_link_libraries(${PROJECT_NAME} PRIVATE JKQTPlotter6::JKQTMath6)
-target_link_libraries(${PROJECT_NAME} PRIVATE JKQTPlotter6::JKQTMathText6)
+target_link_libraries(${exeName} PRIVATE JKQTPlotter6::JKQTPlotter6)
+target_link_libraries(${exeName} PRIVATE JKQTPlotter6::JKQTCommon6)
+target_link_libraries(${exeName} PRIVATE JKQTPlotter6::JKQTMath6)
+target_link_libraries(${exeName} PRIVATE JKQTPlotter6::JKQTMathText6)
 
-set_target_properties(${PROJECT_NAME} PROPERTIES
+set_target_properties(${exeName} PROPERTIES
     WIN32_EXECUTABLE ON
 )
 
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+add_custom_command(TARGET ${exeName} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_CURRENT_SOURCE_DIR}/addons"
         "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/addons"
     COMMENT "Copying addons to build directory"
 )
 
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+add_custom_command(TARGET ${exeName} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_CURRENT_SOURCE_DIR}/images"
         "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/images"
     COMMENT "Copying images to build directory"
 )
 
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+add_custom_command(TARGET ${exeName} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_CURRENT_SOURCE_DIR}/configurations"
         "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/configurations"
     COMMENT "Copying configurations to build directory"
 )
 
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+add_custom_command(TARGET ${exeName} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
         $<TARGET_FILE:JKQTPlotter6::JKQTPlotter6>
         $<TARGET_FILE:JKQTPlotter6::JKQTCommon6>
@@ -80,7 +83,7 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 )
 
 qt_generate_deploy_app_script(
-    TARGET ${PROJECT_NAME}
+    TARGET ${exeName}
     OUTPUT_SCRIPT deploy_script
     NO_TRANSLATIONS
 )

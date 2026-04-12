@@ -12,10 +12,10 @@
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    app.setApplicationName(QString::fromStdString(std::string(sparsely::meta::APP_NAME)));
-    app.setOrganizationName(QString::fromStdString(std::string(sparsely::meta::VENDOR)));
-    //app.setOrganizationDomain("?.com");
-    app.setApplicationVersion(QString::fromStdString(std::string(sparsely::meta::APP_VERSION)));
+    app.setApplicationName(QString::fromStdString(std::string(sparsely::metadata::appName)));
+    app.setOrganizationName(QString::fromStdString(std::string(sparsely::metadata::appVendor)));
+    app.setOrganizationDomain(QString::fromStdString(std::string(sparsely::metadata::appDomain)));
+    app.setApplicationVersion(QString::fromStdString(std::string(sparsely::metadata::appVersion)));
 
     app.setWindowIcon(QIcon(":/icons/logo_transparent.png"));
     QPixmap pixmap(":/images/welcome_transparent.png");
