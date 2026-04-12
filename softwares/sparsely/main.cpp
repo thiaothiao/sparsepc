@@ -7,9 +7,16 @@
 
 #include <thread>
 
+#include "version.h"
+
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+    app.setApplicationName(QString::fromStdString(std::string(sparsely::meta::APP_NAME)));
+    app.setOrganizationName(QString::fromStdString(std::string(sparsely::meta::VENDOR)));
+    //app.setOrganizationDomain("?.com");
+    app.setApplicationVersion(QString::fromStdString(std::string(sparsely::meta::APP_VERSION)));
+
     app.setWindowIcon(QIcon(":/icons/logo_transparent.png"));
     QPixmap pixmap(":/images/welcome_transparent.png");
     QSplashScreen splash(pixmap);

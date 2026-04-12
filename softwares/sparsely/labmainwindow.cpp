@@ -9,22 +9,20 @@
 #include <QStandardPaths>
 #include <QDebug>
 
-
-#include "sparsepc/version.hpp"
-
+#include "version.h"
 #include "labpreferencesdialog.h"
 
 namespace
 {
     void saveLastFolder(const QString& path)
     {
-        QSettings settings("Indilo", "Sparsely");
+        QSettings settings(QString::fromStdString(std::string(sparsely::meta::VENDOR)), "Sparsely");
         settings.setValue("lastFolder", path);
     }
 
     QString getLastFolder()
     {
-        const QSettings settings("Indilo", "Sparsely");
+        const QSettings settings(QString::fromStdString(std::string(sparsely::meta::VENDOR)), "Sparsely");
 
         const auto defaultPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
 
@@ -38,8 +36,8 @@ namespace sparsely
     LabMainWindow::LabMainWindow(QWidget* parent)
         : QMainWindow(parent)
     {
-        constexpr std::string_view version = SPARSEPC_MACRO_STRINGIFY(SPARSEPC_VERSION);
-        this->setWindowTitle(tr("SPARSELY Software - SPARSE principal component LaboratorY"));
+        //this->setWindowTitle(tr("SPARSELY Software - ?????"));
+        this->setWindowTitle(QString::fromStdString(std::string(sparsely::meta::PROJECT_DESCRIPTION)));
         this->setMinimumSize(640, 500);
 
          auto* newAction = new QAction(QIcon::fromTheme(QIcon::ThemeIcon::DocumentNew),

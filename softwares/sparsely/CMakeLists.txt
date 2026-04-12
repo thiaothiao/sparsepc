@@ -1,5 +1,20 @@
-project(sparsely CXX)
+project(sparsely 
+        VERSION 1.0.0 
+        DESCRIPTION "SPARSELY Software - SPARSE principal component LaboratorY"
+        LANGUAGES CXX)
+		
 
+# Optional: Add custom metadata
+set(PROJECT_VENDOR "Indilo")
+string(TIMESTAMP BUILD_TIMESTAMP "%Y-%m-%d %H:%M:%S")
+
+# Generate the header file
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/version.h.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/version.h"
+    @ONLY
+)		
+		
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui PrintSupport Svg Xml OpenGl REQUIRED)
