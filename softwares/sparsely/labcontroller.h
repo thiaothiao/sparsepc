@@ -20,10 +20,9 @@ namespace sparsely
         LabController(LabModel& labModel, LabWidget& labWidget, QObject* parent = nullptr);
 
         void init(const QString& fileName, bool newProject = true);
-
         void saveProject(const QString& fileName) const;
         void loadProject(const QString& fileName);
-        bool projectIsEmpty() const;
+        bool projectIsEmpty() const { return m_N == 0;}
 
     public slots:
         void onAddNewSparseComponent();

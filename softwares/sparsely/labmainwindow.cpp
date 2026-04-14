@@ -30,7 +30,6 @@ namespace
 
         return settings.value("lastFolder", defaultPath).toString();
     }
-
 }
 
 namespace sparsely
@@ -195,9 +194,6 @@ namespace sparsely
     void LabMainWindow::showPreferences()
     {
         PreferencesDialog dialog(this);
-        if (dialog.exec() == QDialog::Accepted)
-        {
-            qDebug() << "Accepted";
-        }
+        dialog.exec();
     }
 }

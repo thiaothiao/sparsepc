@@ -6,7 +6,6 @@
 #include <QFile>
 #include <QString>
 #include <QDir>
-#include <QDebug>
 
 namespace
 {
@@ -46,12 +45,10 @@ namespace sparsely
     LabController::LabController(LabModel& labModel, LabWidget& labWidget, QObject* parent)
     : QObject(parent), m_LabModel{labModel}, m_LabWidget{labWidget}, m_N{0}
     {
-        qDebug() << "Loading prefernces ...";
         QDir dir = QDir::current();
         dir.cdUp();
         m_Preferences = Preferences::load(
             QDir(dir.path() + "/configurations").absoluteFilePath("sparsely.json"));
-        qDebug() << "... preferences done.";
     }
 
     void LabController::connectWidget()
@@ -206,10 +203,5 @@ namespace sparsely
     void LabController::loadProject(const QString& fileName)
     {
         m_LabModel.get().loadProject(fileName);
-    }
-
-    bool LabController::projectIsEmpty() const
-    {
-        return m_N == 0;
     }
 }

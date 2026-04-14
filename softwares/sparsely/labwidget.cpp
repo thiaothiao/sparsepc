@@ -13,7 +13,6 @@
 #include <QColor>
 #include <QString>
 #include <QDir>
-#include <QDebug>
 
 #include "jkqtplotter/graphs/jkqtpfilledcurve.h"
 #include "jkqtplotter/graphs/jkqtpimpulses.h"

@@ -7,7 +7,6 @@
 #include <QString>
 #include <QDataStream>
 #include <QDir>
-#include <QDebug>
 
 namespace
 {
@@ -29,12 +28,8 @@ namespace
     auto getPluginList()
     {
         QDir path(QDir::currentPath() + "/addons");
-
-        qDebug() << "current path is: " << path.currentPath();
-
         QStringList filters;
         filters << "*.dll" << "*.so" << "*.dylib";
-
         return path.entryInfoList(filters, QDir::Files | QDir::NoDotAndDotDot);
     }
 }
@@ -45,33 +40,25 @@ namespace sparsely
         : m_Sigma{}, m_ValidatedComponents{}, m_SparsePCs{}, m_StandardPCs{},
             m_N{0}, m_Trace{0.0}
     {
-        qDebug() << "Loading addons ...";
-
         const auto pluginList = getPluginList();
         if(!pluginList.empty())
         {
             m_DynamicLibSolverLoaders.reserve(pluginList.size());
             m_DynamicLibSolverNames.reserve(pluginList.size());
-
             foreach(const auto& fileInfo, pluginList)
             {
                 QString noExtensionAbsolutePath = QDir(fileInfo.absolutePath()).filePath(fileInfo.baseName());
-                qDebug() << "Loading " << noExtensionAbsolutePath << "...";
                 m_DynamicLibSolverLoaders.push_back(
                     std::make_unique<QLibrary>(noExtensionAbsolutePath));
                 if(m_DynamicLibSolverLoaders.back()->load())
                 {
                     m_DynamicLibSolverNames.push_back(fileInfo.baseName());
-                    qDebug() << " ...loaded.";
                 }
                 else
                 {
-                    qDebug() << " ...loading failed.";
                     m_DynamicLibSolverLoaders.pop_back();
                 }
             }
-
-            qDebug() << "...Addons loaded.";
         }
     }
 
@@ -79,23 +66,19 @@ namespace sparsely
     {
         if(m_Sigma.size() != 0)
         {
-            // should popup a project already loaded.
+            // TODO should popup a project already loaded.
             return false;
         }
 
         if(newProject)
         {
             m_Sigma = sparsepc::openData<double>(fileName.toStdString(), ';');
-
             m_N = m_Sigma.cols();
-
             m_Trace = m_Sigma.trace();
-
             m_ValidatedComponents.clear();
             m_ValidatedComponents.reserve(m_N);
             m_SparsePCs.clear();
             m_SparsePCs.reserve(m_N);
-
             computeStandardPCs();
         }
         else
@@ -128,9 +111,7 @@ namespace sparsely
     Nominees& LabModel::computeSparsePC(const Enums::Method& method, QProgressBar* progressBar)
     {
         auto& sparsePC = m_SparsePCs.emplace_back();
-
         sparsePC.iWinner = m_N/2;
-
         switch (method)
         {
         case Enums::Method::DCA:
@@ -188,7 +169,6 @@ namespace sparsely
         return sparsePC;
     }
 
-
     bool LabModel::removeLastSparsePC()
     {
         if(m_SparsePCs.empty())
@@ -201,7 +181,6 @@ namespace sparsely
             m_ValidatedComponents.back().get().state = sparsepc::ComponentState::Unvalidated;
             m_ValidatedComponents.pop_back();
         }
-
         m_SparsePCs.pop_back();
 
         return true;

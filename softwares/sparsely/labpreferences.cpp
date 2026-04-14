@@ -6,7 +6,6 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QDebug>
 
 namespace
 {
@@ -17,11 +16,9 @@ namespace
         QFile file(fileName);
         if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
         {
-            qWarning() << "Couldn't open save file:" << file.errorString();
             return;
         }
 
-        qDebug() << "Fieee opened:";
         file.write(doc.toJson());
         file.close();
     }
@@ -31,7 +28,6 @@ namespace
         QFile file(filePath);
         if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
         {
-            qDebug() << "Failed to open file";
             return QJsonObject{};
         }
 
@@ -43,7 +39,6 @@ namespace
 
         if (document.isNull())
         {
-            qDebug() << "Parse error:" << error.errorString();
             return QJsonObject{};
         }
 
@@ -63,9 +58,7 @@ namespace sparsely
     {
         QJsonObject obj;
         obj["maximumNumberOfComponents"] = QString::number(maximumNumberOfComponents);
-
         obj["componentsColors"] = componentsColors.join(u',');
-
         obj["standardComponentsLineWidthFilledPlot"] =
             QString::number(standardComponentsLineWidthFilledPlot, 'f', 2);
         obj["sparseComponentsLineWidthFilledPlot"] =
@@ -84,13 +77,10 @@ namespace sparsely
             const char* key = metaEnum.valueToKey(sparseComponentsLineStyle);
             obj["sparseComponentsLineStyle"] = QString::fromUtf8(key);
         }
-
         obj["standardComponentsFillingColorsAlpha"] =
             QString::number(standardComponentsFillingColorsAlpha, 'f', 3);
-
         obj["sparseComponentsFillingColorsAlpha"] =
             QString::number(sparseComponentsFillingColorsAlpha, 'f', 3);
-
         {
             const QMetaEnum metaEnum = QMetaEnum::fromType<Enums::PlotType>();
             const char* key = metaEnum.valueToKey(std::to_underlying(plotType));
@@ -109,28 +99,20 @@ namespace sparsely
     Preferences Preferences::fromJson(const QJsonObject &obj)
     {
         Preferences prefs;
-
         if(obj.isEmpty())
         {
             return prefs;
         }
-
         prefs.maximumNumberOfComponents = obj["maximumNumberOfComponents"].toString().toInt();
-
         prefs.componentsColors = obj["componentsColors"].toString().split(u',', Qt::SkipEmptyParts);
-
         prefs.standardComponentsLineWidthFilledPlot =
             obj["standardComponentsLineWidthFilledPlot"].toString().toDouble();
-
         prefs.sparseComponentsLineWidthFilledPlot =
             obj["sparseComponentsLineWidthFilledPlot"].toString().toDouble();
-
         prefs.standardComponentsLineWidthImpulsesPlot =
             obj["standardComponentsLineWidthImpulsesPlot"].toString().toDouble();
-
         prefs.sparseComponentsLineWidthImpulsesPlot =
             obj["sparseComponentsLineWidthImpulsesPlot"].toString().toDouble();
-
         {
             const QMetaEnum metaEnum = QMetaEnum::fromType<Qt::PenStyle>();
             const QString jsonVal = obj["standardComponentsLineStyle"].toString();
@@ -143,12 +125,10 @@ namespace sparsely
             const int enumVal = metaEnum.keyToValue(jsonVal.toUtf8().data());
             prefs.sparseComponentsLineStyle = static_cast<Qt::PenStyle>(enumVal);
         }
-
         prefs.standardComponentsFillingColorsAlpha =
             obj["standardComponentsFillingColorsAlpha"].toString().toDouble();
         prefs.sparseComponentsFillingColorsAlpha =
             obj["sparseComponentsFillingColorsAlpha"].toString().toDouble();
-
         {
             const QMetaEnum metaEnum = QMetaEnum::fromType<Enums::PlotType>();
             const QString jsonVal = obj["plotType"].toString();
@@ -161,7 +141,6 @@ namespace sparsely
             const int enumVal = metaEnum.keyToValue(jsonVal.toUtf8().data());
             prefs.method = static_cast<Enums::Method>(enumVal);
         }
-
         return prefs;
     }
 
