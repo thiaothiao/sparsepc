@@ -47,8 +47,10 @@ namespace sparsely
     : QObject(parent), m_LabModel{labModel}, m_LabWidget{labWidget}, m_N{0}
     {
         qDebug() << "Loading prefernces ...";
+        QDir dir = QDir::current();
+        dir.cdUp();
         m_Preferences = Preferences::load(
-            QDir(QDir::currentPath() + "/configurations").absoluteFilePath("sparsely.json"));
+            QDir(dir.path() + "/configurations").absoluteFilePath("sparsely.json"));
         qDebug() << "... preferences done.";
     }
 
