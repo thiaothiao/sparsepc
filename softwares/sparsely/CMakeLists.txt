@@ -66,9 +66,6 @@ add_custom_command(TARGET ${exeName} POST_BUILD
     COMMENT "Copying configurations to build directory"
 )
 
-install(TARGETS ${exeName}
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
-
 install(FILES   $<TARGET_FILE:JKQTPlotter6::JKQTPlotter6>
                 $<TARGET_FILE:JKQTPlotter6::JKQTCommon6>
                 $<TARGET_FILE:JKQTPlotter6::JKQTMath6>
@@ -79,7 +76,7 @@ install(DIRECTORY   "${CMAKE_SOURCE_DIR}/include"
     DESTINATION ${CMAKE_INSTALL_PREFIX})
 	
 install(DIRECTORY   "${CMAKE_CURRENT_SOURCE_DIR}/addons"
-    DESTINATION ${CMAKE_INSTALL_PREFIX})
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 
 if (LINUX)
     message(STATUS "Running on Linux")
