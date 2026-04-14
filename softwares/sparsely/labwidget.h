@@ -12,7 +12,7 @@
 #include <QVector>
 #include <QProgressBar>
 #include <QStackedLayout>
-#include <QCombobox>
+#include <QComboBox>
 #include <QLibrary>
 
 #include "labpreferences.h"

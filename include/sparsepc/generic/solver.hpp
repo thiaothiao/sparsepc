@@ -5,8 +5,8 @@
 #include <utility>
 #include <concepts>
 
-#include "SparsePC/utils/matrix.hpp"
-#include "SparsePC/eigen/solver.hpp"
+#include "sparsepc/utils/matrix.hpp"
+#include "sparsepc/eigen/solver.hpp"
 
 namespace sparsepc
 {
