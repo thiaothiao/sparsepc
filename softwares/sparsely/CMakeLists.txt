@@ -20,20 +20,31 @@ configure_file(
 		
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui PrintSupport Svg Xml REQUIRED)
+find_package(JKQTPlotter6 REQUIRED COMPONENTS JKQTPlotter6 JKQTCommon6 JKQTMath6 JKQTMathText6 REQUIRED)
+
 set(sources main.cpp labmainwindow.cpp labwidget.cpp labcontroller.cpp labmodel.cpp labpreferences.cpp labpreferencesdialog.cpp labenums.h labmainwindow.h labwidget.h labcontroller.h labmodel.h labpreferences.h labpreferencesdialog.h)
 set(appiconrc images/appicon.rc)
 set(apprcc resources.qrc)
 
 if(WIN32)
+    message(STATUS "Running on Windows")
     enable_language(RC)
 endif()
 
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
+qt_standard_project_setup()
+qt_add_resources(sources ${apprcc})
+qt_add_executable(${exeName} ${sources} ${appiconrc})
 
-add_executable(${exeName} WIN32 ${sources} ${apprcc} ${appiconrc})
+set_target_properties(${exeName} PROPERTIES
+    WIN32_EXECUTABLE ON
+)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui PrintSupport Svg Xml REQUIRED)
+target_link_libraries(${exeName} PRIVATE JKQTPlotter6::JKQTPlotter6)
+target_link_libraries(${exeName} PRIVATE JKQTPlotter6::JKQTCommon6)
+target_link_libraries(${exeName} PRIVATE JKQTPlotter6::JKQTMath6)
+target_link_libraries(${exeName} PRIVATE JKQTPlotter6::JKQTMathText6)
+
 target_link_libraries(${exeName} PRIVATE Qt6::Core)
 target_link_libraries(${exeName} PRIVATE Qt6::Widgets)
 target_link_libraries(${exeName} PRIVATE Qt6::Gui)
@@ -41,62 +52,53 @@ target_link_libraries(${exeName} PRIVATE Qt6::PrintSupport)
 target_link_libraries(${exeName} PRIVATE Qt6::Svg)
 target_link_libraries(${exeName} PRIVATE Qt6::Xml)
 
-find_package(JKQTPlotter6 REQUIRED COMPONENTS JKQTPlotter6 JKQTCommon6 JKQTMath6 JKQTMathText6 REQUIRED)
-target_link_libraries(${exeName} PRIVATE JKQTPlotter6::JKQTPlotter6)
-target_link_libraries(${exeName} PRIVATE JKQTPlotter6::JKQTCommon6)
-target_link_libraries(${exeName} PRIVATE JKQTPlotter6::JKQTMath6)
-target_link_libraries(${exeName} PRIVATE JKQTPlotter6::JKQTMathText6)
-
-add_custom_command(TARGET ${exeName} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_CURRENT_SOURCE_DIR}/addons"
-        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/addons"
-    COMMENT "Copying addons to build directory"
-)
-
 add_custom_command(TARGET ${exeName} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_CURRENT_SOURCE_DIR}/images"
-        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/images"
+        "${CMAKE_INSTALL_PREFIX}/images"
     COMMENT "Copying images to build directory"
 )
 
 add_custom_command(TARGET ${exeName} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_CURRENT_SOURCE_DIR}/configurations"
-        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/configurations"
+        "${CMAKE_INSTALL_PREFIX}/configurations"
     COMMENT "Copying configurations to build directory"
 )
 
-add_custom_command(TARGET ${exeName} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_SOURCE_DIR}/include"
-        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/include"
-    COMMENT "Copying include to build directory"
-)
+include(GNUInstallDirs)
 
-# Install the icon to the standard pixmaps directory
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/images/logo_transparent.png"
-        DESTINATION "/usr/local/share/icons"
-        RENAME "sparselyIcon.png")
+if (LINUX)
+    message(STATUS "Running on Linux")
+	# Install the icon to the standard pixmaps directory
+	install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/images/logo_transparent.png"
+			DESTINATION "/usr/local/share/icons"
+			RENAME "sparselyIcon.png")
 
-# Install the desktop entry
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/sparsely.desktop"
-        DESTINATION "/usr/local/share/applications")
+	# Install the desktop entry
+	install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/sparsely.desktop"
+			DESTINATION "/usr/local/share/applications")
+endif()
 
-install(FILES   $<TARGET_FILE:Qt6::Core>
-                $<TARGET_FILE:Qt6::Widgets>
-                $<TARGET_FILE:Qt6::Gui>
-                $<TARGET_FILE:Qt6::PrintSupport>
-                $<TARGET_FILE:Qt6::Svg>
-                $<TARGET_FILE:Qt6::Xml>
-    DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+install(TARGETS ${exeName}
+    DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 install(FILES   $<TARGET_FILE:JKQTPlotter6::JKQTPlotter6>
                 $<TARGET_FILE:JKQTPlotter6::JKQTCommon6>
                 $<TARGET_FILE:JKQTPlotter6::JKQTMath6>
                 $<TARGET_FILE:JKQTPlotter6::JKQTMathText6>
-    DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+    DESTINATION ${CMAKE_INSTALL_BINDIR})
 
-install(DIRECTORY   ${CMAKE_PREFIX_PATH}/plugins/platforms
-    DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/plugins)
+install(DIRECTORY   "${CMAKE_SOURCE_DIR}/include/"
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+	
+install(DIRECTORY   "${CMAKE_CURRENT_SOURCE_DIR}/addons"
+    DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+qt_generate_deploy_app_script(
+    TARGET ${exeName}
+    OUTPUT_SCRIPT deploy_script
+    NO_TRANSLATIONS
+)
+
+install(SCRIPT ${deploy_script})
