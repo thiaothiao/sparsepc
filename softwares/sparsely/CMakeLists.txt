@@ -90,5 +90,4 @@ install(FILES   $<TARGET_FILE:JKQTPlotter6::JKQTPlotter6>
     DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 
 install(DIRECTORY   ${CMAKE_PREFIX_PATH}/plugins/platforms
-                    ${CMAKE_PREFIX_PATH}/plugins/styles
     DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/plugins)
