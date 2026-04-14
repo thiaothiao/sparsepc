@@ -66,34 +66,32 @@ add_custom_command(TARGET ${exeName} POST_BUILD
     COMMENT "Copying configurations to build directory"
 )
 
-include(GNUInstallDirs)
-
-if (LINUX)
-    message(STATUS "Running on Linux")
-	# Install the icon to the standard pixmaps directory
-	install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/images/logo_transparent.png"
-			DESTINATION "/usr/local/share/icons"
-			RENAME "sparselyIcon.png")
-
-	# Install the desktop entry
-	install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/sparsely.desktop"
-			DESTINATION "/usr/local/share/applications")
-endif()
-
 install(TARGETS ${exeName}
-    DESTINATION ${CMAKE_INSTALL_BINDIR})
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
 
 install(FILES   $<TARGET_FILE:JKQTPlotter6::JKQTPlotter6>
                 $<TARGET_FILE:JKQTPlotter6::JKQTCommon6>
                 $<TARGET_FILE:JKQTPlotter6::JKQTMath6>
                 $<TARGET_FILE:JKQTPlotter6::JKQTMathText6>
-    DESTINATION ${CMAKE_INSTALL_BINDIR})
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
 
-install(DIRECTORY   "${CMAKE_SOURCE_DIR}/include/"
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(DIRECTORY   "${CMAKE_SOURCE_DIR}/include"
+    DESTINATION ${CMAKE_INSTALL_PREFIX})
 	
 install(DIRECTORY   "${CMAKE_CURRENT_SOURCE_DIR}/addons"
-    DESTINATION ${CMAKE_INSTALL_BINDIR})
+    DESTINATION ${CMAKE_INSTALL_PREFIX})
+
+if (LINUX)
+    message(STATUS "Running on Linux")
+        # Install the icon to the standard pixmaps directory
+        install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/images/logo_transparent.png"
+                        DESTINATION "/usr/local/share/icons"
+                        RENAME "sparselyIcon.png")
+
+        # Install the desktop entry
+        install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/sparsely.desktop"
+                        DESTINATION "/usr/local/share/applications")
+endif()
 
 qt_generate_deploy_app_script(
     TARGET ${exeName}
