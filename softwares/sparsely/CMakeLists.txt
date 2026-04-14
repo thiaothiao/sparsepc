@@ -75,6 +75,15 @@ add_custom_command(TARGET ${exeName} POST_BUILD
     COMMENT "Copying include to build directory"
 )
 
+# Install the icon to the standard pixmaps directory
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/images/logo_transparent.png"
+        DESTINATION "share/icons"
+        RENAME "sparselyIcon.png")
+
+# Install the desktop entry
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/sparsely.desktop"
+        DESTINATION "share/applications")
+
 install(FILES   $<TARGET_FILE:Qt6::Core>
                 $<TARGET_FILE:Qt6::Widgets>
                 $<TARGET_FILE:Qt6::Gui>

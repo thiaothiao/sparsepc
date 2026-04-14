@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Sparsely
+Comment=SPARSELY Software - SPARSE principal component LaboratorY
+GenericName=SPARSELY Software - SPARSE principal component LaboratorY.
+Exec=/home/mthiao/Projects/install_output/sparsely
+Path=/home/mthiao/Projects/install_output
+Icon=sparselyIcon
+Terminal=false
+Categories=Utility;
+
