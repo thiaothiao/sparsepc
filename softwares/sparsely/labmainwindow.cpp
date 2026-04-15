@@ -85,25 +85,26 @@ namespace sparsely
         m_MainWidgetStackedLayout = new QStackedLayout(mainWidget);
         m_MainWidgetStackedLayout->setStackingMode(QStackedLayout::StackOne);
 
-        m_WelcomeWidget = new QWidget(this);
-        auto* welcomeWidgeLayout = new QHBoxLayout(m_WelcomeWidget);
+        //m_WelcomeWidget = new QWidget(this);
+        //auto* welcomeWidgeLayout = new QHBoxLayout(m_WelcomeWidget);
 
-        auto* topLevelLabel = new QLabel(this);
-        QPixmap pixmap(":/images/welcome.png");
-        topLevelLabel->setPixmap(pixmap);
-        topLevelLabel->setMask(pixmap.mask());
-        welcomeWidgeLayout->addWidget(topLevelLabel, 0, Qt::AlignCenter);
+        //auto* topLevelLabel = new QLabel(this);
+        //QPixmap pixmap(":/images/welcome.png");
+        //topLevelLabel->setPixmap(pixmap);
+        //topLevelLabel->setMask(pixmap.mask());
+        //welcomeWidgeLayout->addWidget(topLevelLabel, 0, Qt::AlignCenter);
 
-        m_WelcomeWidget->setStyleSheet("background-color: white;");
+        //m_WelcomeWidget->setStyleSheet("background-color: white;");
 
         m_LabWidget = new LabWidget(this);
 
         m_LabController = new LabController(m_LabModel, *m_LabWidget, this);
 
-        m_MainWidgetStackedLayout->addWidget(m_WelcomeWidget);
+        //m_MainWidgetStackedLayout->addWidget(m_WelcomeWidget);
         m_MainWidgetStackedLayout->addWidget(m_LabWidget);
 
-        m_MainWidgetStackedLayout->setCurrentWidget(m_WelcomeWidget);
+        //m_MainWidgetStackedLayout->setCurrentWidget(m_WelcomeWidget);
+        m_LabController->welcome();
 
         setCentralWidget(mainWidget);
     }
@@ -125,7 +126,7 @@ namespace sparsely
             if(m_LabWidget)
             {
                 m_LabController->init(fileName, true);
-                m_MainWidgetStackedLayout->setCurrentWidget(m_LabWidget);
+                //m_MainWidgetStackedLayout->setCurrentWidget(m_LabWidget);
             }
         }
     }
@@ -147,7 +148,7 @@ namespace sparsely
             if(m_LabWidget)
             {
                 m_LabController->init(fileName, false);
-                m_MainWidgetStackedLayout->setCurrentWidget(m_LabWidget);
+                //m_MainWidgetStackedLayout->setCurrentWidget(m_LabWidget);
             }
         }
     }

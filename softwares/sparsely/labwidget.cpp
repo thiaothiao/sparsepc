@@ -168,30 +168,81 @@ namespace sparsely
         }
         m_StandardPCGraphs.clear();
     }
-
-    void LabWidget::createWidget(const Preferences& preferences, const QString& addonName)
+    void LabWidget::welcome(const QString& addonName)
     {
-        m_Colors.reserve(preferences.componentsColors.size());
-        foreach(const auto& colorString, preferences.componentsColors)
-        {
-            m_Colors.push_back(colorString);
-        }
         auto* layout = new QGridLayout(this);
         auto* plotGroupbox = new QGroupBox(this);
         layout->addWidget(plotGroupbox, 0, 0);
         auto* plotGroupboxLayout = new QHBoxLayout(plotGroupbox);
         m_Plotter = new JKQTPlotter();
-        m_Plotter->setPlotUpdateEnabled(false);
+        m_Plotter->setToolbarEnabled(false);
+        m_Plotter->setMousePositionShown(false);
 
-        //m_Plotter->getPlotter()->setUseAntiAliasingForGraphs(true); // nicer (but slower) plotting
-        //m_Plotter->getPlotter()->setUseAntiAliasingForSystem(true); // nicer (but slower) plotting
-        //m_Plotter->getPlotter()->setUseAntiAliasingForText(true); // nicer (but slower) text rendering
+        m_Plotter->getPlotter()->setUseAntiAliasingForGraphs(true); // nicer (but slower) plotting
+        m_Plotter->getPlotter()->setUseAntiAliasingForSystem(true); // nicer (but slower) plotting
+        m_Plotter->getPlotter()->setUseAntiAliasingForText(true); // nicer (but slower) text rendering
 
-        m_StandardPCGraphs.reserve(preferences.componentsColors.size());
-        m_SparsePCGraphs.reserve(preferences.componentsColors.size());
-        JKQTPDatastore* datastore = m_Plotter->getDatastore();
-        m_ColumnX = datastore->addLinearColumn(m_N, 0, m_N-1);
+        auto* datastore = m_Plotter->getDatastore();
+        const auto n = 13;
+        const auto columnX = datastore->addLinearColumn(n, 0, n-1, "xWelcome");
+        sparsepc::Vector<double> redValues = sparsepc::Vector<double>::Constant(n, 0.01);
+        redValues[3] = 0.25;
+        redValues[4] = 0.5;
+        redValues[5] = 0.25;
+        redValues.normalize();
+        sparsepc::Vector<double> greenValues = sparsepc::Vector<double>::Constant(n, -0.01);
+        greenValues[7] = -0.25;
+        greenValues[8] = -0.5;
+        greenValues[9] = -0.25;
+        greenValues.normalize();
+
+        const auto columnRed = datastore->addColumn(n, "yWelcomeRed");
+        const auto columnGreen = datastore->addColumn(n, "yWelcomeGreen");
+        datastore->setAll(columnRed, static_cast<double>(0));
+        for (int i=0; i< n; ++i)
+        {
+            datastore->inc(columnRed, i, redValues[i]);
+            datastore->inc(columnGreen, i, greenValues[i]);
+        }
+
+        {
+            auto* redGraph = new JKQTPFilledCurveXGraph(m_Plotter);
+            auto col = QColor(QColor("red"));
+            redGraph->setLineStyle(Qt::SolidLine);
+            redGraph->setLineWidth(10);
+            redGraph->setLineColor(col);
+            redGraph->setFillMode(JKQTPFilledCurveXGraph::FillMode::SingleFilling);
+            col.setAlphaF(0.125f);
+            redGraph->setFillColor(col);
+            redGraph->fillStyleBelow().setFillColor(col);
+            redGraph->setBaseline(0.0);
+            redGraph->setXColumn(columnX);
+            redGraph->setYColumn(columnRed);
+            redGraph->setTitle("0");
+            m_Plotter->addGraph(redGraph);
+        }
+        {
+            auto* greenGraph = new JKQTPFilledCurveXGraph(m_Plotter);
+            auto col = QColor(QColor("green"));
+            greenGraph->setLineStyle(Qt::SolidLine);
+            greenGraph->setLineWidth(10);
+            greenGraph->setLineColor(col);
+            greenGraph->setFillMode(JKQTPFilledCurveXGraph::FillMode::SingleFilling);
+            col.setAlphaF(0.125f);
+            greenGraph->setFillColor(col);
+            greenGraph->fillStyleBelow().setFillColor(col);
+            greenGraph->setBaseline(0.0);
+            greenGraph->setXColumn(columnX);
+            greenGraph->setYColumn(columnGreen);
+            greenGraph->setTitle("1");
+            m_Plotter->addGraph(greenGraph);
+        }
+
+        m_Plotter->zoomToFit();
+        m_Plotter->resize(400,300);
         plotGroupboxLayout->addWidget(m_Plotter);
+        //m_Plotter->redrawPlot();
+
         auto* sliderOrProgressWidget = new QWidget(this);
         layout->addWidget(sliderOrProgressWidget, 1, 0);
         m_SliderOrProgressBarWidgetStackedLayout = new QStackedLayout(sliderOrProgressWidget);
@@ -200,7 +251,7 @@ namespace sparsely
         auto* sliderGroupBoxLayout = new QHBoxLayout(m_SliderGroupBox);
         m_Slider = new QSlider(Qt::Orientation::Horizontal, this);
         sliderGroupBoxLayout->addWidget(m_Slider);
-        m_Slider->setRange(1, m_N);
+        m_Slider->setRange(1, 12);
         m_Slider->setSingleStep(1);
         m_Slider->setMaximumHeight(18);
         setSliderColor("blue");
@@ -208,7 +259,7 @@ namespace sparsely
         auto* progressBarGroupBoxLayout = new QHBoxLayout(m_ProgressBarGroupBox);
         m_ProgressBar = new QProgressBar(this);
         progressBarGroupBoxLayout->addWidget(m_ProgressBar);
-        m_ProgressBar->setRange(0, m_N);
+        m_ProgressBar->setRange(0, 12);
         m_ProgressBar->setValue(0);
         m_ProgressBar->setTextVisible(false);
         m_ProgressBar->setMaximumHeight(10);
@@ -226,7 +277,6 @@ namespace sparsely
         m_PlotTypeComboBox = new QComboBox(this);
         m_PlotTypeComboBox->addItem(tr("Filled"), QVariant::fromValue(Enums::PlotType::FILLED));
         m_PlotTypeComboBox->addItem(tr("Impulses"), QVariant::fromValue(Enums::PlotType::IMPULSES));
-        m_PlotTypeComboBox->setCurrentIndex(preferences.plotType == Enums::PlotType::FILLED ? 0 : 1);
         plotTypeGroupBoxLayout->addWidget(m_PlotTypeComboBox);
         processingsGoupboxLayout->addWidget(plotTypeGroupBox);
         auto* methodGroupBox = new QGroupBox(tr("Method"), this);
@@ -240,6 +290,53 @@ namespace sparsely
         {
             m_MethodComboBox->addItem(addonName, QVariant::fromValue(Enums::Method::USERDYNAMICLIB));
         }
+        methodGroupBoxLayout->addWidget(m_MethodComboBox);
+        processingsGoupboxLayout->addWidget(methodGroupBox);
+        auto* actionGroupBox = new QGroupBox(tr("Sparse component"), this);
+        auto* actionGroupBoxLayout = new QHBoxLayout(actionGroupBox);
+        processingsGoupboxLayout->addWidget(actionGroupBox);
+        m_AddNewSparseComponentButton
+            = new QPushButton(tr("Add new"), this);
+        actionGroupBoxLayout->addWidget(m_AddNewSparseComponentButton);
+        m_RemoveLastSparseComponentButton =
+            new QPushButton(tr("Remove last"), this);
+        actionGroupBoxLayout->addWidget(m_RemoveLastSparseComponentButton);
+        //QObject::connect(m_ProgressBar, &QProgressBar::valueChanged,
+        //                 this, &LabWidget::updateProgressBarTitle);
+        //QObject::connect(m_Slider, qOverload<int>(&QSlider::valueChanged),
+        //                 this, &LabWidget::updateSliderTitle);
+        processingsGoupboxLayout->addStretch(1);
+    }
+
+    void LabWidget::createWidget(const Preferences& preferences, const QString& addonName)
+    {
+        m_Colors.reserve(preferences.componentsColors.size());
+        foreach(const auto& colorString, preferences.componentsColors)
+        {
+            m_Colors.push_back(colorString);
+        }
+        m_StandardPCGraphs.reserve(preferences.componentsColors.size());
+        m_SparsePCGraphs.reserve(preferences.componentsColors.size());
+        m_Plotter->setPlotUpdateEnabled(false);
+        m_Plotter->clearGraphs();
+        auto* datastore = m_Plotter->getDatastore();
+        datastore->deleteAllColumns("yWelcomeGreen");
+        datastore->deleteAllColumns("yWelcomeRed");
+        datastore->deleteAllColumns("xWelcome");
+        //datastore->clear();
+        m_Plotter->setToolbarEnabled(true);
+        m_Plotter->setMousePositionShown(true);
+        m_Plotter->getPlotter()->setUseAntiAliasingForGraphs(false);
+        m_Plotter->getPlotter()->setUseAntiAliasingForSystem(false);
+        m_Plotter->getPlotter()->setUseAntiAliasingForText(false);
+
+        m_ColumnX = datastore->addLinearColumn(m_N, 0, m_N-1);
+        m_Slider->setRange(1, m_N);
+        m_Slider->setSingleStep(1);
+        setSliderColor("blue");
+        m_ProgressBar->setRange(0, m_N);
+        m_ProgressBar->setValue(0);
+        m_PlotTypeComboBox->setCurrentIndex(preferences.plotType == Enums::PlotType::FILLED ? 0 : 1);
         switch (preferences.method)
         {// should use a map type ontainer!
         case Enums::Method::DCA:
@@ -274,22 +371,13 @@ namespace sparsely
         {
             m_MethodComboBox->setCurrentIndex(4);
         }
-        methodGroupBoxLayout->addWidget(m_MethodComboBox);
-        processingsGoupboxLayout->addWidget(methodGroupBox);
-        auto* actionGroupBox = new QGroupBox(tr("Sparse component"), this);
-        auto* actionGroupBoxLayout = new QHBoxLayout(actionGroupBox);
-        processingsGoupboxLayout->addWidget(actionGroupBox);
-        m_AddNewSparseComponentButton
-            = new QPushButton(tr("Add new"), this);
-        actionGroupBoxLayout->addWidget(m_AddNewSparseComponentButton);
-        m_RemoveLastSparseComponentButton =
-            new QPushButton(tr("Remove last"), this);
-        actionGroupBoxLayout->addWidget(m_RemoveLastSparseComponentButton);
+        //auto* actionGroupBox->setTitle(tr("Sparse component"));
+        //m_AddNewSparseComponentButton->setText(tr("Add new"));
+        //m_RemoveLastSparseComponentButton->setText((tr("Remove last"));
         QObject::connect(m_ProgressBar, &QProgressBar::valueChanged,
                          this, &LabWidget::updateProgressBarTitle);
         QObject::connect(m_Slider, qOverload<int>(&QSlider::valueChanged),
                          this, &LabWidget::updateSliderTitle);
-        processingsGoupboxLayout->addStretch(1);
     }
 
     void LabWidget::setPlotUpdateEnabled(bool enable)
@@ -306,8 +394,8 @@ namespace sparsely
     {
         m_Plotter->setAbsoluteX(static_cast<double>(0), static_cast<double>(m_N-1));
         m_Plotter->setAbsoluteY(static_cast<double>(-1), static_cast<double>(1));
-        m_Plotter->zoomToFit(true, false);
-        m_Plotter->resize(400,300);
+        m_Plotter->zoomToFit();
+        //m_Plotter->resize(400,300);
     }
 
     void LabWidget::reInitSlider(int value)

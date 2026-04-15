@@ -53,6 +53,7 @@ namespace sparsely
         void updateProgressBarTitle(int value);
 
     public:
+        void welcome(const QString& addonName);
         void createWidget(const Preferences& preferences, const QString& addonName);
         void setPlotUpdateEnabled(bool enable);
         void redrawPlot();
