@@ -35,7 +35,7 @@ namespace
     template<std::floating_point ScalarType>
     auto sortMatrix(const sparsepc::Matrix<ScalarType>& sigma)
     {
-        const sparsepc::Vector<ScalarType> v = sigma.colwise().lpNorm<1>().eval();
+        const sparsepc::Vector<ScalarType> v = sigma.cwiseAbs().colwise().sum().eval();
         return sortVector(v);
     }
 }
