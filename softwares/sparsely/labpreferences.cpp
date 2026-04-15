@@ -12,13 +12,11 @@ namespace
     void saveJson(const QJsonObject &obj, const QString &fileName)
     {
         QJsonDocument doc(obj);
-
         QFile file(fileName);
         if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
         {
             return;
         }
-
         file.write(doc.toJson());
         file.close();
     }
@@ -30,23 +28,18 @@ namespace
         {
             return QJsonObject{};
         }
-
         QByteArray rawData = file.readAll();
         file.close();
-
         QJsonParseError error;
         QJsonDocument document = QJsonDocument::fromJson(rawData, &error);
-
         if (document.isNull())
         {
             return QJsonObject{};
         }
-
         if (!document.isObject())
         {
             return QJsonObject{};
         }
-
         return document.object();
     }
 }

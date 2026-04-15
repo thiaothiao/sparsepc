@@ -356,9 +356,7 @@ namespace sparsely
         m_Plotter->setPlotUpdateEnabled(true);
         //m_Plotter->redrawPlot();
         auto* datastore = m_Plotter->getDatastore();
-
         m_ColumnX = datastore->addLinearColumn(m_N, 0, m_N-1);
-
         m_Slider->setRange(1, m_N);
         m_Slider->setSingleStep(1);
         setSliderColor("blue");
@@ -393,13 +391,11 @@ namespace sparsely
             break;
         }
         }
-
         if(!addonName.isEmpty() &&
             preferences.method == Enums::Method::USERDYNAMICLIB)
         {
             m_MethodComboBox->setCurrentIndex(4);
         }
-
         m_ProcessingsGoupboxStackedLayout->setCurrentWidget(m_ButtonsWidget);
         //auto* actionGroupBox->setTitle(tr("Sparse component"));
         //m_AddNewSparseComponentButton->setText(tr("Add new"));

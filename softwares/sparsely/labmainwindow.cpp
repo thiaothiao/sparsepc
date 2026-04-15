@@ -25,9 +25,7 @@ namespace
     {
         const QSettings settings(QString::fromStdString(std::string(sparsely::metadata::appVendor)),
             QString::fromStdString(std::string(sparsely::metadata::appName)));
-
         const auto defaultPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-
         return settings.value("lastFolder", defaultPath).toString();
     }
 }
@@ -84,7 +82,6 @@ namespace sparsely
     void LabMainWindow::newFile(bool checked)
     {
         const auto lastDir = getLastFolder();
-
         const auto fileName = QFileDialog::getOpenFileName(
             this,
             tr("Open File"),
@@ -105,7 +102,6 @@ namespace sparsely
     void LabMainWindow::open(bool checked)
     {
         const auto lastDir = getLastFolder();
-
         const auto fileName = QFileDialog::getOpenFileName(
             this,
             tr("Open File"),
@@ -131,9 +127,7 @@ namespace sparsely
             {
                 return;
             }
-
             const auto lastDir = getLastFolder();
-
             const auto fileName = QFileDialog::getSaveFileName(
                 this,
                 tr("Save File"),
