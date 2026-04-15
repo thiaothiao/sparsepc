@@ -4,20 +4,21 @@
 #include <algorithm>
 #include <concepts>
 
-#include "sparsepc/utils/matrix.hpp"
 #include "sparsepc/eigen/solver.hpp"
 #include "sparsepc/generic/solver.hpp"
 #include "sparsepc/progress/bar.hpp"
+#include "sparsepc/utils/matrix.hpp"
 
 namespace sparsepc
 {
     namespace linearmodel
     {
-        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType,
-             ProgressBarLike ProgressBarType = DummyProgressBar>
+        template <std::floating_point ScalarType,
+                  EigenSolverLike EigenSolverType,
+                  ProgressBarLike ProgressBarType = DummyProgressBar>
         class DcaModel final
         {
-        public:
+          public:
             using Scalar = ScalarType;
             using EigenSolver = EigenSolverType;
             using ProgressBar = ProgressBarType;
@@ -25,23 +26,23 @@ namespace sparsepc
             struct Param final
             {
                 Param(Index kInput = static_cast<Index>(1),
-                    const EigenSolver& eigenSolverInput = {},
-                    Scalar tInput = static_cast<Scalar>(1000000),
-                    Scalar toleranceInput = static_cast<Scalar>(1e-4),
-                    unsigned int maximumNumberOfIterationsInput = 10000U,
-                    Scalar zeroInput = static_cast<Scalar>(1e-6))
-                    :k{ kInput }, eigenSolver{ eigenSolverInput }, 
-                    t{ tInput }, tolerance{ toleranceInput },
-                    maximumNumberOfIterations{ maximumNumberOfIterationsInput },
-                    zero{ zeroInput }
+                      const EigenSolver &eigenSolverInput = {},
+                      Scalar tInput = static_cast<Scalar>(1000000),
+                      Scalar toleranceInput = static_cast<Scalar>(1e-4),
+                      unsigned int maximumNumberOfIterationsInput = 10000U,
+                      Scalar zeroInput = static_cast<Scalar>(1e-6))
+                    : k{kInput}, eigenSolver{eigenSolverInput}, t{tInput},
+                      tolerance{toleranceInput},
+                      maximumNumberOfIterations{maximumNumberOfIterationsInput},
+                      zero{zeroInput}
                 {
                 }
 
-                Param(const Param&) = default;
-                Param& operator=(const Param&) = default;
+                Param(const Param &) = default;
+                Param &operator=(const Param &) = default;
 
-                Param(Param&&) = default;
-                Param& operator=(Param&&) = default;
+                Param(Param &&) = default;
+                Param &operator=(Param &&) = default;
 
                 const Index k;
                 const EigenSolver eigenSolver;
@@ -51,123 +52,107 @@ namespace sparsepc
                 const Scalar zero;
             };
 
-            DcaModel(const Param& param = {}) 
-                : m_Param{param}
-            {
-            }
+            DcaModel(const Param &param = {}) : m_Param{param} {}
 
-            auto run(
-                const Matrix<Scalar>& sigma,
-                const Component<Scalar>& guess = {}) const;
+            auto run(const Matrix<Scalar> &sigma,
+                     const Component<Scalar> &guess = {}) const;
 
-            static auto runAll(
-                const Matrix<Scalar>& sigma,
-                const Param& param,
-                ProgressBar* progressBar);
+            static auto runAll(const Matrix<Scalar> &sigma, const Param &param,
+                               ProgressBar *progressBar);
 
             struct PrimalSolution
             {
                 PrimalSolution(const Index n = static_cast<Index>(0))
-                    : x{ Vector<Scalar>::Zero(n) },
-                    u{ Vector<Scalar>::Zero(n) }
+                    : x{Vector<Scalar>::Zero(n)}, u{Vector<Scalar>::Zero(n)}
                 {
                 }
 
-                PrimalSolution(const Vector<Scalar>& xInput,
-                    const Vector<Scalar>& uInput)
-                    : x{ xInput }, u{ uInput }
+                PrimalSolution(const Vector<Scalar> &xInput,
+                               const Vector<Scalar> &uInput)
+                    : x{xInput}, u{uInput}
                 {
                 }
 
-                PrimalSolution(Vector<Scalar>&& xInput,
-                    Vector<Scalar>&& uInput)
-                    : x{ std::move(xInput) }, u{ std::move(uInput) }
+                PrimalSolution(Vector<Scalar> &&xInput, Vector<Scalar> &&uInput)
+                    : x{std::move(xInput)}, u{std::move(uInput)}
                 {
                 }
 
-                PrimalSolution(const PrimalSolution&) = default;
-                PrimalSolution& operator=(const PrimalSolution&) = default;
+                PrimalSolution(const PrimalSolution &) = default;
+                PrimalSolution &operator=(const PrimalSolution &) = default;
 
-                PrimalSolution(PrimalSolution&&) = default;
-                PrimalSolution& operator=(PrimalSolution&&) = default;
+                PrimalSolution(PrimalSolution &&) = default;
+                PrimalSolution &operator=(PrimalSolution &&) = default;
 
                 Vector<Scalar> x;
                 Vector<Scalar> u;
             };
 
-        private:
+          private:
             struct DualSolution
             {
                 DualSolution(const Index n = static_cast<Index>(0))
-                    : q{ Vector<Scalar>::Zero(n) },
-                    y{ Vector<Scalar>::Zero(n) }
+                    : q{Vector<Scalar>::Zero(n)}, y{Vector<Scalar>::Zero(n)}
                 {
                 }
 
-                DualSolution(const Vector<Scalar>& qInput,
-                    const Vector<Scalar>& yInput)
-                    : q{ qInput }, y{ yInput }
+                DualSolution(const Vector<Scalar> &qInput,
+                             const Vector<Scalar> &yInput)
+                    : q{qInput}, y{yInput}
                 {
                 }
 
-                DualSolution(Vector<Scalar>&& qInput,
-                    Vector<Scalar>&& yInput)
-                    : q{ std::move(qInput) },
-                    y{ std::move(yInput) }
+                DualSolution(Vector<Scalar> &&qInput, Vector<Scalar> &&yInput)
+                    : q{std::move(qInput)}, y{std::move(yInput)}
                 {
                 }
 
-                DualSolution(const DualSolution&) = default;
-                DualSolution& operator=(const DualSolution&) = default;
+                DualSolution(const DualSolution &) = default;
+                DualSolution &operator=(const DualSolution &) = default;
 
-                DualSolution(DualSolution&&) = default;
-                DualSolution& operator=(DualSolution&&) = default;
+                DualSolution(DualSolution &&) = default;
+                DualSolution &operator=(DualSolution &&) = default;
 
                 Vector<Scalar> q;
                 Vector<Scalar> y;
             };
 
-            auto objectiveValue(
-                const Matrix<Scalar>& sigma,
-                const PrimalSolution& solution,
-                double t) const;
-            auto kktCandidate(
-                const Vector<Scalar>& q,
-                const Vector<Scalar>& y,
-                Scalar r) const;
-            auto computePhir(
-                const Vector<Scalar>& y,
-                Scalar r,
-                const PrimalSolution& solution) const;
-            auto dual(
-                const Matrix<Scalar>& sigma,
-                const PrimalSolution& solution,
-                double t) const;
-            auto primal(
-                [[maybe_unused]] const Matrix<Scalar>& sigma,
-                const DualSolution& dualSolution) const;
+            auto objectiveValue(const Matrix<Scalar> &sigma,
+                                const PrimalSolution &solution, double t) const;
+            auto kktCandidate(const Vector<Scalar> &q, const Vector<Scalar> &y,
+                              Scalar r) const;
+            auto computePhir(const Vector<Scalar> &y, Scalar r,
+                             const PrimalSolution &solution) const;
+            auto dual(const Matrix<Scalar> &sigma,
+                      const PrimalSolution &solution, double t) const;
+            auto primal([[maybe_unused]] const Matrix<Scalar> &sigma,
+                        const DualSolution &dualSolution) const;
 
             const Param m_Param;
         };
 
-        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
-        inline auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::objectiveValue(
-            const Matrix<Scalar>& sigma,
-            const PrimalSolution& solution,
+        template <std::floating_point ScalarType,
+                  EigenSolverLike EigenSolverType,
+                  ProgressBarLike ProgressBarType>
+        inline auto
+        DcaModel<ScalarType, EigenSolverType, ProgressBarType>::objectiveValue(
+            const Matrix<Scalar> &sigma, const PrimalSolution &solution,
             double t) const
         {
-            return -(solution.x.transpose() * sigma * solution.x).value() - t * solution.u.squaredNorm();
+            return -(solution.x.transpose() * sigma * solution.x).value() -
+                   t * solution.u.squaredNorm();
         }
 
-        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
+        template <std::floating_point ScalarType,
+                  EigenSolverLike EigenSolverType,
+                  ProgressBarLike ProgressBarType>
         auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::run(
-            const Matrix<Scalar>& sigma,
-            const Component<Scalar>& guess) const
+            const Matrix<Scalar> &sigma, const Component<Scalar> &guess) const
         {
             using Component = Component<Scalar>;
 
             const auto k = m_Param.k;
-            const auto& eigenSolver = m_Param.eigenSolver;
+            const auto &eigenSolver = m_Param.eigenSolver;
 
             const auto n = sigma.cols();
             if (k >= n || k < static_cast<Index>(0))
@@ -185,11 +170,11 @@ namespace sparsepc
             }
 
             Component component = (guess.vector.size() == static_cast<Index>(0))
-                ? eigenSolver.maximumValueElement(sigma)
-                : guess;
+                                      ? eigenSolver.maximumValueElement(sigma)
+                                      : guess;
 
             PrimalSolution primalSsolution(n);
-            primalSsolution.x = std::move(component.vector);//std::move()
+            primalSsolution.x = std::move(component.vector); // std::move()
             primalSsolution.u.setOnes();
 
             auto t = static_cast<Scalar>(2) * component.value;
@@ -220,10 +205,11 @@ namespace sparsepc
                         break;
                     }
 
-                    //std::cout << ".";
+                    // std::cout << ".";
                 }
 
-                if ((primalSsolution.u.array() > static_cast<Scalar>(1) - 1e-5).count() <= m_Param.k)
+                if ((primalSsolution.u.array() > static_cast<Scalar>(1) - 1e-5)
+                        .count() <= m_Param.k)
                 {
                     break;
                 }
@@ -235,26 +221,31 @@ namespace sparsepc
 
             component.vector.normalize();
 
-            component.value = (component.vector.transpose() * sigma * component.vector).value();
+            component.value =
+                (component.vector.transpose() * sigma * component.vector)
+                    .value();
 
             return component;
         }
 
-        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
+        template <std::floating_point ScalarType,
+                  EigenSolverLike EigenSolverType,
+                  ProgressBarLike ProgressBarType>
         auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::runAll(
-            const Matrix<Scalar>& sigma,
-            const Param& param,
-            ProgressBar* progressBar)
+            const Matrix<Scalar> &sigma, const Param &param,
+            ProgressBar *progressBar)
         {
             using Component = Component<Scalar>;
             using ComponentsContainer = ComponentsContainer<Component>;
 
-            const auto& eigenSolver = param.eigenSolver;
+            const auto &eigenSolver = param.eigenSolver;
             const auto n = sigma.cols();
 
             ComponentsContainer components;
 
-            const auto& component = components.emplace(n, eigenSolver.maximumValueElement(sigma)).first->second;
+            const auto &component =
+                components.emplace(n, eigenSolver.maximumValueElement(sigma))
+                    .first->second;
 
             if (n == 1)
             {
@@ -270,27 +261,31 @@ namespace sparsepc
             for (Index k = 1; k < n; ++k)
             {
                 components.at(k) = DcaModel<Scalar, EigenSolver, ProgressBar>{
-                    Param{ k, param.eigenSolver, param.t, param.tolerance, param.maximumNumberOfIterations, param.zero }
-                }.run(sigma, component);
+                    Param{k, param.eigenSolver, param.t, param.tolerance,
+                          param.maximumNumberOfIterations,
+                          param.zero}}.run(sigma, component);
             }
 
             return components;
         }
 
-        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
-        inline auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::dual(
-            const Matrix<Scalar>& sigma,
-            const PrimalSolution& solution,
+        template <std::floating_point ScalarType,
+                  EigenSolverLike EigenSolverType,
+                  ProgressBarLike ProgressBarType>
+        inline auto
+        DcaModel<ScalarType, EigenSolverType, ProgressBarType>::dual(
+            const Matrix<Scalar> &sigma, const PrimalSolution &solution,
             double t) const
         {
             return DualSolution{sigma * solution.x, t * solution.u};
         }
 
-        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
-        auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::kktCandidate(
-            const Vector<Scalar>& q,
-            const Vector<Scalar>& y,
-            Scalar r) const
+        template <std::floating_point ScalarType,
+                  EigenSolverLike EigenSolverType,
+                  ProgressBarLike ProgressBarType>
+        auto
+        DcaModel<ScalarType, EigenSolverType, ProgressBarType>::kktCandidate(
+            const Vector<Scalar> &q, const Vector<Scalar> &y, Scalar r) const
         {
             const auto zero = m_Param.zero;
             const auto k = m_Param.k;
@@ -298,40 +293,52 @@ namespace sparsepc
             const auto n = q.size();
 
             DcaModel::PrimalSolution solution(n);
-            auto& x = solution.x;
-            auto& u = solution.u;
+            auto &x = solution.x;
+            auto &u = solution.u;
 
             const Vector<Scalar> rMinusY = -(y.array() - r);
 
             const Vector<Scalar> alphar =
-                (rMinusY.array() > zero).select(rMinusY, static_cast<Scalar>(0));
+                (rMinusY.array() > zero)
+                    .select(rMinusY, static_cast<Scalar>(0));
 
             const Vector<Scalar> deltar =
-                (rMinusY.array() < -zero).select(-rMinusY, static_cast<Scalar>(0));
+                (rMinusY.array() < -zero)
+                    .select(-rMinusY, static_cast<Scalar>(0));
 
             const Vector<Scalar> qMinusAlpha = q - alphar;
 
             const Vector<Scalar> betar =
-                (qMinusAlpha.array() < -zero).select(-qMinusAlpha, static_cast<Scalar>(0));
+                (qMinusAlpha.array() < -zero)
+                    .select(-qMinusAlpha, static_cast<Scalar>(0));
 
             const auto twoLambdar =
-                (qMinusAlpha.array() > zero).select(qMinusAlpha, static_cast<Scalar>(0)).norm();
+                (qMinusAlpha.array() > zero)
+                    .select(qMinusAlpha, static_cast<Scalar>(0))
+                    .norm();
 
-            x =
-                (qMinusAlpha.array() > zero).select(qMinusAlpha, static_cast<Scalar>(0)) /
+            x = (qMinusAlpha.array() > zero)
+                    .select(qMinusAlpha, static_cast<Scalar>(0)) /
                 twoLambdar;
 
             x.normalize();
 
             Vector<Scalar> oneMinusX = -(x.array() - static_cast<Scalar>(1));
 
-            const auto yEqualRMask = (y.array() <= r + zero && y.array() >= r - zero);
+            const auto yEqualRMask =
+                (y.array() <= r + zero && y.array() >= r - zero);
 
-            const auto sumOneMinusXWuthRespectYEqualR = yEqualRMask.select(oneMinusX, static_cast<Scalar>(0)).sum();
+            const auto sumOneMinusXWuthRespectYEqualR =
+                yEqualRMask.select(oneMinusX, static_cast<Scalar>(0)).sum();
 
-            const Scalar pr = sumOneMinusXWuthRespectYEqualR <= zero ? static_cast<Scalar>(0)
-                : (k - (y.array() <= r + zero).select(x, static_cast<Scalar>(0)).sum()
-                    - (y.array() > r + zero).count()) / sumOneMinusXWuthRespectYEqualR;
+            const Scalar pr = sumOneMinusXWuthRespectYEqualR <= zero
+                                  ? static_cast<Scalar>(0)
+                                  : (k -
+                                     (y.array() <= r + zero)
+                                         .select(x, static_cast<Scalar>(0))
+                                         .sum() -
+                                     (y.array() > r + zero).count()) /
+                                        sumOneMinusXWuthRespectYEqualR;
 
             u = Vector<Scalar>::Ones(n);
             u = (y.array() < r).select(x, u);
@@ -340,35 +347,43 @@ namespace sparsepc
             return solution;
         }
 
-        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
-        auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::computePhir(
-            const Vector<Scalar>& y,
-            Scalar r,
-            const PrimalSolution& solution) const
+        template <std::floating_point ScalarType,
+                  EigenSolverLike EigenSolverType,
+                  ProgressBarLike ProgressBarType>
+        auto
+        DcaModel<ScalarType, EigenSolverType, ProgressBarType>::computePhir(
+            const Vector<Scalar> &y, Scalar r,
+            const PrimalSolution &solution) const
         {
             const auto zero = m_Param.zero;
             const auto k = m_Param.k;
 
-            const Scalar phir = k
-                - (y.array() <= r + zero).select(solution.x, static_cast<Scalar>(0)).sum()
-                - (y.array() > r + zero).count();
+            const Scalar phir = k -
+                                (y.array() <= r + zero)
+                                    .select(solution.x, static_cast<Scalar>(0))
+                                    .sum() -
+                                (y.array() > r + zero).count();
 
             const auto aMask = (y.array() <= r + zero && y.array() >= r - zero);
-            const Scalar rhs = aMask.count() - aMask.select(solution.x, static_cast<Scalar>(0)).sum();
+            const Scalar rhs =
+                aMask.count() -
+                aMask.select(solution.x, static_cast<Scalar>(0)).sum();
 
             return std::pair<Scalar, Scalar>{phir, rhs};
         }
 
-        template<std::floating_point ScalarType, EigenSolverLike EigenSolverType, ProgressBarLike ProgressBarType>
+        template <std::floating_point ScalarType,
+                  EigenSolverLike EigenSolverType,
+                  ProgressBarLike ProgressBarType>
         auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::primal(
-            [[maybe_unused]] const Matrix<Scalar>& sigma,
-            const DualSolution& dualSolution) const
+            [[maybe_unused]] const Matrix<Scalar> &sigma,
+            const DualSolution &dualSolution) const
         {
             const auto zero = m_Param.zero;
             const auto k = m_Param.k;
 
             const Vector<Scalar> q = dualSolution.q.cwiseAbs();
-            const auto& y = dualSolution.y;
+            const auto &y = dualSolution.y;
 
             const auto n = y.size();
 
@@ -384,8 +399,10 @@ namespace sparsepc
 
             const Vector<Scalar> qPlusY = q + y;
 
-            const auto M = (q.array() > zero).select(qPlusY, static_cast<Scalar>(0)).maxCoeff();
-            
+            const auto M = (q.array() > zero)
+                               .select(qPlusY, static_cast<Scalar>(0))
+                               .maxCoeff();
+
             const Index Omega = (y.array() >= M - zero).count();
             if (Omega >= k)
             {
@@ -395,27 +412,30 @@ namespace sparsepc
                 return solution;
             }
 
-            const auto qStrictNonnegAndQPlusYEqualMMask = (q.array() > zero
-                && qPlusY.array() >= M - zero
-                && qPlusY.array() <= M + zero);
+            const auto qStrictNonnegAndQPlusYEqualMMask =
+                (q.array() > zero && qPlusY.array() >= M - zero &&
+                 qPlusY.array() <= M + zero);
 
-            const auto qEqualZeroAndYGreaterThanMMask = (q.array() <= zero && y.array() >= M - zero);
+            const auto qEqualZeroAndYGreaterThanMMask =
+                (q.array() <= zero && y.array() >= M - zero);
 
             const Index Delta = qStrictNonnegAndQPlusYEqualMMask.count();
 
             if ((k - Omega) * (k - Omega) <= Delta)
             {
-                const auto theta = static_cast<Scalar>(k - Omega) / static_cast<Scalar>(Delta);
+                const auto theta =
+                    static_cast<Scalar>(k - Omega) / static_cast<Scalar>(Delta);
 
                 PrimalSolution solution(n);
-                auto& x = solution.x;
-                auto& u = solution.u;
+                auto &x = solution.x;
+                auto &u = solution.u;
 
                 x = qStrictNonnegAndQPlusYEqualMMask.select(theta, x);
 
                 u = qStrictNonnegAndQPlusYEqualMMask.select(theta, u);
 
-                u = qEqualZeroAndYGreaterThanMMask.select(static_cast<Scalar>(1), u);
+                u = qEqualZeroAndYGreaterThanMMask.select(
+                    static_cast<Scalar>(1), u);
 
                 x.array() *= dualSolution.q.array().sign();
 
@@ -433,7 +453,7 @@ namespace sparsepc
                     solution.x.array() *= dualSolution.q.array().sign();
 
                     return solution;
-                }                
+                }
             }
 
             auto bm = static_cast<Scalar>(0);
@@ -447,7 +467,7 @@ namespace sparsepc
                 {
                     break;
                 }
-                
+
                 auto solution = kktCandidate(q, y, yij);
 
                 const auto [phir, rhs] = computePhir(y, yij, solution);
@@ -463,7 +483,7 @@ namespace sparsepc
 
                     bmPlus1 = yij;
                 }
-                else //if (phir < -zero)
+                else // if (phir < -zero)
                 {
                     bm = yij;
                 }
@@ -487,22 +507,30 @@ namespace sparsepc
                 const auto minBound = std::max(bm, al);
                 const auto maxBound = std::min(bmPlus1, alPlus1);
 
-                const auto iInIlMask = (y.array() <= bm + zero && qPlusY.array() > al + zero);
+                const auto iInIlMask =
+                    (y.array() <= bm + zero && qPlusY.array() > al + zero);
                 const Scalar sum = iInIlMask.count();
-                const auto sumQPlusY = iInIlMask.select(qPlusY, static_cast<Scalar>(0)).sum();
+                const auto sumQPlusY =
+                    iInIlMask.select(qPlusY, static_cast<Scalar>(0)).sum();
 
                 const auto Al = kMinusSumSquared * sum - sum * sum;
                 const auto BPrimel = (-kMinusSumSquared + sum) * sumQPlusY;
-                const auto Cl = kMinusSumSquared
-                    * (iInIlMask.select(qPlusY.cwiseAbs2(), static_cast<Scalar>(0)).sum()
-                        + (y.array() > bm + zero).select(q.cwiseAbs2(), static_cast<Scalar>(0)).sum())
-                    - sumQPlusY * sumQPlusY;
+                const auto Cl =
+                    kMinusSumSquared *
+                        (iInIlMask
+                             .select(qPlusY.cwiseAbs2(), static_cast<Scalar>(0))
+                             .sum() +
+                         (y.array() > bm + zero)
+                             .select(q.cwiseAbs2(), static_cast<Scalar>(0))
+                             .sum()) -
+                    sumQPlusY * sumQPlusY;
 
                 if (std::abs(Al) <= zero)
                 {
                     if (std::abs(BPrimel) > zero)
                     {
-                        const auto r0 = -static_cast<Scalar>(0.5) * Cl / BPrimel;
+                        const auto r0 =
+                            -static_cast<Scalar>(0.5) * Cl / BPrimel;
                         if (minBound <= r0 && r0 <= maxBound)
                         {
                             r = r0;
@@ -516,7 +544,7 @@ namespace sparsepc
 
                     if (std::abs(Deltal) <= zero)
                     {
-                        const auto r0 = - BPrimel / Al;
+                        const auto r0 = -BPrimel / Al;
 
                         if (minBound - zero <= r0 && r0 <= maxBound + zero)
                         {
@@ -555,8 +583,8 @@ namespace sparsepc
             return DcaModel::PrimalSolution{};
         }
 
-        template<std::floating_point ScalarType>
+        template <std::floating_point ScalarType>
         using Dca = SparsePC<DcaModel<ScalarType, EigenSolver<ScalarType>>>;
-    }
-}
-#endif //SPARSEPC_DCA_SOLVER_HPP
+    } // namespace linearmodel
+} // namespace sparsepc
+#endif // SPARSEPC_DCA_SOLVER_HPP

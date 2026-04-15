@@ -1,29 +1,33 @@
 #include "labmodel.h"
 
-#include <utility>
 #include <ranges>
+#include <utility>
 
-#include <QFile>
-#include <QString>
 #include <QDataStream>
 #include <QDir>
+#include <QFile>
+#include <QString>
 
 namespace
 {
     using BackwardGSPA = sparsepc::linearmodel::SparsePC<
-        sparsepc::linearmodel::BackwardGspcaModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
+        sparsepc::linearmodel::BackwardGspcaModel<
+            double, sparsepc::EigenSolver<double>, QProgressBar>>;
 
     using ForwardGSPCA = sparsepc::linearmodel::SparsePC<
-        sparsepc::linearmodel::ForwardGspcaModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
+        sparsepc::linearmodel::ForwardGspcaModel<
+            double, sparsepc::EigenSolver<double>, QProgressBar>>;
 
-    using DCA = sparsepc::linearmodel::SparsePC<
-        sparsepc::linearmodel::DcaModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
+    using DCA = sparsepc::linearmodel::SparsePC<sparsepc::linearmodel::DcaModel<
+        double, sparsepc::EigenSolver<double>, QProgressBar>>;
 
     using CustomSolver = sparsepc::linearmodel::SparsePC<
-        sparsepc::linearmodel::CustomSolverModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
+        sparsepc::linearmodel::CustomSolverModel<
+            double, sparsepc::EigenSolver<double>, QProgressBar>>;
 
     using DynamicLibSolver = sparsepc::linearmodel::SparsePC<
-        sparsepc::linearmodel::DynamicLibSolverModel<double, sparsepc::EigenSolver<double>, QProgressBar>>;
+        sparsepc::linearmodel::DynamicLibSolverModel<
+            double, sparsepc::EigenSolver<double>, QProgressBar>>;
 
     auto getPluginList()
     {
@@ -32,25 +36,26 @@ namespace
         filters << "*.dll" << "*.so" << "*.dylib";
         return path.entryInfoList(filters, QDir::Files | QDir::NoDotAndDotDot);
     }
-}
+} // namespace
 
 namespace sparsely
 {
     LabModel::LabModel()
         : m_Sigma{}, m_ValidatedComponents{}, m_SparsePCs{}, m_StandardPCs{},
-            m_N{0}, m_Trace{0.0}
+          m_N{0}, m_Trace{0.0}
     {
         const auto pluginList = getPluginList();
-        if(!pluginList.empty())
+        if (!pluginList.empty())
         {
             m_DynamicLibSolverLoaders.reserve(pluginList.size());
             m_DynamicLibSolverNames.reserve(pluginList.size());
-            foreach(const auto& fileInfo, pluginList)
+            foreach (const auto &fileInfo, pluginList)
             {
-                QString noExtensionAbsolutePath = QDir(fileInfo.absolutePath()).filePath(fileInfo.baseName());
+                QString noExtensionAbsolutePath =
+                    QDir(fileInfo.absolutePath()).filePath(fileInfo.baseName());
                 m_DynamicLibSolverLoaders.push_back(
                     std::make_unique<QLibrary>(noExtensionAbsolutePath));
-                if(m_DynamicLibSolverLoaders.back()->load())
+                if (m_DynamicLibSolverLoaders.back()->load())
                 {
                     m_DynamicLibSolverNames.push_back(fileInfo.baseName());
                 }
@@ -62,15 +67,15 @@ namespace sparsely
         }
     }
 
-    bool LabModel::init(const QString& fileName, bool newProject)
+    bool LabModel::init(const QString &fileName, bool newProject)
     {
-        if(m_Sigma.size() != 0)
+        if (m_Sigma.size() != 0)
         {
             // TODO should popup a project already loaded.
             return false;
         }
 
-        if(newProject)
+        if (newProject)
         {
             m_Sigma = sparsepc::openData<double>(fileName.toStdString(), ';');
             m_N = m_Sigma.cols();
@@ -93,75 +98,81 @@ namespace sparsely
     {
         using Index = sparsepc::Index;
         const DCA::Param param{{static_cast<Index>(m_N),
-                                static_cast<Index>(m_N), static_cast<Index>(m_N)} };
-        auto components = DCA{ param }.run(m_Sigma);
+                                static_cast<Index>(m_N),
+                                static_cast<Index>(m_N)}};
+        auto components = DCA{param}.run(m_Sigma);
         m_StandardPCs.clear();
         m_StandardPCs.reserve(components.size());
-        for (int j=0; j < components.size(); ++j)
+        for (int j = 0; j < components.size(); ++j)
         {
             m_StandardPCs.emplace_back();
-            auto& standardPC = m_StandardPCs.back();
+            auto &standardPC = m_StandardPCs.back();
             standardPC.iWinner = m_N;
-            auto& component = components[j];
+            auto &component = components[j];
             component.state = sparsepc::ComponentState::Validated;
             standardPC.candidates.emplace(m_N, std::move(components[j]));
         }
     }
 
-    Nominees& LabModel::computeSparsePC(const Enums::Method& method, QProgressBar* progressBar)
+    Nominees &LabModel::computeSparsePC(const Enums::Method &method,
+                                        QProgressBar *progressBar)
     {
-        auto& sparsePC = m_SparsePCs.emplace_back();
-        sparsePC.iWinner = m_N/2;
+        auto &sparsePC = m_SparsePCs.emplace_back();
+        sparsePC.iWinner = m_N / 2;
         switch (method)
         {
-        case Enums::Method::DCA:
-        {
+        case Enums::Method::DCA: {
             sparsePC.candidates = DCA::computeNextComponentCandidates(
-                m_Sigma, DCA::ModelParam(1), m_ValidatedComponents, progressBar);
+                m_Sigma, DCA::ModelParam(1), m_ValidatedComponents,
+                progressBar);
             break;
         }
-        case Enums::Method::BGSPCA:
-        {
+        case Enums::Method::BGSPCA: {
             sparsePC.candidates = BackwardGSPA::computeNextComponentCandidates(
-                m_Sigma, BackwardGSPA::ModelParam(1), m_ValidatedComponents, progressBar);
+                m_Sigma, BackwardGSPA::ModelParam(1), m_ValidatedComponents,
+                progressBar);
             break;
         }
-        case Enums::Method::FGSPCA:
-        {
+        case Enums::Method::FGSPCA: {
             sparsePC.candidates = ForwardGSPCA::computeNextComponentCandidates(
-                m_Sigma, ForwardGSPCA::ModelParam(1), m_ValidatedComponents, progressBar);
+                m_Sigma, ForwardGSPCA::ModelParam(1), m_ValidatedComponents,
+                progressBar);
             break;
         }
-        case Enums::Method::CUSTOM:
-        {
+        case Enums::Method::CUSTOM: {
             sparsePC.candidates = CustomSolver::computeNextComponentCandidates(
-                m_Sigma, CustomSolver::ModelParam(1), m_ValidatedComponents, progressBar);
+                m_Sigma, CustomSolver::ModelParam(1), m_ValidatedComponents,
+                progressBar);
             break;
         }
-        case Enums::Method::USERDYNAMICLIB:
-        {
-            auto& library = m_DynamicLibSolverLoaders.at(0);
-            if(library)
+        case Enums::Method::USERDYNAMICLIB: {
+            auto &library = m_DynamicLibSolverLoaders.at(0);
+            if (library)
             {
                 auto computeSparseEigenVector =
-                    (ComputeSparseEigenVector)library->resolve("computeSparseEigenVector");
+                    (ComputeSparseEigenVector)library->resolve(
+                        "computeSparseEigenVector");
                 if (computeSparseEigenVector)
                 {
-                    sparsePC.candidates = DynamicLibSolver::computeNextComponentCandidates(
-                        m_Sigma, DynamicLibSolver::ModelParam(computeSparseEigenVector), m_ValidatedComponents, progressBar);
+                    sparsePC.candidates =
+                        DynamicLibSolver::computeNextComponentCandidates(
+                            m_Sigma,
+                            DynamicLibSolver::ModelParam(
+                                computeSparseEigenVector),
+                            m_ValidatedComponents, progressBar);
                 }
             }
             break;
         }
-        default:
-        {
+        default: {
             sparsePC.candidates = DCA::computeNextComponentCandidates(
-                m_Sigma, DCA::ModelParam(1), m_ValidatedComponents, progressBar);
+                m_Sigma, DCA::ModelParam(1), m_ValidatedComponents,
+                progressBar);
             break;
         }
         }
 
-        for(auto& [k, candidate]: sparsePC.candidates)
+        for (auto &[k, candidate] : sparsePC.candidates)
         {
             candidate.state = sparsepc::ComponentState::Unvalidated;
         }
@@ -171,14 +182,15 @@ namespace sparsely
 
     bool LabModel::removeLastSparsePC()
     {
-        if(m_SparsePCs.empty())
+        if (m_SparsePCs.empty())
         {
             return false;
         }
 
-        if(!m_ValidatedComponents.empty())
+        if (!m_ValidatedComponents.empty())
         {
-            m_ValidatedComponents.back().get().state = sparsepc::ComponentState::Unvalidated;
+            m_ValidatedComponents.back().get().state =
+                sparsepc::ComponentState::Unvalidated;
             m_ValidatedComponents.pop_back();
         }
         m_SparsePCs.pop_back();
@@ -188,31 +200,34 @@ namespace sparsely
 
     void LabModel::validateCurrentSparsePC()
     {
-        if(!m_SparsePCs.empty())
-        {// validate current selected sparse component
-            auto& candidates = m_SparsePCs.back().candidates;
+        if (!m_SparsePCs.empty())
+        { // validate current selected sparse component
+            auto &candidates = m_SparsePCs.back().candidates;
             const auto iWinner = m_SparsePCs.back().iWinner;
 
             m_ValidatedComponents.push_back(candidates.at(iWinner));
-            m_ValidatedComponents.back().get().state = sparsepc::ComponentState::Validated;
+            m_ValidatedComponents.back().get().state =
+                sparsepc::ComponentState::Validated;
         }
     }
 
     double LabModel::computeValidatedCumulativeVariance() const
     {
-        return std::ranges::fold_left
-        (
-            m_ValidatedComponents,
-            0.0,
-            [](double done, const sparsepc::Component<double>& c) { return done + c.value; }
-        );
+        return std::ranges::fold_left(
+            m_ValidatedComponents, 0.0,
+            [](double done, const sparsepc::Component<double> &c) {
+                return done + c.value;
+            });
     }
 
     double LabModel::computeCumulativeVariance() const
     {
-        return m_SparsePCs.empty() ? computeValidatedCumulativeVariance()
-            : (computeValidatedCumulativeVariance()
-                + m_SparsePCs.back().candidates.at(m_SparsePCs.back().iWinner).value);
+        return m_SparsePCs.empty()
+                   ? computeValidatedCumulativeVariance()
+                   : (computeValidatedCumulativeVariance() +
+                      m_SparsePCs.back()
+                          .candidates.at(m_SparsePCs.back().iWinner)
+                          .value);
     }
 
     int LabModel::getiWinner() const
@@ -225,15 +240,12 @@ namespace sparsely
         return m_ValidatedComponents.size();
     }
 
-    int LabModel::getN() const
-    {
-        return m_N;
-    }
+    int LabModel::getN() const { return m_N; }
 
     QString LabModel::getAddonName() const
     {
         return m_DynamicLibSolverNames.empty() ? ""
-            : m_DynamicLibSolverNames.at(0);
+                                               : m_DynamicLibSolverNames.at(0);
     }
 
     double LabModel::computeVarianceRatio(double variance) const
@@ -246,19 +258,21 @@ namespace sparsely
     {
         out << static_cast<qint32>(user.iWinner);
         out << static_cast<qint32>(user.candidates.size());
-        for(auto& [k, component]:user.candidates)
+        for (auto &[k, component] : user.candidates)
         {
             out << static_cast<qint32>(k);
             out << static_cast<qint32>(std::to_underlying(component.state));
             out << static_cast<double>(component.value);
             out << static_cast<qint32>(component.vector.size());
-            out.writeRawData(reinterpret_cast<const char*>(
-                                 component.vector.data()), component.vector.size() * sizeof(double));
+            out.writeRawData(
+                reinterpret_cast<const char *>(component.vector.data()),
+                component.vector.size() * sizeof(double));
             out << static_cast<qint32>(component.q.size());
-            if(component.q.size() != 0)
+            if (component.q.size() != 0)
             {
-                out.writeRawData(reinterpret_cast<const char*>(
-                                     component.q.data()), component.q.size() * sizeof(double));
+                out.writeRawData(
+                    reinterpret_cast<const char *>(component.q.data()),
+                    component.q.size() * sizeof(double));
             }
         }
         return out;
@@ -270,11 +284,11 @@ namespace sparsely
         in >> user.iWinner;
         qint32 candidatesSize = -1;
         in >> candidatesSize;
-        for(qint32 j = 0; j < candidatesSize; ++j)
+        for (qint32 j = 0; j < candidatesSize; ++j)
         {
             qint32 valInt = -1;
             in >> valInt;
-            auto& component = user.candidates[valInt];
+            auto &component = user.candidates[valInt];
             in >> valInt;
             component.state = static_cast<sparsepc::ComponentState>(valInt);
             auto val = static_cast<double>(-1);
@@ -282,24 +296,24 @@ namespace sparsely
             component.value = val;
             in >> valInt;
             component.vector = sparsepc::Vector<double>(valInt);
-            in.readRawData(reinterpret_cast<char*>(
-                               component.vector.data()), valInt * sizeof(double));
+            in.readRawData(reinterpret_cast<char *>(component.vector.data()),
+                           valInt * sizeof(double));
 
             in >> valInt;
-            if(valInt != 0)
+            if (valInt != 0)
             {
                 component.q = sparsepc::Vector<double>(valInt);
-                in.readRawData(reinterpret_cast<char*>(
-                                   component.q.data()), valInt * sizeof(double));
+                in.readRawData(reinterpret_cast<char *>(component.q.data()),
+                               valInt * sizeof(double));
             }
         }
 
         return in;
     }
 
-    void LabModel::saveProject(const QString& filename) const
+    void LabModel::saveProject(const QString &filename) const
     {
-        if(m_Sigma.size() == 0)
+        if (m_Sigma.size() == 0)
         {
             // should popup we do not save an empty project.
             return;
@@ -307,20 +321,23 @@ namespace sparsely
 
         QFile file(filename);
         if (file.open(QIODevice::WriteOnly))
-        {// Serialization
+        { // Serialization
             QDataStream out(&file);
-            out.setVersion(QDataStream::Qt_6_0);// version for forward/backward compatibility
+            out.setVersion(QDataStream::Qt_6_0); // version for forward/backward
+                                                 // compatibility
             out << static_cast<qint32>(m_N);
-            out.writeRawData(reinterpret_cast<const char*>(m_Sigma.data()), m_N * m_N * sizeof(double));
-            const auto standardPCsSize = static_cast<qint32>(m_StandardPCs.size());
+            out.writeRawData(reinterpret_cast<const char *>(m_Sigma.data()),
+                             m_N * m_N * sizeof(double));
+            const auto standardPCsSize =
+                static_cast<qint32>(m_StandardPCs.size());
             out << standardPCsSize;
-            for(qint32 j = 0; j < standardPCsSize; ++j)
+            for (qint32 j = 0; j < standardPCsSize; ++j)
             {
-                out << m_StandardPCs[j] ;
+                out << m_StandardPCs[j];
             }
             const auto sparsePCsSize = static_cast<qint32>(m_SparsePCs.size());
             out << sparsePCsSize;
-            for(qint32 j = 0; j < sparsePCsSize; ++j)
+            for (qint32 j = 0; j < sparsePCsSize; ++j)
             {
                 out << m_SparsePCs[j];
             }
@@ -328,32 +345,33 @@ namespace sparsely
         }
     }
 
-    void LabModel::loadProject(const QString& fileName)
+    void LabModel::loadProject(const QString &fileName)
     {
         QFile file(fileName);
         if (file.open(QIODevice::ReadOnly))
-        {// Deserialization
+        { // Deserialization
             QDataStream in(&file);
             in.setVersion(QDataStream::Qt_6_0);
             qint32 intVal = -1;
             in >> intVal;
             m_N = intVal;
             m_Sigma.resize(m_N, m_N);
-            in.readRawData(reinterpret_cast<char*>(m_Sigma.data()), m_N * m_N * sizeof(double));
+            in.readRawData(reinterpret_cast<char *>(m_Sigma.data()),
+                           m_N * m_N * sizeof(double));
             m_Trace = m_Sigma.trace();
             m_StandardPCs.clear();
             m_StandardPCs.reserve(m_N);
             m_SparsePCs.clear();
             m_SparsePCs.reserve(m_N);
             in >> intVal;
-            for(qint32 j = 0; j < intVal; ++j)
+            for (qint32 j = 0; j < intVal; ++j)
             {
                 Nominees Nominees;
                 in >> Nominees;
                 m_StandardPCs.push_back(std::move(Nominees));
             }
             in >> intVal;
-            for(qint32 j = 0; j < intVal; ++j)
+            for (qint32 j = 0; j < intVal; ++j)
             {
                 Nominees Nominees;
                 in >> Nominees;
@@ -362,4 +380,4 @@ namespace sparsely
             file.close();
         }
     }
-}
+} // namespace sparsely

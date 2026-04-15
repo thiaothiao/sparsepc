@@ -2,36 +2,36 @@
 #define SPARSEPC_MAINWINDOW_HPP
 
 #include <QMainWindow>
-#include <QWidget>
 #include <QStackedLayout>
+#include <QWidget>
 
+#include "labcontroller.h"
 #include "labmodel.h"
 #include "labwidget.h"
-#include "labcontroller.h"
 
 namespace sparsely
 {
-    class LabMainWindow final: public QMainWindow
+    class LabMainWindow final : public QMainWindow
     {
         Q_OBJECT
 
-    public slots:
+      public slots:
         void newFile(bool checked);
         void open(bool checked);
         void save(bool checked);
         void close(bool checked) const;
         void showPreferences();
 
-    public:
+      public:
         LabMainWindow(QWidget *parent = nullptr);
 
-    private:
+      private:
         void closeEvent(QCloseEvent *event) override;
-        QStackedLayout* m_MainWidgetStackedLayout;
+        QStackedLayout *m_MainWidgetStackedLayout;
         LabModel m_LabModel;
-        LabWidget* m_LabWidget;
-        LabController* m_LabController;
+        LabWidget *m_LabWidget;
+        LabController *m_LabController;
     };
-}
+} // namespace sparsely
 
-#endif //SPARSEPC_MAINWINDOW_HPP
+#endif // SPARSEPC_MAINWINDOW_HPP

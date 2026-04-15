@@ -9,7 +9,7 @@ namespace sparsely
     {
         Q_OBJECT
 
-    public:
+      public:
         enum class Method : std::uint8_t
         {
             DCA = 0U,
@@ -28,5 +28,5 @@ namespace sparsely
         Q_ENUM(Method)
         Q_ENUM(PlotType)
     };
-}
-#endif //SPARSEPC_ENUMS_HPP
+} // namespace sparsely
+#endif // SPARSEPC_ENUMS_HPP

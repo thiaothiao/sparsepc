@@ -1,15 +1,15 @@
 #ifndef SPARSEPC_MODEL_HPP
 #define SPARSEPC_MODEL_HPP
 
-#include <vector>
-#include <unordered_map>
 #include <functional>
 #include <memory>
+#include <unordered_map>
+#include <vector>
 
+#include <QLibrary>
+#include <QProgressBar>
 #include <QString>
 #include <QVector>
-#include <QProgressBar>
-#include <QLibrary>
 
 #include "sparsepc/core.hpp"
 
@@ -19,28 +19,27 @@ namespace sparsely
 {
     struct Nominees final
     {
-        Nominees()
-            :iWinner{-1}, candidates{}
-        {
-        }
-        Nominees(const Nominees&) = default;
-        Nominees& operator=(const Nominees&) = default;
-        Nominees(Nominees&&) = default;
-        Nominees& operator=(Nominees&&) = default;
+        Nominees() : iWinner{-1}, candidates{} {}
+        Nominees(const Nominees &) = default;
+        Nominees &operator=(const Nominees &) = default;
+        Nominees(Nominees &&) = default;
+        Nominees &operator=(Nominees &&) = default;
 
         int iWinner;
-        std::unordered_map<sparsepc::Index, sparsepc::Component<double>> candidates;
+        std::unordered_map<sparsepc::Index, sparsepc::Component<double>>
+            candidates;
     };
 
     class LabModel final
     {
-    public:
+      public:
         LabModel();
-        bool init(const QString& fileName, bool newProject = true);
-        void saveProject(const QString& fileName) const;
-        void loadProject(const QString& fileName);
+        bool init(const QString &fileName, bool newProject = true);
+        void saveProject(const QString &fileName) const;
+        void loadProject(const QString &fileName);
         void computeStandardPCs();
-        Nominees& computeSparsePC(const Enums::Method& method, QProgressBar* progressBar);
+        Nominees &computeSparsePC(const Enums::Method &method,
+                                  QProgressBar *progressBar);
         bool removeLastSparsePC();
         double computeValidatedCumulativeVariance() const;
         double computeCumulativeVariance() const;
@@ -51,15 +50,17 @@ namespace sparsely
         QString getAddonName() const;
         double computeVarianceRatio(double variance) const;
 
-        std::vector<std::reference_wrapper<sparsepc::Component<double>>> m_ValidatedComponents;
+        std::vector<std::reference_wrapper<sparsepc::Component<double>>>
+            m_ValidatedComponents;
         std::vector<Nominees> m_SparsePCs;
         std::vector<Nominees> m_StandardPCs;
-    private:
+
+      private:
         sparsepc::Matrix<double> m_Sigma;
         sparsepc::Index m_N;
         double m_Trace;
         std::vector<std::unique_ptr<QLibrary>> m_DynamicLibSolverLoaders;
         QVector<QString> m_DynamicLibSolverNames;
     };
-}
-#endif //SPARSEPC_MODEL_HPP
+} // namespace sparsely
+#endif // SPARSEPC_MODEL_HPP
