@@ -39,73 +39,45 @@ namespace sparsely
     {
         this->setWindowTitle(QString::fromStdString(std::string(sparsely::metadata::appTitle)));
         this->setMinimumSize(640, 500);
-
          auto* newAction = new QAction(QIcon::fromTheme(QIcon::ThemeIcon::DocumentNew),
             tr("&New"), this);
         newAction->setShortcuts(QKeySequence::New);
         newAction->setStatusTip(tr("Create a new project"));
         QObject::connect(newAction, &QAction::triggered, this, &LabMainWindow::newFile);
-
         auto* openAction = new QAction(QIcon::fromTheme(QIcon::ThemeIcon::DocumentOpen),
             tr("&Open..."), this);
         openAction->setShortcuts(QKeySequence::Open);
         openAction->setStatusTip(tr("Open an existing project"));
         QObject::connect(openAction, &QAction::triggered, this, &LabMainWindow::open);
-
         auto* saveAction = new QAction(QIcon::fromTheme(QIcon::ThemeIcon::DocumentSave),
             tr("&Save"), this);
         saveAction->setShortcuts(QKeySequence::Save); // Usually Ctrl+S
         saveAction->setStatusTip(tr("Save project to disk"));
         QObject::connect(saveAction, &QAction::triggered, this, &LabMainWindow::save);
-
         auto* quitAction = new QAction(tr("&Quit"), this);
         quitAction->setShortcuts(QKeySequence::Quit);
         quitAction->setStatusTip(tr("Quit"));
         QObject::connect(quitAction, &QAction::triggered, this, &LabMainWindow::close);
-
         auto* fileMenu = menuBar()->addMenu(tr("&File"));
         fileMenu->addAction(newAction);
         fileMenu->addAction(openAction);
         fileMenu->addAction(saveAction);
         //fileMenu->addSeparator();
         fileMenu->addAction(quitAction);
-
         auto *preferencesAction = new QAction(tr("&Preferences..."), this);
         preferencesAction->setShortcuts(QKeySequence::Preferences);
         preferencesAction->setMenuRole(QAction::PreferencesRole);
-
         QObject::connect(preferencesAction, &QAction::triggered, this,
                          &LabMainWindow::showPreferences);
-
         auto* editMenu = menuBar()->addMenu(tr("&Edit"));
         editMenu->addAction(preferencesAction);
-
         auto* mainWidget = new QWidget(this);
-
         m_MainWidgetStackedLayout = new QStackedLayout(mainWidget);
         m_MainWidgetStackedLayout->setStackingMode(QStackedLayout::StackOne);
-
-        //m_WelcomeWidget = new QWidget(this);
-        //auto* welcomeWidgeLayout = new QHBoxLayout(m_WelcomeWidget);
-
-        //auto* topLevelLabel = new QLabel(this);
-        //QPixmap pixmap(":/images/welcome.png");
-        //topLevelLabel->setPixmap(pixmap);
-        //topLevelLabel->setMask(pixmap.mask());
-        //welcomeWidgeLayout->addWidget(topLevelLabel, 0, Qt::AlignCenter);
-
-        //m_WelcomeWidget->setStyleSheet("background-color: white;");
-
         m_LabWidget = new LabWidget(this);
-
         m_LabController = new LabController(m_LabModel, *m_LabWidget, this);
-
-        //m_MainWidgetStackedLayout->addWidget(m_WelcomeWidget);
         m_MainWidgetStackedLayout->addWidget(m_LabWidget);
-
-        //m_MainWidgetStackedLayout->setCurrentWidget(m_WelcomeWidget);
         m_LabController->welcome();
-
         setCentralWidget(mainWidget);
     }
 
@@ -126,7 +98,6 @@ namespace sparsely
             if(m_LabWidget)
             {
                 m_LabController->init(fileName, true);
-                //m_MainWidgetStackedLayout->setCurrentWidget(m_LabWidget);
             }
         }
     }
@@ -148,7 +119,6 @@ namespace sparsely
             if(m_LabWidget)
             {
                 m_LabController->init(fileName, false);
-                //m_MainWidgetStackedLayout->setCurrentWidget(m_LabWidget);
             }
         }
     }
