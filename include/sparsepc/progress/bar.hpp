@@ -9,7 +9,6 @@ namespace sparsepc
         {
             impl.setValue(int{})
         };
-
         {
             impl.setRange(int{}, int{})
         };
@@ -22,9 +21,7 @@ namespace sparsepc
         DummyProgressBar()
         {
         }
-
         void setValue([[maybe_unused]] int value) {}
-
         void setRange([[maybe_unused]] int minValue, [[maybe_unused]] int maxValue){}
     };
 }

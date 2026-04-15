@@ -303,46 +303,6 @@ namespace sparsepc
         }
 
         return indices;
-    }
-
-    //template<std::floating_point ScalarType>
-    //auto sort_(const Vector<ScalarType>& v)
-    //{
-    //    using Scalar = ScalarType;
-
-    //    auto comparePairsLambda =
-    //        [](const std::pair<Index, Scalar>& lhs, const std::pair<Index, Scalar>& rhs)
-    //        {
-    //            return lhs.second > rhs.second;
-    //        };
-
-    //    // Declare std::set using decltype for the comparator type
-    //    std::set<std::pair<Index, Scalar>, decltype(comparePairsLambda)> ss(comparePairsLambda);
-
-    //    for (Index i = 0; i < v.size(); ++i)
-    //    {
-    //        ss.insert({ i, v[i] });
-    //    }
-
-    //    std::vector<Index> indices;
-    //    indices.reserve(v.size());
-
-    //    for (const auto& s : ss)
-    //    {
-    //        indices.push_back(s.first);
-    //    }
-
-    //    return indices;
-    //}
-
-    //template<std::floating_point ScalarType>
-    //auto sort(const Matrix<ScalarType>& sigma)
-    //{
-    //    using Scalar = ScalarType;
-
-    //    const Vector<Scalar> v = sigma.colwise().lpNorm<1>().eval();
-
-    //    return sort_(v);
-    //}        
+    }    
 }
 #endif //SPARSEPC_MAX_EIGEN_VALUE_SOLVER_HPP
