@@ -19,6 +19,7 @@ namespace sparsely
     public:
         LabController(LabModel& labModel, LabWidget& labWidget, QObject* parent = nullptr);
 
+        void welcome();
         void init(const QString& fileName, bool newProject = true);
         void saveProject(const QString& fileName) const;
         void loadProject(const QString& fileName);

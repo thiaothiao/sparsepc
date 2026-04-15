@@ -64,6 +64,13 @@ namespace sparsely
             this, &LabController::onRemoveLastSparseComponentButton);
     }
 
+    void LabController::welcome()
+    {
+        auto& labWidget = m_LabWidget.get();
+        auto& labModel = m_LabModel.get();
+        labWidget.welcome(labModel.getAddonName());
+    }
+
     void LabController::init(const QString& fileName, bool newProject)
     {
         auto& labWidget = m_LabWidget.get();

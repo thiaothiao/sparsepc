@@ -53,6 +53,7 @@ namespace sparsely
         void updateProgressBarTitle(int value);
 
     public:
+        void welcome(const QString& addonName);
         void createWidget(const Preferences& preferences, const QString& addonName);
         void setPlotUpdateEnabled(bool enable);
         void redrawPlot();
@@ -77,10 +78,12 @@ namespace sparsely
         QSlider* m_Slider;
         QProgressBar* m_ProgressBar;
         QStackedLayout* m_SliderOrProgressBarWidgetStackedLayout;
+        QStackedLayout* m_ProcessingsGoupboxStackedLayout;
         QComboBox* m_MethodComboBox;
         QComboBox* m_PlotTypeComboBox;
         QPushButton* m_AddNewSparseComponentButton;
         QPushButton* m_RemoveLastSparseComponentButton;
+        QWidget* m_ButtonsWidget;
         QVector<QString> m_Colors;
 
     private:
