@@ -174,13 +174,13 @@ namespace sparsely
         auto* plotGroupbox = new QGroupBox(this);
         layout->addWidget(plotGroupbox, 0, 0);
         auto* plotGroupboxLayout = new QHBoxLayout(plotGroupbox);
-        m_Plotter = new JKQTPlotter();
+        m_Plotter = new JKQTPlotter(plotGroupbox);
         m_Plotter->setToolbarEnabled(false);
         m_Plotter->setMousePositionShown(false);
 
-        m_Plotter->getPlotter()->setUseAntiAliasingForGraphs(true); // nicer (but slower) plotting
-        m_Plotter->getPlotter()->setUseAntiAliasingForSystem(true); // nicer (but slower) plotting
-        m_Plotter->getPlotter()->setUseAntiAliasingForText(true); // nicer (but slower) text rendering
+        //m_Plotter->getPlotter()->setUseAntiAliasingForGraphs(true); // nicer (but slower) plotting
+        //m_Plotter->getPlotter()->setUseAntiAliasingForSystem(true); // nicer (but slower) plotting
+        //m_Plotter->getPlotter()->setUseAntiAliasingForText(true); // nicer (but slower) text rendering
 
         auto* datastore = m_Plotter->getDatastore();
         const auto n = 13;
@@ -263,22 +263,45 @@ namespace sparsely
         m_ProgressBar->setValue(0);
         m_ProgressBar->setTextVisible(false);
         m_ProgressBar->setMaximumHeight(10);
+
+        auto* welcomeGroupBox = new QGroupBox("Welcome", this);
+        auto* welcomeGroupBoxLayout = new QHBoxLayout(welcomeGroupBox);
+        auto* topLevelLabel = new QLabel(
+            "Here you will find a slider allowing the tuning of the sparsity level"
+            " or current computation completion progress bar", this);
+        welcomeGroupBoxLayout->addWidget(topLevelLabel, 0, Qt::AlignCenter);
+
         m_SliderOrProgressBarWidgetStackedLayout->addWidget(m_SliderGroupBox);
         m_SliderOrProgressBarWidgetStackedLayout->addWidget(m_ProgressBarGroupBox);
-        m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(m_SliderGroupBox);
+        m_SliderOrProgressBarWidgetStackedLayout->addWidget(welcomeGroupBox);
+        m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(welcomeGroupBox);
         auto* processingsGoupbox = new QGroupBox(this);
         layout->addWidget(processingsGoupbox, 2, 0);
         layout->setRowStretch(0, 12);
         layout->setRowStretch(1, 1);
         layout->setRowStretch(2, 1);
-        auto* processingsGoupboxLayout = new QHBoxLayout(processingsGoupbox);
+        m_ProcessingsGoupboxStackedLayout = new QStackedLayout(processingsGoupbox);
+        m_ProcessingsGoupboxStackedLayout->setStackingMode(QStackedLayout::StackOne);
+
+        auto* buttonsWelcomeWidget = new QWidget(this);
+        m_ProcessingsGoupboxStackedLayout->addWidget(buttonsWelcomeWidget);
+        auto* buttonsWelcomeWidgetLayout = new QHBoxLayout(buttonsWelcomeWidget);
+        auto* buttonsWidgetWelcomeLabel = new QLabel(
+            "Click on File to create or load a project from a convariance matrix.\n"
+            "And then compute or select sparse pcs", this);
+        buttonsWelcomeWidgetLayout->addWidget(buttonsWidgetWelcomeLabel, 0, Qt::AlignCenter);
+
+        m_ButtonsWidget = new QWidget(this);
+        m_ProcessingsGoupboxStackedLayout->addWidget(m_ButtonsWidget);
+        auto* buttonsWidgetLayout = new QHBoxLayout(m_ButtonsWidget);
+
         auto* plotTypeGroupBox = new QGroupBox(tr("Plot"), this);
         auto* plotTypeGroupBoxLayout = new QHBoxLayout(plotTypeGroupBox);
         m_PlotTypeComboBox = new QComboBox(this);
         m_PlotTypeComboBox->addItem(tr("Filled"), QVariant::fromValue(Enums::PlotType::FILLED));
         m_PlotTypeComboBox->addItem(tr("Impulses"), QVariant::fromValue(Enums::PlotType::IMPULSES));
         plotTypeGroupBoxLayout->addWidget(m_PlotTypeComboBox);
-        processingsGoupboxLayout->addWidget(plotTypeGroupBox);
+        buttonsWidgetLayout->addWidget(plotTypeGroupBox);
         auto* methodGroupBox = new QGroupBox(tr("Method"), this);
         auto* methodGroupBoxLayout = new QHBoxLayout(methodGroupBox);
         m_MethodComboBox = new QComboBox(this);
@@ -291,10 +314,10 @@ namespace sparsely
             m_MethodComboBox->addItem(addonName, QVariant::fromValue(Enums::Method::USERDYNAMICLIB));
         }
         methodGroupBoxLayout->addWidget(m_MethodComboBox);
-        processingsGoupboxLayout->addWidget(methodGroupBox);
+        buttonsWidgetLayout->addWidget(methodGroupBox);
         auto* actionGroupBox = new QGroupBox(tr("Sparse component"), this);
         auto* actionGroupBoxLayout = new QHBoxLayout(actionGroupBox);
-        processingsGoupboxLayout->addWidget(actionGroupBox);
+        buttonsWidgetLayout->addWidget(actionGroupBox);
         m_AddNewSparseComponentButton
             = new QPushButton(tr("Add new"), this);
         actionGroupBoxLayout->addWidget(m_AddNewSparseComponentButton);
@@ -305,7 +328,9 @@ namespace sparsely
         //                 this, &LabWidget::updateProgressBarTitle);
         //QObject::connect(m_Slider, qOverload<int>(&QSlider::valueChanged),
         //                 this, &LabWidget::updateSliderTitle);
-        processingsGoupboxLayout->addStretch(1);
+        buttonsWidgetLayout->addStretch(1);
+
+        m_ProcessingsGoupboxStackedLayout->setCurrentWidget(buttonsWelcomeWidget);
     }
 
     void LabWidget::createWidget(const Preferences& preferences, const QString& addonName)
@@ -326,11 +351,12 @@ namespace sparsely
         //datastore->clear();
         m_Plotter->setToolbarEnabled(true);
         m_Plotter->setMousePositionShown(true);
-        m_Plotter->getPlotter()->setUseAntiAliasingForGraphs(false);
-        m_Plotter->getPlotter()->setUseAntiAliasingForSystem(false);
-        m_Plotter->getPlotter()->setUseAntiAliasingForText(false);
+        //m_Plotter->getPlotter()->setUseAntiAliasingForGraphs(false);
+        //m_Plotter->getPlotter()->setUseAntiAliasingForSystem(false);
+        //m_Plotter->getPlotter()->setUseAntiAliasingForText(false);
 
         m_ColumnX = datastore->addLinearColumn(m_N, 0, m_N-1);
+
         m_Slider->setRange(1, m_N);
         m_Slider->setSingleStep(1);
         setSliderColor("blue");
@@ -371,6 +397,8 @@ namespace sparsely
         {
             m_MethodComboBox->setCurrentIndex(4);
         }
+
+        m_ProcessingsGoupboxStackedLayout->setCurrentWidget(m_ButtonsWidget);
         //auto* actionGroupBox->setTitle(tr("Sparse component"));
         //m_AddNewSparseComponentButton->setText(tr("Add new"));
         //m_RemoveLastSparseComponentButton->setText((tr("Remove last"));
@@ -392,8 +420,8 @@ namespace sparsely
 
     void LabWidget::zoomToFit()
     {
-        m_Plotter->setAbsoluteX(static_cast<double>(0), static_cast<double>(m_N-1));
-        m_Plotter->setAbsoluteY(static_cast<double>(-1), static_cast<double>(1));
+        //m_Plotter->setAbsoluteX(static_cast<double>(0), static_cast<double>(m_N-1));
+        //m_Plotter->setAbsoluteY(static_cast<double>(-1), static_cast<double>(1));
         m_Plotter->zoomToFit();
         //m_Plotter->resize(400,300);
     }

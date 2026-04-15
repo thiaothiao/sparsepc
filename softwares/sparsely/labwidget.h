@@ -78,10 +78,12 @@ namespace sparsely
         QSlider* m_Slider;
         QProgressBar* m_ProgressBar;
         QStackedLayout* m_SliderOrProgressBarWidgetStackedLayout;
+        QStackedLayout* m_ProcessingsGoupboxStackedLayout;
         QComboBox* m_MethodComboBox;
         QComboBox* m_PlotTypeComboBox;
         QPushButton* m_AddNewSparseComponentButton;
         QPushButton* m_RemoveLastSparseComponentButton;
+        QWidget* m_ButtonsWidget;
         QVector<QString> m_Colors;
 
     private:
