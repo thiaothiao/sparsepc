@@ -46,6 +46,21 @@ namespace
 
 namespace sparsely
 {
+    Preferences::Preferences()
+        : maximumNumberOfComponents{6},
+          componentsColors{"red", "green", "blue", "magenta", "yellow", "cyan"},
+          standardComponentsLineWidthFilledPlot{1.0},
+          sparseComponentsLineWidthFilledPlot{2.0},
+          standardComponentsLineWidthImpulsesPlot{2.0},
+          sparseComponentsLineWidthImpulsesPlot{4.0},
+          standardComponentsLineStyle{Qt::SolidLine},
+          sparseComponentsLineStyle{Qt::DotLine},
+          standardComponentsFillingColorsAlpha{0.125},
+          sparseComponentsFillingColorsAlpha{0.25},
+          plotType{Enums::PlotType::FILLED}, method{Enums::Method::DCA}
+    {
+    }
+
     // Convert Struct to JSON
     QJsonObject Preferences::toJson() const
     {
