@@ -6,6 +6,40 @@
 #include "sparsepc/generic/solver.hpp"
 #include "sparsepc/progress/bar.hpp"
 
+namespace
+{
+    template<std::floating_point ScalarType>
+    auto sortVector(const sparsepc::Vector<ScalarType>& v)
+    {
+        using Scalar = ScalarType;
+        using Index = sparsepc::Index;
+        auto comparePairsLambda =
+            [](const std::pair<Index, Scalar>& lhs, const std::pair<Index, Scalar>& rhs)
+            {
+                return lhs.second > rhs.second;
+            };
+        std::set<std::pair<Index, Scalar>, decltype(comparePairsLambda)> worker(comparePairsLambda);
+        for (Index i = 0; i < v.size(); ++i)
+        {
+            worker.insert({ i, v[i] });
+        }
+        std::vector<Index> indices;
+        indices.reserve(v.size());
+        for (const auto& w : worker)
+        {
+            indices.push_back(w.first);
+        }
+        return indices;
+    }
+
+    template<std::floating_point ScalarType>
+    auto sortMatrix(const sparsepc::Matrix<ScalarType>& sigma)
+    {
+        const sparsepc::Vector<ScalarType> v = sigma.colwise().lpNorm<1>().eval();
+        return sortVector(v);
+    }
+}
+
 namespace sparsepc
 {
     namespace linearmodel
@@ -78,16 +112,13 @@ namespace sparsepc
                 return cmponent;
             }
 
+            auto indices = sortMatrix(sigma);
+            indices.resize(k);
+            const auto subDimEigenElement = eigenSolver.maximumValueElement(sigma(indices, indices));
+
             Component component(n);
-
-            for(int i=0; i<k; ++i)
-            {
-                component.vector[n-1-i] = 1.0 / std::sqrt(static_cast<double>(k));
-            }
-
-            component.vector.normalize();
-
-            component.value = (component.vector.transpose() * sigma * component.vector).value();
+            component.value = subDimEigenElement.value;
+            component.vector(indices) = subDimEigenElement.vector;
 
             return component;
         }
@@ -118,6 +149,9 @@ namespace sparsepc
                 components.emplace(k, Component(n));
             }
 
+            const auto indices = sortMatrix(sigma);
+            std::vector<Index> kIndices;
+            kIndices.reserve(n);
             for (Index k = 1; k < n; ++k)
             {
                 if(progressBar)
@@ -125,21 +159,16 @@ namespace sparsepc
                     progressBar->setValue(k);
                 }
 
+                kIndices.push_back(indices[k-1]);
+
                 auto& component = components.at(k);
-
-                for(int i=0; i<k; ++i)
-                {
-                    component.vector[n-1-i] = 1.0 / std::sqrt(static_cast<double>(k));
-                }
-
-                component.vector.normalize();
-
-                component.value = (component.vector.transpose() * sigma * component.vector).value();
+                const auto subDimEigenElement = eigenSolver.maximumValueElement(sigma(kIndices, kIndices));
+                component.value = subDimEigenElement.value;
+                component.vector(kIndices) = subDimEigenElement.vector;
             }
 
             return components;
         }
-
         //template<std::floating_point ScalarType>
         //using Custom = SparsePC<CustomSolverModel<ScalarType, EigenSolver<ScalarType>>>;
     }
