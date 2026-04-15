@@ -17,6 +17,77 @@
 #include "jkqtplotter/graphs/jkqtpfilledcurve.h"
 #include "jkqtplotter/graphs/jkqtpimpulses.h"
 
+namespace
+{
+    void addSparselyIconGraphs(JKQTPlotter& plotter)
+    {
+        auto* datastore = plotter.getDatastore();
+        const auto n = 13;
+        const auto columnX = datastore->addLinearColumn(n, 0, n-1);
+        sparsepc::Vector<double> redValues = sparsepc::Vector<double>::Constant(n, 0.01);
+        redValues[3] = 0.25;
+        redValues[4] = 0.5;
+        redValues[5] = 0.25;
+        redValues.normalize();
+        sparsepc::Vector<double> greenValues = sparsepc::Vector<double>::Constant(n, -0.01);
+        greenValues[7] = -0.25;
+        greenValues[8] = -0.5;
+        greenValues[9] = -0.25;
+        greenValues.normalize();
+
+        const auto columnRed = datastore->addColumn(n);
+        const auto columnGreen = datastore->addColumn(n);
+        datastore->setAll(columnRed, static_cast<double>(0));
+        for (int i=0; i< n; ++i)
+        {
+            datastore->inc(columnRed, i, redValues[i]);
+            datastore->inc(columnGreen, i, greenValues[i]);
+        }
+
+        {
+            auto* redGraph = new JKQTPFilledCurveXGraph(&plotter);
+            auto col = QColor(QColor("red"));
+            redGraph->setLineStyle(Qt::SolidLine);
+            redGraph->setLineWidth(10);
+            redGraph->setLineColor(col);
+            redGraph->setFillMode(JKQTPFilledCurveXGraph::FillMode::SingleFilling);
+            col.setAlphaF(0.125f);
+            redGraph->setFillColor(col);
+            redGraph->fillStyleBelow().setFillColor(col);
+            redGraph->setBaseline(0.0);
+            redGraph->setXColumn(columnX);
+            redGraph->setYColumn(columnRed);
+            redGraph->setTitle("0");
+            plotter.addGraph(redGraph);
+        }
+        {
+            auto* greenGraph = new JKQTPFilledCurveXGraph(&plotter);
+            auto col = QColor(QColor("green"));
+            greenGraph->setLineStyle(Qt::SolidLine);
+            greenGraph->setLineWidth(10);
+            greenGraph->setLineColor(col);
+            greenGraph->setFillMode(JKQTPFilledCurveXGraph::FillMode::SingleFilling);
+            col.setAlphaF(0.125f);
+            greenGraph->setFillColor(col);
+            greenGraph->fillStyleBelow().setFillColor(col);
+            greenGraph->setBaseline(0.0);
+            greenGraph->setXColumn(columnX);
+            greenGraph->setYColumn(columnGreen);
+            greenGraph->setTitle("1");
+            plotter.addGraph(greenGraph);
+        }
+    }
+    void clear(JKQTPlotter& plotter)
+    {
+        plotter.clearGraphs();
+        auto* datastore = plotter.getDatastore();
+        if(datastore)
+        {
+            datastore->clear();
+        }
+    }
+}
+
 namespace sparsely
 {
     LabWidget::LabWidget(QWidget* parent)
@@ -175,71 +246,9 @@ namespace sparsely
         layout->addWidget(plotGroupbox, 0, 0);
         auto* plotGroupboxLayout = new QHBoxLayout(plotGroupbox);
         m_Plotter = new JKQTPlotter(plotGroupbox);
-        m_Plotter->setToolbarEnabled(false);
-        m_Plotter->setMousePositionShown(false);
-
-        //m_Plotter->getPlotter()->setUseAntiAliasingForGraphs(true); // nicer (but slower) plotting
-        //m_Plotter->getPlotter()->setUseAntiAliasingForSystem(true); // nicer (but slower) plotting
-        //m_Plotter->getPlotter()->setUseAntiAliasingForText(true); // nicer (but slower) text rendering
-
-        auto* datastore = m_Plotter->getDatastore();
-        const auto n = 13;
-        const auto columnX = datastore->addLinearColumn(n, 0, n-1, "xWelcome");
-        sparsepc::Vector<double> redValues = sparsepc::Vector<double>::Constant(n, 0.01);
-        redValues[3] = 0.25;
-        redValues[4] = 0.5;
-        redValues[5] = 0.25;
-        redValues.normalize();
-        sparsepc::Vector<double> greenValues = sparsepc::Vector<double>::Constant(n, -0.01);
-        greenValues[7] = -0.25;
-        greenValues[8] = -0.5;
-        greenValues[9] = -0.25;
-        greenValues.normalize();
-
-        const auto columnRed = datastore->addColumn(n, "yWelcomeRed");
-        const auto columnGreen = datastore->addColumn(n, "yWelcomeGreen");
-        datastore->setAll(columnRed, static_cast<double>(0));
-        for (int i=0; i< n; ++i)
-        {
-            datastore->inc(columnRed, i, redValues[i]);
-            datastore->inc(columnGreen, i, greenValues[i]);
-        }
-
-        {
-            auto* redGraph = new JKQTPFilledCurveXGraph(m_Plotter);
-            auto col = QColor(QColor("red"));
-            redGraph->setLineStyle(Qt::SolidLine);
-            redGraph->setLineWidth(10);
-            redGraph->setLineColor(col);
-            redGraph->setFillMode(JKQTPFilledCurveXGraph::FillMode::SingleFilling);
-            col.setAlphaF(0.125f);
-            redGraph->setFillColor(col);
-            redGraph->fillStyleBelow().setFillColor(col);
-            redGraph->setBaseline(0.0);
-            redGraph->setXColumn(columnX);
-            redGraph->setYColumn(columnRed);
-            redGraph->setTitle("0");
-            m_Plotter->addGraph(redGraph);
-        }
-        {
-            auto* greenGraph = new JKQTPFilledCurveXGraph(m_Plotter);
-            auto col = QColor(QColor("green"));
-            greenGraph->setLineStyle(Qt::SolidLine);
-            greenGraph->setLineWidth(10);
-            greenGraph->setLineColor(col);
-            greenGraph->setFillMode(JKQTPFilledCurveXGraph::FillMode::SingleFilling);
-            col.setAlphaF(0.125f);
-            greenGraph->setFillColor(col);
-            greenGraph->fillStyleBelow().setFillColor(col);
-            greenGraph->setBaseline(0.0);
-            greenGraph->setXColumn(columnX);
-            greenGraph->setYColumn(columnGreen);
-            greenGraph->setTitle("1");
-            m_Plotter->addGraph(greenGraph);
-        }
-
+        addSparselyIconGraphs(*m_Plotter);
         m_Plotter->zoomToFit();
-        m_Plotter->resize(400,300);
+        m_Plotter->resize(400, 300);
         plotGroupboxLayout->addWidget(m_Plotter);
         //m_Plotter->redrawPlot();
 
@@ -333,7 +342,7 @@ namespace sparsely
         m_ProcessingsGoupboxStackedLayout->setCurrentWidget(buttonsWelcomeWidget);
     }
 
-    void LabWidget::createWidget(const Preferences& preferences, const QString& addonName)
+    void LabWidget::updateWidget(const Preferences& preferences, const QString& addonName)
     {
         m_Colors.reserve(preferences.componentsColors.size());
         foreach(const auto& colorString, preferences.componentsColors)
@@ -343,20 +352,11 @@ namespace sparsely
         m_StandardPCGraphs.reserve(preferences.componentsColors.size());
         m_SparsePCGraphs.reserve(preferences.componentsColors.size());
         m_Plotter->setPlotUpdateEnabled(false);
-        m_Plotter->clearGraphs();
+        clear(*m_Plotter);
+        m_Plotter->setPlotUpdateEnabled(true);
+        //m_Plotter->redrawPlot();
         auto* datastore = m_Plotter->getDatastore();
-        datastore->deleteAllColumns("yWelcomeGreen");
-        datastore->deleteAllColumns("yWelcomeRed");
-        datastore->deleteAllColumns("xWelcome");
-        //datastore->clear();
-        m_Plotter->setToolbarEnabled(true);
-        m_Plotter->setMousePositionShown(true);
-        //m_Plotter->getPlotter()->setUseAntiAliasingForGraphs(false);
-        //m_Plotter->getPlotter()->setUseAntiAliasingForSystem(false);
-        //m_Plotter->getPlotter()->setUseAntiAliasingForText(false);
-
         m_ColumnX = datastore->addLinearColumn(m_N, 0, m_N-1);
-
         m_Slider->setRange(1, m_N);
         m_Slider->setSingleStep(1);
         setSliderColor("blue");
@@ -391,13 +391,11 @@ namespace sparsely
             break;
         }
         }
-
         if(!addonName.isEmpty() &&
             preferences.method == Enums::Method::USERDYNAMICLIB)
         {
             m_MethodComboBox->setCurrentIndex(4);
         }
-
         m_ProcessingsGoupboxStackedLayout->setCurrentWidget(m_ButtonsWidget);
         //auto* actionGroupBox->setTitle(tr("Sparse component"));
         //m_AddNewSparseComponentButton->setText(tr("Add new"));
@@ -420,8 +418,8 @@ namespace sparsely
 
     void LabWidget::zoomToFit()
     {
-        //m_Plotter->setAbsoluteX(static_cast<double>(0), static_cast<double>(m_N-1));
-        //m_Plotter->setAbsoluteY(static_cast<double>(-1), static_cast<double>(1));
+        m_Plotter->setAbsoluteX(static_cast<double>(0), static_cast<double>(m_N-1));
+        m_Plotter->setAbsoluteY(static_cast<double>(-1), static_cast<double>(1));
         m_Plotter->zoomToFit();
         //m_Plotter->resize(400,300);
     }
