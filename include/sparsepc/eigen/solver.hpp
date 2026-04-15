@@ -2,8 +2,8 @@
 #define SPARSEPC_MAX_EIGEN_VALUE_SOLVER_HPP
 
 #include <iostream>
-#include <vector>
 #include <set>
+#include <vector>
 
 #include <Eigen/Dense>
 
@@ -18,111 +18,105 @@ namespace sparsepc
         Unknown
     };
 
-    template<std::floating_point ScalarType>
-    struct Component
+    template <std::floating_point ScalarType> struct Component
     {
         using Scalar = ScalarType;
 
         Component()
-            : state{ComponentState::Unknown},
-            value{ static_cast<Scalar>(0) },
-            vector{}, q{}
+            : state{ComponentState::Unknown}, value{static_cast<Scalar>(0)},
+              vector{}, q{}
         {
         }
 
         Component(const Index n)
-            : state{ ComponentState::Unknown },
-            value{ static_cast<Scalar>(0) },
-            vector{ Vector<Scalar>::Zero(n)},
-            q{}
+            : state{ComponentState::Unknown}, value{static_cast<Scalar>(0)},
+              vector{Vector<Scalar>::Zero(n)}, q{}
         {
         }
 
-        Component(Scalar valueInput, const Vector<Scalar>& vectorInput)
-            : state{ ComponentState::Unknown },
-            value{ valueInput },
-            vector{ vectorInput },
-            q{}
+        Component(Scalar valueInput, const Vector<Scalar> &vectorInput)
+            : state{ComponentState::Unknown}, value{valueInput},
+              vector{vectorInput}, q{}
         {
         }
 
-        Component(const Component&) = default;
-        Component& operator=(const Component&) = default;
+        Component(const Component &) = default;
+        Component &operator=(const Component &) = default;
 
-        Component(Component&&) = default;
-        Component& operator=(Component&&) = default;
+        Component(Component &&) = default;
+        Component &operator=(Component &&) = default;
 
         ComponentState state;
         Scalar value;
         Vector<Scalar> vector;
-        Vector<Scalar> q;             
+        Vector<Scalar> q;
     };
 
-    template<class ComponentType>
+    template <class ComponentType>
     using ComponentsContainer = std::unordered_map<Index, ComponentType>;
 
-    template<std::floating_point ScalarType>
-    static void printComponents(const ComponentsContainer<Component<ScalarType>>& eigenElements)
+    template <std::floating_point ScalarType>
+    static void printComponents(
+        const ComponentsContainer<Component<ScalarType>> &eigenElements)
     {
-        for (const auto& [k, component] : eigenElements)
+        for (const auto &[k, component] : eigenElements)
         {
-            std::cout << k << "\t" << component.value << ":\t" << component.vector.transpose() << "\n";
+            std::cout << k << "\t" << component.value << ":\t"
+                      << component.vector.transpose() << "\n";
         }
     }
 
     template <class ImplementationType>
-    concept EigenSolverLike = requires(ImplementationType impl)
-    {
+    concept EigenSolverLike = requires(ImplementationType impl) {
         {
-            std::as_const(impl).maximumValueElement(Matrix<typename ImplementationType::Scalar>{})
-        } ->std::convertible_to<Component<typename ImplementationType::Scalar>>;
+            std::as_const(impl).maximumValueElement(
+                Matrix<typename ImplementationType::Scalar>{})
+        }
+        -> std::convertible_to<Component<typename ImplementationType::Scalar>>;
 
         {
-            std::as_const(impl).maximumValue(Matrix<typename ImplementationType::Scalar>{})
-        } ->std::convertible_to<typename ImplementationType::Scalar>;
+            std::as_const(impl).maximumValue(
+                Matrix<typename ImplementationType::Scalar>{})
+        } -> std::convertible_to<typename ImplementationType::Scalar>;
     };
 
-    template<std::floating_point ScalarType>
-    class EigenSolver final
+    template <std::floating_point ScalarType> class EigenSolver final
     {
-    public:
+      public:
         using Scalar = ScalarType;
 
         struct Param final
         {
             Param(Scalar epsilonInput = static_cast<Scalar>(1e-4),
-                unsigned int maximumNumberOfIterationsInput = 1000000U)
-                : epsilon{ epsilonInput },
-                maximumNumberOfIterations{ maximumNumberOfIterationsInput }
+                  unsigned int maximumNumberOfIterationsInput = 1000000U)
+                : epsilon{epsilonInput},
+                  maximumNumberOfIterations{maximumNumberOfIterationsInput}
             {
             }
 
-            Param(const Param&) = default;
-            Param& operator=(const Param&) = default;
+            Param(const Param &) = default;
+            Param &operator=(const Param &) = default;
 
-            Param(Param&&) = default;
-            Param& operator=(Param&&) = default;
+            Param(Param &&) = default;
+            Param &operator=(Param &&) = default;
 
             const Scalar epsilon;
             const unsigned int maximumNumberOfIterations;
         };
 
-        EigenSolver(const Param& param = {})
-            :m_Param{ param }
-        {
-        }
+        EigenSolver(const Param &param = {}) : m_Param{param} {}
 
         auto maximumValue(Matrix<Scalar> sigma) const;
 
-        auto maximumValueElement(const Matrix<Scalar>& sigma) const;
+        auto maximumValueElement(const Matrix<Scalar> &sigma) const;
 
-    private:
+      private:
         Param m_Param;
     };
 
-    template<std::floating_point ScalarType>
+    template <std::floating_point ScalarType>
     auto EigenSolver<ScalarType>::maximumValue(Matrix<Scalar> sigma) const
-    {// Gram iteration
+    { // Gram iteration
         if (sigma.cols() == static_cast<Index>(1))
         {
             return sigma.value();
@@ -150,7 +144,8 @@ namespace sparsepc
 
             twoPowerMinusCount *= static_cast<Scalar>(0.5);
 
-            const auto eigval = std::pow(G.norm(), twoPowerMinusCount) * std::exp(twoPowerMinusCount * r);
+            const auto eigval = std::pow(G.norm(), twoPowerMinusCount) *
+                                std::exp(twoPowerMinusCount * r);
 
             if (std::abs(maximumEigenValue - eigval) <= m_Param.epsilon)
             {
@@ -168,15 +163,16 @@ namespace sparsepc
         return maximumEigenValue;
     }
 
-    template<std::floating_point ScalarType>
-    auto EigenSolver<ScalarType>::maximumValueElement(const Matrix<Scalar>& sigma) const
-    {//Power iteration
+    template <std::floating_point ScalarType>
+    auto EigenSolver<ScalarType>::maximumValueElement(
+        const Matrix<Scalar> &sigma) const
+    { // Power iteration
         const auto n = sigma.cols();
 
         Component<Scalar> eigenElement(n);
-        auto& u = eigenElement.vector;
-        auto& value = eigenElement.value;
-            
+        auto &u = eigenElement.vector;
+        auto &value = eigenElement.value;
+
         u.setOnes();
 
         value = (u.transpose() * sigma * u).value();
@@ -188,7 +184,7 @@ namespace sparsepc
 
         unsigned int count = 0U;
         while (true)
-        {// TODO optimize products
+        { // TODO optimize products
             u = sigma * u;
             u.normalize();
 
@@ -213,39 +209,39 @@ namespace sparsepc
         Index idx = static_cast<Index>(-1);
         u.cwiseAbs().maxCoeff(&idx);
 
-        if(u[idx] < static_cast<Scalar>(0))
+        if (u[idx] < static_cast<Scalar>(0))
         {
-            u *=  static_cast<Scalar>(-1);
+            u *= static_cast<Scalar>(-1);
         }
 
         return eigenElement;
-    } 
-
-    template<std::floating_point ScalarType>
-    class EigenLibEigenSolver final
-    {
-    public:
-        using Scalar = ScalarType;
-
-        EigenLibEigenSolver()
-        {
-        }
-
-        auto maximumValue(const Matrix<Scalar>& sigma) const;
-
-        auto maximumValueElement(const Matrix<Scalar>& sigma) const;
-    };
-
-    template<std::floating_point ScalarType>
-    inline auto EigenLibEigenSolver<ScalarType>::maximumValue(const Matrix<Scalar>& sigma) const
-    {
-        return (sigma.cols() == static_cast<Index>(1)) 
-            ? sigma.value()
-            : Eigen::SelfAdjointEigenSolver<Matrix<Scalar>>(sigma).eigenvalues()[sigma.cols() - 1];
     }
 
-    template<std::floating_point ScalarType>
-    auto EigenLibEigenSolver<ScalarType>::maximumValueElement(const Matrix<Scalar>& sigma) const
+    template <std::floating_point ScalarType> class EigenLibEigenSolver final
+    {
+      public:
+        using Scalar = ScalarType;
+
+        EigenLibEigenSolver() {}
+
+        auto maximumValue(const Matrix<Scalar> &sigma) const;
+
+        auto maximumValueElement(const Matrix<Scalar> &sigma) const;
+    };
+
+    template <std::floating_point ScalarType>
+    inline auto EigenLibEigenSolver<ScalarType>::maximumValue(
+        const Matrix<Scalar> &sigma) const
+    {
+        return (sigma.cols() == static_cast<Index>(1))
+                   ? sigma.value()
+                   : Eigen::SelfAdjointEigenSolver<Matrix<Scalar>>(sigma)
+                         .eigenvalues()[sigma.cols() - 1];
+    }
+
+    template <std::floating_point ScalarType>
+    auto EigenLibEigenSolver<ScalarType>::maximumValueElement(
+        const Matrix<Scalar> &sigma) const
     {
         const auto n = sigma.cols();
 
@@ -258,51 +254,53 @@ namespace sparsepc
             return eigenElement;
         }
 
-        Eigen::SelfAdjointEigenSolver<Matrix<Scalar>> selfAdjointEigenSolver(sigma);
+        Eigen::SelfAdjointEigenSolver<Matrix<Scalar>> selfAdjointEigenSolver(
+            sigma);
         eigenElement.value = selfAdjointEigenSolver.eigenvalues()[n - 1];
-        eigenElement.vector = selfAdjointEigenSolver.eigenvectors().col(n - 1);// Why not use move!!!
+        eigenElement.vector = selfAdjointEigenSolver.eigenvectors().col(
+            n - 1); // Why not use move!!!
 
         // preferring non negative max values. <<rectify>> u s signs
-        auto& u = eigenElement.vector;
+        auto &u = eigenElement.vector;
         Index idx = static_cast<Index>(-1);
         u.cwiseAbs().maxCoeff(&idx);
 
-        if(u[idx] < static_cast<Scalar>(0))
+        if (u[idx] < static_cast<Scalar>(0))
         {
-            u *=  static_cast<Scalar>(-1);
+            u *= static_cast<Scalar>(-1);
         }
 
         return eigenElement;
     }
 
-    template<std::floating_point ScalarType>
-    auto sort(const Vector<ScalarType>& v)
+    template <std::floating_point ScalarType>
+    auto sort(const Vector<ScalarType> &v)
     {
         using Scalar = ScalarType;
 
-        auto comparePairsLambda =
-            [](const std::pair<Index, Scalar>& lhs, const std::pair<Index, Scalar>& rhs)
-            {
-                return lhs.second < rhs.second;
-            };
+        auto comparePairsLambda = [](const std::pair<Index, Scalar> &lhs,
+                                     const std::pair<Index, Scalar> &rhs) {
+            return lhs.second < rhs.second;
+        };
 
         // Declare std::set using decltype for the comparator type
-        std::multiset<std::pair<Index, Scalar>, decltype(comparePairsLambda)> ss(comparePairsLambda);
-        const Index n =  v.size();
+        std::multiset<std::pair<Index, Scalar>, decltype(comparePairsLambda)>
+            ss(comparePairsLambda);
+        const Index n = v.size();
         for (Index i = 0; i < n; ++i)
         {
-            ss.insert(std::pair{ i, v[i] });
+            ss.insert(std::pair{i, v[i]});
         }
 
         std::vector<Index> indices;
         indices.reserve(v.size());
 
-        for (const auto& s : ss)
+        for (const auto &s : ss)
         {
             indices.push_back(s.first);
         }
 
         return indices;
-    }    
-}
-#endif //SPARSEPC_MAX_EIGEN_VALUE_SOLVER_HPP
+    }
+} // namespace sparsepc
+#endif // SPARSEPC_MAX_EIGEN_VALUE_SOLVER_HPP
