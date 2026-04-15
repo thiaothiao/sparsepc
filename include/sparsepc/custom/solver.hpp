@@ -13,16 +13,20 @@ namespace
     {
         using Scalar = ScalarType;
         using Index = sparsepc::Index;
-        auto comparePairsLambda = [](const std::pair<Index, Scalar> &lhs,
-                                     const std::pair<Index, Scalar> &rhs) {
-            return lhs.second > rhs.second;
-        };
-        std::set<std::pair<Index, Scalar>, decltype(comparePairsLambda)> worker(
-            comparePairsLambda);
+
+        std::vector<std::pair<Index, Scalar>> worker;
+        worker.reserve(v.size());
         for (Index i = 0; i < v.size(); ++i)
         {
-            worker.insert({i, v[i]});
+            worker.emplace_back(i, v[i]);
         }
+
+        std::sort(worker.begin(), worker.end(),
+                  [](const std::pair<Index, Scalar> &lhs,
+                     const std::pair<Index, Scalar> &rhs) {
+                      return lhs.second > rhs.second;
+                  });
+
         std::vector<Index> indices;
         indices.reserve(v.size());
         for (const auto &w : worker)
@@ -35,9 +39,7 @@ namespace
     template <std::floating_point ScalarType>
     auto sortMatrix(const sparsepc::Matrix<ScalarType> &sigma)
     {
-        const sparsepc::Vector<ScalarType> v =
-            sigma.cwiseAbs().colwise().sum().eval();
-        return sortVector(v);
+        return sortVector<ScalarType>(sigma.cwiseAbs().colwise().sum().eval());
     }
 } // namespace
 
@@ -153,23 +155,21 @@ namespace sparsepc
                 components.emplace(k, Component(n));
             }
 
-            const auto indices = sortMatrix(sigma);
-            std::vector<Index> kIndices;
-            kIndices.reserve(n);
-            for (Index k = 1; k < n; ++k)
+            auto indices = sortMatrix(sigma);
+            for (Index k = n - 1; k > 1; --k)
             {
                 if (progressBar)
                 {
-                    progressBar->setValue(k);
+                    progressBar->setValue(n - k);
                 }
 
-                kIndices.push_back(indices[k - 1]);
+                indices.resize(k);
 
                 auto &component = components.at(k);
                 const auto subDimEigenElement =
-                    eigenSolver.maximumValueElement(sigma(kIndices, kIndices));
+                    eigenSolver.maximumValueElement(sigma(indices, indices));
                 component.value = subDimEigenElement.value;
-                component.vector(kIndices) = subDimEigenElement.vector;
+                component.vector(indices) = subDimEigenElement.vector;
             }
 
             return components;
