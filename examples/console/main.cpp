@@ -1,16 +1,17 @@
-#include <iostream>
 #include <chrono>
+#include <iostream>
 #include <utility>
 
 #include <Eigen/Dense>
 
-#include "sparsepc/version.hpp"
-#include "sparsepc/core.hpp"
 #include "simu.hpp"
+#include "sparsepc/core.hpp"
+#include "sparsepc/version.hpp"
 
 int main()
 {
-    constexpr std::string_view version = SPARSEPC_MACRO_STRINGIFY(SPARSEPC_VERSION);
+    constexpr std::string_view version =
+        SPARSEPC_MACRO_STRINGIFY(SPARSEPC_VERSION);
     std::cout << "sparsepc library version " << version << "\n";
 
     using Scalar = double;
@@ -20,30 +21,33 @@ int main()
     using Index = sparsepc::Index;
 
     const auto sigma = sparsepc::linearmodel::pitprops<Scalar>();
-    //const auto n = sigma.cols();
+    // const auto n = sigma.cols();
 
     const auto tic = std::chrono::high_resolution_clock::now();
     auto eeGram = sparsepc::EigenSolver<Scalar>{}.maximumValueElement(sigma);
     const auto toc = std::chrono::high_resolution_clock::now();
-    auto eeEigen = sparsepc::EigenLibEigenSolver<Scalar>{}.maximumValueElement(sigma);
+    auto eeEigen =
+        sparsepc::EigenLibEigenSolver<Scalar>{}.maximumValueElement(sigma);
     const auto tac = std::chrono::high_resolution_clock::now();
 
-    std::cout << "\nGram Maximum eigenvalue: "
-        << eeGram.value << "\n"
-        << eeGram.vector.transpose() << "\n";
-    std::cout << "\nEigen Maximum eigenvalue: "
-        << eeEigen.value << "\n"
-        << eeEigen.vector.transpose() << "\n";
+    std::cout << "\nGram Maximum eigenvalue: " << eeGram.value << "\n"
+              << eeGram.vector.transpose() << "\n";
+    std::cout << "\nEigen Maximum eigenvalue: " << eeEigen.value << "\n"
+              << eeEigen.vector.transpose() << "\n";
 
     // Calculate the duration and cast to microseconds
     std::cout << "\nGram duration: "
-        << std::chrono::duration_cast<std::chrono::microseconds>(toc - tic) << "\n";
+              << std::chrono::duration_cast<std::chrono::microseconds>(toc -
+                                                                       tic)
+              << "\n";
     std::cout << "\nEigen duration: "
-        << std::chrono::duration_cast<std::chrono::microseconds>(tac - toc) << "\n";
+              << std::chrono::duration_cast<std::chrono::microseconds>(tac -
+                                                                       toc)
+              << "\n";
 
     const Index k0 = 6;
     const Index k1 = 2;
-    const Index k2 = 2;   
+    const Index k2 = 2;
 
     {
         std::cout << "\nStarting backward run.\n";
@@ -51,9 +55,9 @@ int main()
 
         const auto start = std::chrono::high_resolution_clock::now();
 
-        const BackwardGspca::Param param{ {k0, k1, k2} };
+        const BackwardGspca::Param param{{k0, k1, k2}};
 
-        const auto sparseEigenElements = BackwardGspca{ param }.run(sigma);
+        const auto sparseEigenElements = BackwardGspca{param}.run(sigma);
 
         const auto stop = std::chrono::high_resolution_clock::now();
 
@@ -61,12 +65,13 @@ int main()
         const auto durationUs =
             std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
 
-        std::cout << "\n\nbackward run done in "
-            << durationUs.count() << " microseconds!\n";
+        std::cout << "\n\nbackward run done in " << durationUs.count()
+                  << " microseconds!\n";
 
-        for (const auto& component: sparseEigenElements)
+        for (const auto &component : sparseEigenElements)
         {
-            std::cout <<component.value << ":\t" << component.vector.transpose() << "\n";
+            std::cout << component.value << ":\t"
+                      << component.vector.transpose() << "\n";
         }
     }
 
@@ -76,9 +81,9 @@ int main()
 
         const auto start = std::chrono::high_resolution_clock::now();
 
-        const ForwardGspca::Param param{ {k0, k1, k2} };
+        const ForwardGspca::Param param{{k0, k1, k2}};
 
-        const auto sparseEigenElements = ForwardGspca{ param }.run(sigma);
+        const auto sparseEigenElements = ForwardGspca{param}.run(sigma);
 
         const auto stop = std::chrono::high_resolution_clock::now();
 
@@ -86,12 +91,13 @@ int main()
         const auto durationUs =
             std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
 
-        std::cout << "\n\nforward run done in "
-            << durationUs.count() << " microseconds!\n";
+        std::cout << "\n\nforward run done in " << durationUs.count()
+                  << " microseconds!\n";
 
-        for (const auto& component: sparseEigenElements)
+        for (const auto &component : sparseEigenElements)
         {
-            std::cout <<component.value << ":\t" << component.vector.transpose() << "\n";
+            std::cout << component.value << ":\t"
+                      << component.vector.transpose() << "\n";
         }
     }
 
@@ -100,9 +106,9 @@ int main()
         using ParallelGspca = sparsepc::linearmodel::ParallelGspca<Scalar>;
         const auto start = std::chrono::high_resolution_clock::now();
 
-        const ParallelGspca::Param param{ {k0, k1, k2} };
+        const ParallelGspca::Param param{{k0, k1, k2}};
 
-        const auto sparseEigenElements = ParallelGspca{ param }.run(sigma);
+        const auto sparseEigenElements = ParallelGspca{param}.run(sigma);
 
         const auto stop = std::chrono::high_resolution_clock::now();
 
@@ -110,12 +116,13 @@ int main()
         const auto durationUs =
             std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
 
-        std::cout << "\n\nparallel run done in "
-            << durationUs.count() << " microseconds!\n";
+        std::cout << "\n\nparallel run done in " << durationUs.count()
+                  << " microseconds!\n";
 
-        for (const auto& component: sparseEigenElements)
+        for (const auto &component : sparseEigenElements)
         {
-            std::cout <<component.value << ":\t" << component.vector.transpose() << "\n";
+            std::cout << component.value << ":\t"
+                      << component.vector.transpose() << "\n";
         }
     }
 
@@ -124,9 +131,9 @@ int main()
         using Dca = sparsepc::linearmodel::Dca<Scalar>;
         const auto start = std::chrono::high_resolution_clock::now();
 
-        const Dca::Param param{ {k0, k1, k2} };
+        const Dca::Param param{{k0, k1, k2}};
 
-        const auto sparseEigenElements = Dca{ param }.run(sigma);
+        const auto sparseEigenElements = Dca{param}.run(sigma);
 
         const auto stop = std::chrono::high_resolution_clock::now();
 
@@ -134,12 +141,13 @@ int main()
         const auto durationUs =
             std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
 
-        std::cout << "\n\ndca run done in "
-            << durationUs.count() << " microseconds!\n";
+        std::cout << "\n\ndca run done in " << durationUs.count()
+                  << " microseconds!\n";
 
-        for (const auto& component: sparseEigenElements)
+        for (const auto &component : sparseEigenElements)
         {
-            std::cout <<component.value << ":\t" << component.vector.transpose() << "\n";
+            std::cout << component.value << ":\t"
+                      << component.vector.transpose() << "\n";
         }
     }
 
@@ -148,7 +156,7 @@ int main()
         std::cout << "\nStarting spcs validation: dca run.\n";
         using Dca = sparsepc::linearmodel::Dca<Scalar>;
 
-        const Dca::Param param{ {k0, k1, k2} };
+        const Dca::Param param{{k0, k1, k2}};
 
         std::vector<Component> validatedComponents;
         validatedComponents.reserve(param.nbComponents);
@@ -165,18 +173,20 @@ int main()
             std::cin >> iCandidate;
             std::cout << "\n";
 
-            for (auto& [i, candidate] : candidates)
+            for (auto &[i, candidate] : candidates)
             {
                 candidate.state = sparsepc::ComponentState::Unvalidated;
             }
-            candidates.at(iCandidate).state = sparsepc::ComponentState::Validated;
+            candidates.at(iCandidate).state =
+                sparsepc::ComponentState::Validated;
 
             validatedComponents.push_back(std::move(candidates.at(iCandidate)));
         }
 
-        for (const auto& component: validatedComponents)
+        for (const auto &component : validatedComponents)
         {
-            std::cout <<component.value << ":\t" << component.vector.transpose() << "\n";
+            std::cout << component.value << ":\t"
+                      << component.vector.transpose() << "\n";
         }
     }
 
@@ -185,7 +195,7 @@ int main()
         std::cout << "\nStarting spcs validation: forward run.\n";
         using ForwardGspca = sparsepc::linearmodel::ForwardGspca<Scalar>;
 
-        const ForwardGspca::Param param{ {k0, k1, k2} };
+        const ForwardGspca::Param param{{k0, k1, k2}};
 
         std::vector<Component> validatedComponents;
         validatedComponents.reserve(param.nbComponents);
@@ -202,18 +212,20 @@ int main()
             std::cin >> iCandidate;
             std::cout << "\n";
 
-            for (auto& [i, candidate] : candidates)
+            for (auto &[i, candidate] : candidates)
             {
                 candidate.state = sparsepc::ComponentState::Unvalidated;
             }
-            candidates.at(iCandidate).state = sparsepc::ComponentState::Validated;
+            candidates.at(iCandidate).state =
+                sparsepc::ComponentState::Validated;
 
             validatedComponents.push_back(std::move(candidates.at(iCandidate)));
         }
 
-        for (const auto& component: validatedComponents)
+        for (const auto &component : validatedComponents)
         {
-            std::cout <<component.value << ":\t" << component.vector.transpose() << "\n";
+            std::cout << component.value << ":\t"
+                      << component.vector.transpose() << "\n";
         }
     }
 
@@ -222,8 +234,8 @@ int main()
     {
         std::cout << "\nStarting spcs validation: backward run.\n";
         using BackwardGspca = sparsepc::linearmodel::BackwardGspca<Scalar>;
-        
-        const BackwardGspca::Param param{ {k0, k1, k2} };
+
+        const BackwardGspca::Param param{{k0, k1, k2}};
 
         std::vector<Component> validatedComponents;
         validatedComponents.reserve(param.nbComponents);
@@ -240,18 +252,20 @@ int main()
             std::cin >> iCandidate;
             std::cout << "\n";
 
-            for (auto& [i, candidate]: candidates)
+            for (auto &[i, candidate] : candidates)
             {
                 candidate.state = sparsepc::ComponentState::Unvalidated;
             }
-            candidates.at(iCandidate).state = sparsepc::ComponentState::Validated;
+            candidates.at(iCandidate).state =
+                sparsepc::ComponentState::Validated;
 
             validatedComponents.push_back(std::move(candidates.at(iCandidate)));
         }
 
-        for (const auto& component: validatedComponents)
+        for (const auto &component : validatedComponents)
         {
-            std::cout <<component.value << ":\t" << component.vector.transpose() << "\n";
+            std::cout << component.value << ":\t"
+                      << component.vector.transpose() << "\n";
         }
     }
 
