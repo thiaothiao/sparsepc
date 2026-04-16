@@ -257,6 +257,7 @@ namespace sparsepc
                 components.emplace(k, Component{});
             }
 
+            int counter = 1;
 #pragma omp parallel for
             for (Index k = 1; k < n; ++k)
             {
@@ -264,6 +265,13 @@ namespace sparsepc
                     Param{k, param.eigenSolver, param.t, param.tolerance,
                           param.maximumNumberOfIterations,
                           param.zero}}.run(sigma, component);
+#pragma omp critical
+                {
+                    if (progressBar)
+                    {
+                        progressBar->setValue(counter++);
+                    }
+                }
             }
 
             return components;
