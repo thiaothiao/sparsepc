@@ -220,8 +220,6 @@ namespace sparsepc
 
                 ++j0;
 
-                // std::cout << ".";
-
                 if (static_cast<Index>(choosenIndices.size()) - j0 == k)
                 {
                     break;
@@ -415,7 +413,7 @@ namespace sparsepc
                 }
 
                 ++j0;
-                // std::cout << ".";
+
                 if (j0 == k)
                 {
                     break;

@@ -204,8 +204,6 @@ namespace sparsepc
                     {
                         break;
                     }
-
-                    // std::cout << ".";
                 }
 
                 if ((primalSsolution.u.array() > static_cast<Scalar>(1) - 1e-5)
