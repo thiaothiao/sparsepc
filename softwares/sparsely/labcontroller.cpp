@@ -76,16 +76,14 @@ namespace
         const std::reference_wrapper<sparsely::LabController> labController;
     };
 
-    class NoEscapeNoXCloseQProgressDialog : public QProgressDialog
+    class NoEscapeQProgressDialog : public QProgressDialog
     {
       public:
-        NoEscapeNoXCloseQProgressDialog(const QString &labelText,
-                                        const QString &cancelButtonText,
-                                        int minimum, int maximum,
-                                        QWidget *parent = nullptr)
+        NoEscapeQProgressDialog(const QString &labelText,
+                                const QString &cancelButtonText, int minimum,
+                                int maximum, QWidget *parent = nullptr)
             : QProgressDialog(labelText, cancelButtonText, minimum, maximum,
-                              parent,
-                              Qt::WindowFlags() & ~Qt::WindowCloseButtonHint)
+                              parent)
         {
         }
 
@@ -216,14 +214,16 @@ namespace sparsely
         const auto newSparsePCColor =
             labWidget.m_Colors[labModel.m_SparsePCs.size()];
 
-        NoEscapeNoXCloseQProgressDialog qProgressDialog(
-            "Computing sparse pcs...", "Abort", 0, m_N);
+        NoEscapeQProgressDialog qProgressDialog("Computing sparse pcs...",
+                                                "Abort", 0, m_N, &labWidget);
         ProgressDialog progressDialog(qProgressDialog);
 
         qProgressDialog.setStyleSheet(
             "QProgressBar::chunk { background-color:" + newSparsePCColor +
             "; }");
 
+        qProgressDialog.setWindowFlags(qProgressDialog.windowFlags() &
+                                       ~Qt::WindowCloseButtonHint);
         qProgressDialog.setWindowModality(Qt::WindowModal);
         qProgressDialog.setMinimumDuration(0);
 
