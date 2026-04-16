@@ -150,6 +150,18 @@ namespace sparsepc
                 return components;
             }
 
+            if (progressBar)
+            {
+                progressBar->setValue(1);
+
+                progressBar->processEvents();
+
+                if (progressBar->wasCanceled())
+                {
+                    return components;
+                }
+            }
+
             for (Index k = 1; k < n; ++k)
             {
                 components.emplace(k, Component(n));
@@ -158,18 +170,24 @@ namespace sparsepc
             auto indices = sortMatrix(sigma);
             for (Index k = n - 1; k > 1; --k)
             {
-                if (progressBar)
-                {
-                    progressBar->setValue(n - k);
-                }
-
                 indices.resize(k);
-
                 auto &component = components.at(k);
                 const auto subDimEigenElement =
                     eigenSolver.maximumValueElement(sigma(indices, indices));
                 component.value = subDimEigenElement.value;
                 component.vector(indices) = subDimEigenElement.vector;
+
+                if (progressBar)
+                {
+                    progressBar->setValue(n - k + 1);
+
+                    progressBar->processEvents();
+
+                    if (progressBar->wasCanceled())
+                    {
+                        return components;
+                    }
+                }
             }
 
             return components;

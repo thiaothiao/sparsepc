@@ -123,6 +123,18 @@ namespace sparsepc
                 return components;
             }
 
+            if (progressBar)
+            {
+                progressBar->setValue(1);
+
+                progressBar->processEvents();
+
+                if (progressBar->wasCanceled())
+                {
+                    return components;
+                }
+            }
+
             for (Index k = 1; k < n; ++k)
             {
                 components.emplace(k, Component(n));
@@ -132,21 +144,25 @@ namespace sparsepc
             {
                 for (Index k = 1; k < n; ++k)
                 {
-                    if (progressBar)
-                    {
-                        progressBar->setValue(k);
-                    }
-
                     auto &component = components.at(k);
-
                     param.computeSparseEigenVector(sigma.data(), n, k,
                                                    component.vector.data());
-
                     component.vector.normalize();
-
                     component.value = (component.vector.transpose() * sigma *
                                        component.vector)
                                           .value();
+
+                    if (progressBar)
+                    {
+                        progressBar->setValue(k + 1);
+
+                        progressBar->processEvents();
+
+                        if (progressBar->wasCanceled())
+                        {
+                            return components;
+                        }
+                    }
                 }
             }
 

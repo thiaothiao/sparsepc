@@ -1,13 +1,16 @@
 #include "labwidget.h"
 
 #include <QColor>
+#include <QComboBox>
 #include <QDir>
 #include <QFile>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
+#include <QLibrary>
 #include <QPen>
 #include <QProgressBar>
+#include <QProgressDialog>
 #include <QPushButton>
 #include <QSlider>
 #include <QStackedLayout>
@@ -16,6 +19,7 @@
 
 #include "jkqtplotter/graphs/jkqtpfilledcurve.h"
 #include "jkqtplotter/graphs/jkqtpimpulses.h"
+#include "jkqtplotter/jkqtplotter.h"
 
 namespace
 {
@@ -96,9 +100,7 @@ namespace sparsely
 {
     LabWidget::LabWidget(QWidget *parent)
         : QWidget(parent), m_Plotter{nullptr}, m_SliderGroupBox{nullptr},
-          m_ProgressBarGroupBox{nullptr}, m_Slider{nullptr},
-          m_ProgressBar{nullptr},
-          m_SliderOrProgressBarWidgetStackedLayout{nullptr},
+          m_Slider{nullptr}, m_SliderOrProgressBarWidgetStackedLayout{nullptr},
           m_MethodComboBox{nullptr}, m_PlotTypeComboBox{nullptr}, m_Colors{},
           m_N{0}, m_ColumnX{0}
     {
@@ -230,7 +232,6 @@ namespace sparsely
         else
         {
             setSliderColor("blue");
-            m_ProgressBarGroupBox->setStyleSheet("");
         }
     }
 
@@ -279,28 +280,16 @@ namespace sparsely
         m_Slider->setSingleStep(1);
         m_Slider->setMaximumHeight(18);
         setSliderColor("blue");
-        m_ProgressBarGroupBox = new QGroupBox("0%", this);
-        auto *progressBarGroupBoxLayout =
-            new QHBoxLayout(m_ProgressBarGroupBox);
-        m_ProgressBar = new QProgressBar(this);
-        progressBarGroupBoxLayout->addWidget(m_ProgressBar);
-        m_ProgressBar->setRange(0, 12);
-        m_ProgressBar->setValue(0);
-        m_ProgressBar->setTextVisible(false);
-        m_ProgressBar->setMaximumHeight(10);
 
         auto *welcomeGroupBox = new QGroupBox("Welcome", this);
         auto *welcomeGroupBoxLayout = new QHBoxLayout(welcomeGroupBox);
         auto *topLevelLabel =
-            new QLabel("Here you will find a slider allowing the tuning of the "
-                       "sparsity level"
-                       " or current computation completion progress bar",
+            new QLabel("Here you will be a slider allowing the tuning of the "
+                       "sparsity level",
                        this);
         welcomeGroupBoxLayout->addWidget(topLevelLabel, 0, Qt::AlignCenter);
 
         m_SliderOrProgressBarWidgetStackedLayout->addWidget(m_SliderGroupBox);
-        m_SliderOrProgressBarWidgetStackedLayout->addWidget(
-            m_ProgressBarGroupBox);
         m_SliderOrProgressBarWidgetStackedLayout->addWidget(welcomeGroupBox);
         m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(
             welcomeGroupBox);
@@ -365,8 +354,6 @@ namespace sparsely
         m_RemoveLastSparseComponentButton =
             new QPushButton(tr("Remove last"), this);
         actionGroupBoxLayout->addWidget(m_RemoveLastSparseComponentButton);
-        // QObject::connect(m_ProgressBar, &QProgressBar::valueChanged,
-        //                  this, &LabWidget::updateProgressBarTitle);
         // QObject::connect(m_Slider, qOverload<int>(&QSlider::valueChanged),
         //                  this, &LabWidget::updateSliderTitle);
         buttonsWidgetLayout->addStretch(1);
@@ -394,8 +381,6 @@ namespace sparsely
         m_Slider->setRange(1, m_N);
         m_Slider->setSingleStep(1);
         setSliderColor("blue");
-        m_ProgressBar->setRange(0, m_N);
-        m_ProgressBar->setValue(0);
         m_PlotTypeComboBox->setCurrentIndex(
             preferences.plotType == Enums::PlotType::FILLED ? 0 : 1);
         switch (preferences.method)
@@ -426,12 +411,12 @@ namespace sparsely
         {
             m_MethodComboBox->setCurrentIndex(4);
         }
+        m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(
+            m_SliderGroupBox);
         m_ProcessingsGoupboxStackedLayout->setCurrentWidget(m_ButtonsWidget);
         // auto* actionGroupBox->setTitle(tr("Sparse component"));
         // m_AddNewSparseComponentButton->setText(tr("Add new"));
         // m_RemoveLastSparseComponentButton->setText((tr("Remove last"));
-        QObject::connect(m_ProgressBar, &QProgressBar::valueChanged, this,
-                         &LabWidget::updateProgressBarTitle);
         QObject::connect(m_Slider, qOverload<int>(&QSlider::valueChanged), this,
                          &LabWidget::updateSliderTitle);
     }
@@ -468,23 +453,6 @@ namespace sparsely
     }
 
     void LabWidget::setN(int n) { m_N = n; }
-
-    void LabWidget::updateProgressBarTitle(int value)
-    {
-        const auto minValue = static_cast<double>(m_ProgressBar->minimum());
-        const auto maxValue = static_cast<double>(m_ProgressBar->maximum());
-        const auto percentage = static_cast<int>((value - minValue) * 100.0 /
-                                                 (maxValue - minValue));
-        m_ProgressBarGroupBox->setTitle(QString::number(percentage) + "%");
-    }
-
-    void LabWidget::setProgressBarColor(const QString &colorString)
-    {
-        m_ProgressBarGroupBox->setStyleSheet(
-            "QGroupBox::title { color: " + colorString + "; }");
-        m_ProgressBar->setStyleSheet(
-            "QProgressBar::chunk { background-color:" + colorString + "; }");
-    }
 
     void LabWidget::setSliderColor(const QString &colorString)
     {

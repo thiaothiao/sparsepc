@@ -1,13 +1,19 @@
 #include "labpreferencesdialog.h"
 
+#include <QComboBox>
+#include <QDialog>
 #include <QDir>
+#include <QDoubleSpinBox>
 #include <QFile>
 #include <QGroupBox>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QLineEdit>
+#include <QMetaEnum>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QSpinBox>
 #include <QVBoxLayout>
 #include <QVariantList>
 

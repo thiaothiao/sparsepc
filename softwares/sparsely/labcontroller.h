@@ -6,12 +6,13 @@
 #include <QObject>
 #include <QString>
 
-#include "labmodel.h"
 #include "labpreferences.h"
-#include "labwidget.h"
 
 namespace sparsely
 {
+    class LabModel;
+    class LabWidget;
+
     class LabController final : public QObject
     {
         Q_OBJECT

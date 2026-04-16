@@ -7,7 +7,6 @@
 #include <vector>
 
 #include <QLibrary>
-#include <QProgressBar>
 #include <QString>
 #include <QVector>
 
@@ -15,8 +14,12 @@
 
 #include "labenums.h"
 
+class QLibrary;
+
 namespace sparsely
 {
+    class ProgressDialog;
+
     struct Nominees final
     {
         Nominees() : iWinner{-1}, candidates{} {}
@@ -39,7 +42,7 @@ namespace sparsely
         void loadProject(const QString &fileName);
         void computeStandardPCs();
         Nominees &computeSparsePC(const Enums::Method &method,
-                                  QProgressBar *progressBar);
+                                  ProgressDialog *progressBar);
         bool removeLastSparsePC();
         double computeValidatedCumulativeVariance() const;
         double computeCumulativeVariance() const;

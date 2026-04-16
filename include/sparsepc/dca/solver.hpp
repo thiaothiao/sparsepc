@@ -253,26 +253,37 @@ namespace sparsepc
             if (progressBar)
             {
                 progressBar->setValue(1);
+
+                progressBar->processEvents();
+
+                if (progressBar->wasCanceled())
+                {
+                    return components;
+                }
             }
 
             for (Index k = 1; k < n; ++k)
             {
-                components.emplace(k, Component{});
+                components.emplace(k, Component(n));
             }
 
-            int counter = 1;
-#pragma omp parallel for
+            // TODO use #pragma omp parallel and #pragma omp cancel
             for (Index k = 1; k < n; ++k)
             {
                 components.at(k) = DcaModel<Scalar, EigenSolver, ProgressBar>{
                     Param{k, param.eigenSolver, param.t, param.tolerance,
                           param.maximumNumberOfIterations,
                           param.zero}}.run(sigma, component);
-#pragma omp critical
+
+                if (progressBar)
                 {
-                    if (progressBar)
+                    progressBar->setValue(k + 1);
+
+                    progressBar->processEvents();
+
+                    if (progressBar->wasCanceled())
                     {
-                        progressBar->setValue(counter++);
+                        return components;
                     }
                 }
             }

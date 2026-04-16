@@ -1,14 +1,14 @@
 #ifndef SPARSEPC_PREFERENCES_DIALOG_HPP
 #define SPARSEPC_PREFERENCES_DIALOG_HPP
 
-#include <QComboBox>
 #include <QDialog>
-#include <QDoubleSpinBox>
-#include <QJsonObject>
-#include <QLineEdit>
-#include <QMetaEnum>
-#include <QPushButton>
-#include <QSpinBox>
+
+class QWidget;
+class QSpinBox;
+class QLineEdit;
+class QDoubleSpinBox;
+class QComboBox;
+class QPushButton;
 
 namespace sparsely
 {

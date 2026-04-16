@@ -4,22 +4,23 @@
 #include <cstddef>
 #include <vector>
 
-#include <QComboBox>
-#include <QGroupBox>
-#include <QLibrary>
-#include <QProgressBar>
-#include <QPushButton>
-#include <QSlider>
-#include <QStackedLayout>
+#include <QPen>
 #include <QString>
 #include <QVector>
 #include <QWidget>
 
 #include "labpreferences.h"
 
-#include "jkqtplotter/jkqtplotter.h"
-
 #include "sparsepc/core.hpp"
+
+class QGroupBox;
+class QSlider;
+class QStackedLayout;
+class QComboBox;
+class QPushButton;
+
+class JKQTPPlotElement;
+class JKQTPlotter;
 
 namespace sparsely
 {
@@ -47,7 +48,6 @@ namespace sparsely
 
       public slots:
         void updateSliderTitle(int value);
-        void updateProgressBarTitle(int value);
 
       public:
         void welcome(const QString &addonName);
@@ -69,15 +69,12 @@ namespace sparsely
         void clearAlls();
         void reInitSlider(int value);
         void setSliderColor(const QString &colorString);
-        void setProgressBarColor(const QString &colorString);
         void setN(int n);
 
         std::vector<GraphInfo> m_SparsePCGraphs;
         std::vector<GraphInfo> m_StandardPCGraphs;
         QGroupBox *m_SliderGroupBox;
-        QGroupBox *m_ProgressBarGroupBox;
         QSlider *m_Slider;
-        QProgressBar *m_ProgressBar;
         QStackedLayout *m_SliderOrProgressBarWidgetStackedLayout;
         QStackedLayout *m_ProcessingsGoupboxStackedLayout;
         QComboBox *m_MethodComboBox;
