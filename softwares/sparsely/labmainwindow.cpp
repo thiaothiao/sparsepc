@@ -8,6 +8,7 @@
 #include <QFileInfo>
 #include <QMenu>
 #include <QMenuBar>
+#include <QMessageBox>
 #include <QSettings>
 #include <QStackedLayout>
 #include <QStandardPaths>
@@ -20,6 +21,13 @@
 
 namespace
 {
+    void lauchMsgBox(const QString &msg)
+    {
+        QMessageBox msgBox;
+        msgBox.setText(msg);
+        msgBox.exec();
+    }
+
     void saveLastFolder(const QString &path)
     {
         QSettings settings(
@@ -96,6 +104,17 @@ namespace sparsely
 
     void LabMainWindow::newFile(bool checked)
     {
+        if (!m_LabWidget || !m_LabController)
+        { // bad news
+            return;
+        }
+
+        if (!m_LabController->projectIsEmpty())
+        {
+            lauchMsgBox("Quit current project first.");
+            return;
+        }
+
         const auto lastDir = getLastFolder();
         const auto fileName = QFileDialog::getOpenFileName(
             this, tr("Open File"), lastDir, tr("Text Files (*.csv)"));
@@ -103,15 +122,26 @@ namespace sparsely
         if (!fileName.isEmpty())
         {
             saveLastFolder(QFileInfo(fileName).dir().path());
-            if (m_LabWidget)
+            if (!m_LabController->init(fileName, true))
             {
-                m_LabController->init(fileName, true);
+                lauchMsgBox("Create new project failed.");
             }
         }
     }
 
     void LabMainWindow::open(bool checked)
     {
+        if (!m_LabWidget || !m_LabController)
+        { // bad news
+            return;
+        }
+
+        if (!m_LabController->projectIsEmpty())
+        {
+            lauchMsgBox("Quit current project first.");
+            return;
+        }
+
         const auto lastDir = getLastFolder();
         const auto fileName = QFileDialog::getOpenFileName(
             this, tr("Open File"), lastDir, tr("Files (*.sparsely)"));
@@ -119,29 +149,35 @@ namespace sparsely
         if (!fileName.isEmpty())
         {
             saveLastFolder(QFileInfo(fileName).dir().path());
-            if (m_LabWidget)
+            if (!m_LabController->init(fileName, false))
             {
-                m_LabController->init(fileName, false);
+                lauchMsgBox("Load project failed.");
             }
         }
     }
 
     void LabMainWindow::save(bool checked)
     {
-        if (m_LabWidget)
-        {
-            if (m_LabController->projectIsEmpty())
-            {
-                return;
-            }
-            const auto lastDir = getLastFolder();
-            const auto fileName = QFileDialog::getSaveFileName(
-                this, tr("Save File"), lastDir, tr("Files (*.sparsely)"));
+        if (!m_LabWidget || !m_LabController)
+        { // bad news
+            return;
+        }
 
-            if (!fileName.isEmpty())
+        if (m_LabController->projectIsEmpty())
+        {
+            lauchMsgBox("Nothing to save. Empty project.");
+            return;
+        }
+        const auto lastDir = getLastFolder();
+        const auto fileName = QFileDialog::getSaveFileName(
+            this, tr("Save File"), lastDir, tr("Files (*.sparsely)"));
+
+        if (!fileName.isEmpty())
+        {
+            saveLastFolder(QFileInfo(fileName).dir().path());
+            if (!m_LabController->saveProject(fileName))
             {
-                saveLastFolder(QFileInfo(fileName).dir().path());
-                m_LabController->saveProject(fileName);
+                lauchMsgBox("Save project failed.");
             }
         }
     }

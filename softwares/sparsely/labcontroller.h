@@ -22,9 +22,9 @@ namespace sparsely
                       QObject *parent = nullptr);
 
         void welcome();
-        void init(const QString &fileName, bool newProject = true);
-        void saveProject(const QString &fileName) const;
-        void loadProject(const QString &fileName);
+        bool init(const QString &fileName, bool newProject = true);
+        bool saveProject(const QString &fileName) const;
+        bool loadProject(const QString &fileName);
         bool projectIsEmpty() const { return m_N == 0; }
 
       public slots:

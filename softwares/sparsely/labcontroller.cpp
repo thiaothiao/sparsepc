@@ -144,13 +144,13 @@ namespace sparsely
         labWidget.welcome(labModel.getAddonName());
     }
 
-    void LabController::init(const QString &fileName, bool newProject)
+    bool LabController::init(const QString &fileName, bool newProject)
     {
         auto &labWidget = m_LabWidget.get();
         auto &labModel = m_LabModel.get();
         if (!labModel.init(fileName, newProject))
         {
-            return;
+            return false;
         }
         m_N = labModel.getN();
         labWidget.setN(m_N);
@@ -161,6 +161,7 @@ namespace sparsely
         labWidget.reInitSlider(labModel.getiWinner());
         connectWidget();
         labWidget.zoomToFit();
+        return true;
     }
 
     void LabController::addStandardPCGraphs()
@@ -301,13 +302,13 @@ namespace sparsely
         addSparsePCGraphs();
     }
 
-    void LabController::saveProject(const QString &fileName) const
+    bool LabController::saveProject(const QString &fileName) const
     {
-        m_LabModel.get().saveProject(fileName);
+        return m_LabModel.get().saveProject(fileName);
     }
 
-    void LabController::loadProject(const QString &fileName)
+    bool LabController::loadProject(const QString &fileName)
     {
-        m_LabModel.get().loadProject(fileName);
+        return m_LabModel.get().loadProject(fileName);
     }
 } // namespace sparsely

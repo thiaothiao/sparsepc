@@ -38,8 +38,8 @@ namespace sparsely
       public:
         LabModel();
         bool init(const QString &fileName, bool newProject = true);
-        void saveProject(const QString &fileName) const;
-        void loadProject(const QString &fileName);
+        bool saveProject(const QString &fileName) const;
+        bool loadProject(const QString &fileName);
         void computeStandardPCs();
         Nominees &computeSparsePC(const Enums::Method &method,
                                   ProgressDialog *progressBar);
