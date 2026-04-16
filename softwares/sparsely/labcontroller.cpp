@@ -3,12 +3,18 @@
 #include <functional>
 #include <thread>
 
+#include <QComboBox>
 #include <QDir>
 #include <QFile>
+#include <QKeyEvent>
 #include <QProgressDialog>
+#include <QPushButton>
+#include <QSlider>
 #include <QString>
 
+#include "labmodel.h"
 #include "labprogressdialog.h"
+#include "labwidget.h"
 
 namespace
 {
@@ -221,7 +227,6 @@ namespace sparsely
         qProgressDialog.setStyleSheet(
             "QProgressBar::chunk { background-color:" + newSparsePCColor +
             "; }");
-
         qProgressDialog.setWindowFlags(qProgressDialog.windowFlags() &
                                        ~Qt::WindowCloseButtonHint);
         qProgressDialog.setWindowModality(Qt::WindowModal);

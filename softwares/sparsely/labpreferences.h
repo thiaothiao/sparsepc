@@ -2,6 +2,9 @@
 #define SPARSEPC_PREFERENCES_HPP
 
 #include <QJsonObject>
+#include <QPen>
+#include <QString>
+#include <QStringList>
 
 #include "labenums.h"
 

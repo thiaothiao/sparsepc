@@ -1,11 +1,13 @@
 #include "labwidget.h"
 
 #include <QColor>
+#include <QComboBox>
 #include <QDir>
 #include <QFile>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
+#include <QLibrary>
 #include <QPen>
 #include <QProgressBar>
 #include <QProgressDialog>
@@ -17,6 +19,7 @@
 
 #include "jkqtplotter/graphs/jkqtpfilledcurve.h"
 #include "jkqtplotter/graphs/jkqtpimpulses.h"
+#include "jkqtplotter/jkqtplotter.h"
 
 namespace
 {

@@ -4,22 +4,23 @@
 #include <cstddef>
 #include <vector>
 
-#include <QComboBox>
-#include <QGroupBox>
-#include <QLibrary>
-#include <QProgressBar>
-#include <QPushButton>
-#include <QSlider>
-#include <QStackedLayout>
+#include <QPen>
 #include <QString>
 #include <QVector>
 #include <QWidget>
 
 #include "labpreferences.h"
 
-#include "jkqtplotter/jkqtplotter.h"
-
 #include "sparsepc/core.hpp"
+
+class QGroupBox;
+class QSlider;
+class QStackedLayout;
+class QComboBox;
+class QPushButton;
+
+class JKQTPPlotElement;
+class JKQTPlotter;
 
 namespace sparsely
 {

@@ -1,15 +1,21 @@
 #include "labmainwindow.h"
 
 #include <QAction>
+#include <QApplication>
+#include <QCloseEvent>
 #include <QDebug>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QMenu>
 #include <QMenuBar>
 #include <QSettings>
+#include <QStackedLayout>
 #include <QStandardPaths>
+#include <QWidget>
 
+#include "labcontroller.h"
 #include "labpreferencesdialog.h"
+#include "labwidget.h"
 #include "version.h"
 
 namespace
