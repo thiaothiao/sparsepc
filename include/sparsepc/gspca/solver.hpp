@@ -269,6 +269,11 @@ namespace sparsepc
                 choosenIndices[i] = i;
             }
 
+            if (progressBar)
+            {
+                progressBar->setValue(1);
+            }
+
             auto j0 = static_cast<Index>(0);
             while (true)
             {
@@ -329,7 +334,7 @@ namespace sparsepc
 
                 if (progressBar)
                 {
-                    progressBar->setValue(j0);
+                    progressBar->setValue(j0 + 1);
                 }
 
                 if (k == 1)
@@ -451,6 +456,11 @@ namespace sparsepc
                 return components;
             }
 
+            if (progressBar)
+            {
+                progressBar->setValue(1);
+            }
+
             Vectori reserveIndices(n);
             for (Index i = 0; i < n; ++i)
             {
@@ -515,7 +525,7 @@ namespace sparsepc
 
                 if (progressBar)
                 {
-                    progressBar->setValue(j0);
+                    progressBar->setValue(j0 + 1);
                 }
 
                 if (k == n - 1)
@@ -601,7 +611,7 @@ namespace sparsepc
 
             auto forwardSolutionFuture =
                 std::async(std::launch::async, &ForwardGspcaModel::runAll,
-                           sigma, forwardParam, progressBar);
+                           sigma, forwardParam, nullptr);
 
             ComponentsContainer backwardSolutionSparseEigenElement =
                 BackwardGspcaModel::runAll(sigma, backwardParam, progressBar);

@@ -252,6 +252,11 @@ namespace sparsepc
                 return components;
             }
 
+            if (progressBar)
+            {
+                progressBar->setValue(1);
+            }
+
             for (Index k = 1; k < n; ++k)
             {
                 components.emplace(k, Component{});
