@@ -80,7 +80,24 @@ namespace sparsely
 
         if (newProject)
         {
-            m_Sigma = sparsepc::openData<double>(fileName.toStdString(), ';');
+            { // TODO improve covariance computations
+                const sparsepc::Matrix<double> X =
+                    sparsepc::openData<double>(fileName.toStdString(), ';');
+
+                if (X.rows() <= 1)
+                {
+                    // TODO should popup one sample matrix.
+                    return false;
+                }
+
+                const sparsepc::Matrix<double> centeredX =
+                    X.rowwise() - X.colwise().mean();
+
+                // sample covariance formula
+                m_Sigma = (centeredX.adjoint() * centeredX) /
+                          static_cast<double>(X.rows() - 1);
+            }
+
             m_N = m_Sigma.cols();
             m_Trace = m_Sigma.trace();
             m_ValidatedComponents.clear();
