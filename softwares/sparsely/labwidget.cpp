@@ -26,19 +26,19 @@ namespace
     void addSparselyIconGraphs(JKQTPlotter &plotter)
     {
         auto *datastore = plotter.getDatastore();
-        const auto n = 13;
+        const auto n = 11;
         const auto columnX = datastore->addLinearColumn(n, 0, n - 1);
         sparsepc::Vector<double> redValues =
             sparsepc::Vector<double>::Constant(n, 0.01);
-        redValues[3] = 0.25;
-        redValues[4] = 0.5;
-        redValues[5] = 0.25;
+        redValues[2] = 0.25;
+        redValues[3] = 0.5;
+        redValues[4] = 0.25;
         redValues.normalize();
         sparsepc::Vector<double> greenValues =
             sparsepc::Vector<double>::Constant(n, -0.01);
-        greenValues[7] = -0.25;
-        greenValues[8] = -0.5;
-        greenValues[9] = -0.25;
+        greenValues[6] = -0.25;
+        greenValues[7] = -0.5;
+        greenValues[8] = -0.25;
         greenValues.normalize();
 
         const auto columnRed = datastore->addColumn(n);
@@ -54,7 +54,7 @@ namespace
             auto *redGraph = new JKQTPFilledCurveXGraph(&plotter);
             auto col = QColor(QColor("red"));
             redGraph->setLineStyle(Qt::SolidLine);
-            redGraph->setLineWidth(10);
+            redGraph->setLineWidth(5);
             redGraph->setLineColor(col);
             redGraph->setFillMode(
                 JKQTPFilledCurveXGraph::FillMode::SingleFilling);
@@ -71,7 +71,7 @@ namespace
             auto *greenGraph = new JKQTPFilledCurveXGraph(&plotter);
             auto col = QColor(QColor("green"));
             greenGraph->setLineStyle(Qt::SolidLine);
-            greenGraph->setLineWidth(10);
+            greenGraph->setLineWidth(5);
             greenGraph->setLineColor(col);
             greenGraph->setFillMode(
                 JKQTPFilledCurveXGraph::FillMode::SingleFilling);
