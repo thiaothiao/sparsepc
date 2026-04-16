@@ -72,12 +72,6 @@ namespace sparsely
 
     bool LabModel::init(const QString &fileName, bool newProject)
     {
-        if (m_Sigma.size() != 0)
-        {
-            // TODO should popup a project already loaded.
-            return false;
-        }
-
         if (newProject)
         {
             { // TODO improve covariance computations
@@ -331,73 +325,74 @@ namespace sparsely
         return in;
     }
 
-    void LabModel::saveProject(const QString &filename) const
+    bool LabModel::saveProject(const QString &filename) const
     {
-        if (m_Sigma.size() == 0)
+        QFile file(filename);
+        if (!file.open(QIODevice::WriteOnly))
         {
-            // should popup we do not save an empty project.
-            return;
+            return false;
         }
 
-        QFile file(filename);
-        if (file.open(QIODevice::WriteOnly))
-        { // Serialization
-            QDataStream out(&file);
-            out.setVersion(QDataStream::Qt_6_0); // version for forward/backward
-                                                 // compatibility
-            out << static_cast<qint32>(m_N);
-            out.writeRawData(reinterpret_cast<const char *>(m_Sigma.data()),
-                             m_N * m_N * sizeof(double));
-            const auto standardPCsSize =
-                static_cast<qint32>(m_StandardPCs.size());
-            out << standardPCsSize;
-            for (qint32 j = 0; j < standardPCsSize; ++j)
-            {
-                out << m_StandardPCs[j];
-            }
-            const auto sparsePCsSize = static_cast<qint32>(m_SparsePCs.size());
-            out << sparsePCsSize;
-            for (qint32 j = 0; j < sparsePCsSize; ++j)
-            {
-                out << m_SparsePCs[j];
-            }
-            file.close();
+        // Serialization
+        QDataStream out(&file);
+        out.setVersion(QDataStream::Qt_6_0); // version for forward/backward
+                                             // compatibility
+        out << static_cast<qint32>(m_N);
+        out.writeRawData(reinterpret_cast<const char *>(m_Sigma.data()),
+                         m_N * m_N * sizeof(double));
+        const auto standardPCsSize = static_cast<qint32>(m_StandardPCs.size());
+        out << standardPCsSize;
+        for (qint32 j = 0; j < standardPCsSize; ++j)
+        {
+            out << m_StandardPCs[j];
         }
+        const auto sparsePCsSize = static_cast<qint32>(m_SparsePCs.size());
+        out << sparsePCsSize;
+        for (qint32 j = 0; j < sparsePCsSize; ++j)
+        {
+            out << m_SparsePCs[j];
+        }
+        file.close();
+        return true;
     }
 
-    void LabModel::loadProject(const QString &fileName)
+    bool LabModel::loadProject(const QString &fileName)
     {
         QFile file(fileName);
-        if (file.open(QIODevice::ReadOnly))
-        { // Deserialization
-            QDataStream in(&file);
-            in.setVersion(QDataStream::Qt_6_0);
-            qint32 intVal = -1;
-            in >> intVal;
-            m_N = intVal;
-            m_Sigma.resize(m_N, m_N);
-            in.readRawData(reinterpret_cast<char *>(m_Sigma.data()),
-                           m_N * m_N * sizeof(double));
-            m_Trace = m_Sigma.trace();
-            m_StandardPCs.clear();
-            m_StandardPCs.reserve(m_N);
-            m_SparsePCs.clear();
-            m_SparsePCs.reserve(m_N);
-            in >> intVal;
-            for (qint32 j = 0; j < intVal; ++j)
-            {
-                Nominees Nominees;
-                in >> Nominees;
-                m_StandardPCs.push_back(std::move(Nominees));
-            }
-            in >> intVal;
-            for (qint32 j = 0; j < intVal; ++j)
-            {
-                Nominees Nominees;
-                in >> Nominees;
-                m_SparsePCs.push_back(std::move(Nominees));
-            }
-            file.close();
+        if (!file.open(QIODevice::ReadOnly))
+        {
+            return false;
         }
+
+        // Deserialization
+        QDataStream in(&file);
+        in.setVersion(QDataStream::Qt_6_0);
+        qint32 intVal = -1;
+        in >> intVal;
+        m_N = intVal;
+        m_Sigma.resize(m_N, m_N);
+        in.readRawData(reinterpret_cast<char *>(m_Sigma.data()),
+                       m_N * m_N * sizeof(double));
+        m_Trace = m_Sigma.trace();
+        m_StandardPCs.clear();
+        m_StandardPCs.reserve(m_N);
+        m_SparsePCs.clear();
+        m_SparsePCs.reserve(m_N);
+        in >> intVal;
+        for (qint32 j = 0; j < intVal; ++j)
+        {
+            Nominees Nominees;
+            in >> Nominees;
+            m_StandardPCs.push_back(std::move(Nominees));
+        }
+        in >> intVal;
+        for (qint32 j = 0; j < intVal; ++j)
+        {
+            Nominees Nominees;
+            in >> Nominees;
+            m_SparsePCs.push_back(std::move(Nominees));
+        }
+        file.close();
+        return true;
     }
 } // namespace sparsely
