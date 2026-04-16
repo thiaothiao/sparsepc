@@ -5,7 +5,10 @@
 
 #include <QDir>
 #include <QFile>
+#include <QProgressDialog>
 #include <QString>
+
+#include "labprogressdialog.h"
 
 namespace
 {
@@ -40,6 +43,63 @@ namespace
 
       private:
         const std::reference_wrapper<sparsely::LabWidget> labWidget;
+    };
+
+    class SliderDisconnectConnect final
+    { // RAII
+      public:
+        SliderDisconnectConnect(QSlider &aSlider,
+                                sparsely::LabController &aController)
+            : qSlider{aSlider}, labController{aController}
+        {
+            QObject::disconnect(
+                &qSlider.get(), qOverload<int>(&QSlider::valueChanged),
+                &labController.get(), &sparsely::LabController::updatePlot);
+        }
+
+        ~SliderDisconnectConnect()
+        {
+            QObject::connect(
+                &qSlider.get(), qOverload<int>(&QSlider::valueChanged),
+                &labController.get(), &sparsely::LabController::updatePlot);
+        }
+
+        SliderDisconnectConnect(const SliderDisconnectConnect &) = delete;
+        SliderDisconnectConnect &
+        operator=(const SliderDisconnectConnect &) = delete;
+
+        SliderDisconnectConnect(SliderDisconnectConnect &&) = delete;
+        SliderDisconnectConnect &operator=(SliderDisconnectConnect &&) = delete;
+
+      private:
+        const std::reference_wrapper<QSlider> qSlider;
+        const std::reference_wrapper<sparsely::LabController> labController;
+    };
+
+    class NoEscapeNoXCloseQProgressDialog : public QProgressDialog
+    {
+      public:
+        NoEscapeNoXCloseQProgressDialog(const QString &labelText,
+                                        const QString &cancelButtonText,
+                                        int minimum, int maximum,
+                                        QWidget *parent = nullptr)
+            : QProgressDialog(labelText, cancelButtonText, minimum, maximum,
+                              parent,
+                              Qt::WindowFlags() & ~Qt::WindowCloseButtonHint)
+        {
+        }
+
+      protected:
+        bool event(QEvent *event) override
+        {
+            auto *keyEvent = static_cast<QKeyEvent *>(event);
+            if (keyEvent && keyEvent->key() == Qt::Key_Escape)
+            {
+                keyEvent->accept();
+                return true;
+            }
+            return QProgressDialog::event(event);
+        }
     };
 } // namespace
 
@@ -147,27 +207,38 @@ namespace sparsely
     {
         auto &labWidget = m_LabWidget.get();
         auto &labModel = m_LabModel.get();
+
+        const SliderDisconnectConnect sliderDisconnectConnect(
+            *labWidget.m_Slider, *this);
+
         labModel.validateCurrentSparsePC();
+
         const auto newSparsePCColor =
             labWidget.m_Colors[labModel.m_SparsePCs.size()];
-        labWidget.setProgressBarColor(newSparsePCColor);
-        labWidget.m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(
-            labWidget.m_ProgressBarGroupBox);
-        labWidget.m_ProgressBar->setValue(0);
+
+        NoEscapeNoXCloseQProgressDialog qProgressDialog(
+            "Computing sparse pcs...", "Abort", 0, m_N);
+        ProgressDialog progressDialog(qProgressDialog);
+
+        qProgressDialog.setStyleSheet(
+            "QProgressBar::chunk { background-color:" + newSparsePCColor +
+            "; }");
+
+        qProgressDialog.setWindowModality(Qt::WindowModal);
+        qProgressDialog.setMinimumDuration(0);
+
         const auto method =
             labWidget.m_MethodComboBox->currentData().value<Enums::Method>();
-        auto &sparsePC =
-            labModel.computeSparsePC(method, labWidget.m_ProgressBar);
+        auto &sparsePC = labModel.computeSparsePC(method, &progressDialog);
+
+        if (progressDialog.wasCanceled())
+        {
+            labModel.removeLastSparsePC();
+            return;
+        }
+
         sparsePC.iWinner = labWidget.m_Slider->value();
-        {
-            using namespace std::chrono_literals;
-            std::this_thread::sleep_for(2000ms);
-        }
-        labWidget.m_ProgressBar->setValue(m_N);
-        {
-            using namespace std::chrono_literals;
-            std::this_thread::sleep_for(1000ms);
-        }
+
         const auto &component = sparsePC.candidates.at(sparsePC.iWinner);
         const auto cumulativeVariancePercentage =
             labModel.computeVarianceRatio(
@@ -176,8 +247,6 @@ namespace sparsely
             100.0;
         const auto componentRank = labModel.getCurrentRank();
         labWidget.setSliderColor(newSparsePCColor);
-        labWidget.m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(
-            labWidget.m_SliderGroupBox);
         labWidget.addSparsePCGraph(
             m_Preferences, component,
             generateGraphName(componentRank, cumulativeVariancePercentage));

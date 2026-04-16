@@ -6,28 +6,31 @@
 #include <QDataStream>
 #include <QDir>
 #include <QFile>
+#include <QLibrary>
 #include <QString>
+
+#include "labprogressdialog.h"
 
 namespace
 {
     using BackwardGSPA = sparsepc::linearmodel::SparsePC<
         sparsepc::linearmodel::BackwardGspcaModel<
-            double, sparsepc::EigenSolver<double>, QProgressBar>>;
+            double, sparsepc::EigenSolver<double>, sparsely::ProgressDialog>>;
 
     using ForwardGSPCA = sparsepc::linearmodel::SparsePC<
         sparsepc::linearmodel::ForwardGspcaModel<
-            double, sparsepc::EigenSolver<double>, QProgressBar>>;
+            double, sparsepc::EigenSolver<double>, sparsely::ProgressDialog>>;
 
     using DCA = sparsepc::linearmodel::SparsePC<sparsepc::linearmodel::DcaModel<
-        double, sparsepc::EigenSolver<double>, QProgressBar>>;
+        double, sparsepc::EigenSolver<double>, sparsely::ProgressDialog>>;
 
     using CustomSolver = sparsepc::linearmodel::SparsePC<
         sparsepc::linearmodel::CustomSolverModel<
-            double, sparsepc::EigenSolver<double>, QProgressBar>>;
+            double, sparsepc::EigenSolver<double>, sparsely::ProgressDialog>>;
 
     using DynamicLibSolver = sparsepc::linearmodel::SparsePC<
         sparsepc::linearmodel::DynamicLibSolverModel<
-            double, sparsepc::EigenSolver<double>, QProgressBar>>;
+            double, sparsepc::EigenSolver<double>, sparsely::ProgressDialog>>;
 
     auto getPluginList()
     {
@@ -115,7 +118,7 @@ namespace sparsely
     }
 
     Nominees &LabModel::computeSparsePC(const Enums::Method &method,
-                                        QProgressBar *progressBar)
+                                        ProgressDialog *progressBar)
     {
         auto &sparsePC = m_SparsePCs.emplace_back();
         sparsePC.iWinner = m_N / 2;

@@ -261,15 +261,22 @@ namespace sparsepc
                 return components;
             }
 
+            if (progressBar)
+            {
+                progressBar->setValue(1);
+
+                progressBar->processEvents();
+
+                if (progressBar->wasCanceled())
+                {
+                    return components;
+                }
+            }
+
             Vectori choosenIndices(n);
             for (Index i = 0; i < n; ++i)
             {
                 choosenIndices[i] = i;
-            }
-
-            if (progressBar)
-            {
-                progressBar->setValue(1);
             }
 
             auto j0 = static_cast<Index>(0);
@@ -333,6 +340,13 @@ namespace sparsepc
                 if (progressBar)
                 {
                     progressBar->setValue(j0 + 1);
+
+                    progressBar->processEvents();
+
+                    if (progressBar->wasCanceled())
+                    {
+                        return components;
+                    }
                 }
 
                 if (k == 1)
@@ -457,6 +471,13 @@ namespace sparsepc
             if (progressBar)
             {
                 progressBar->setValue(1);
+
+                progressBar->processEvents();
+
+                if (progressBar->wasCanceled())
+                {
+                    return components;
+                }
             }
 
             Vectori reserveIndices(n);
@@ -524,6 +545,13 @@ namespace sparsepc
                 if (progressBar)
                 {
                     progressBar->setValue(j0 + 1);
+
+                    progressBar->processEvents();
+
+                    if (progressBar->wasCanceled())
+                    {
+                        return components;
+                    }
                 }
 
                 if (k == n - 1)
