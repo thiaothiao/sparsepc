@@ -1,6 +1,7 @@
 #include "labmainwindow.h"
 
 #include <QAction>
+#include <QApplication>
 #include <QCloseEvent>
 #include <QDebug>
 #include <QFileDialog>
@@ -92,6 +93,25 @@ namespace sparsely
                          &LabMainWindow::showPreferences);
         auto *editMenu = menuBar()->addMenu(tr("&Edit"));
         editMenu->addAction(preferencesAction);
+        auto *aboutAction = new QAction(tr("&About Sparsely"), this);
+        aboutAction->setStatusTip(tr("Show the Sparsely's About box"));
+        QObject::connect(aboutAction, &QAction::triggered, this,
+                         &LabMainWindow::about);
+        auto *aboutActionJKQTPlotter =
+            new QAction(tr("About JKQTPlotter"), this);
+        aboutAction->setStatusTip(tr("Show the JKQTPlotter's About box"));
+        QObject::connect(aboutActionJKQTPlotter, &QAction::triggered, this,
+                         &LabMainWindow::aboutJKQTPlotter);
+        auto *aboutActionEigen = new QAction(tr("About Eigen"), this);
+        aboutAction->setStatusTip(tr("Show the Eigen's About box"));
+        QObject::connect(aboutActionEigen, &QAction::triggered, this,
+                         &LabMainWindow::aboutEigen);
+        auto *helpMenu = menuBar()->addMenu(tr("&Help"));
+        helpMenu->addAction(aboutAction);
+        helpMenu->addAction(tr("About &Qt"), this, &QApplication::aboutQt);
+        helpMenu->addAction(aboutActionJKQTPlotter);
+        helpMenu->addAction(aboutActionEigen);
+
         auto *mainWidget = new QWidget(this);
         m_MainWidgetStackedLayout = new QStackedLayout(mainWidget);
         m_MainWidgetStackedLayout->setStackingMode(QStackedLayout::StackOne);
@@ -235,5 +255,39 @@ namespace sparsely
     {
         PreferencesDialog dialog(this);
         dialog.exec();
+    }
+
+    void LabMainWindow::about()
+    {
+        QMessageBox::about(
+            this, tr("About Sparsely"),
+            tr("<ul>Sparsely is a sparse modeling software "
+               "dedicated to sparse principal component "
+               "analysis.<li>It allows computing sparse pcs, their "
+               "tuning and selection.</li><li>It embeds a C++ library for "
+               "sparse pcs "
+               "computations.</li><li>It can be extended with user "
+               "defined sparse pcs methods "
+               "statically or dynamically.</li></ul>"));
+    }
+
+    void LabMainWindow::aboutJKQTPlotter()
+    {
+        QMessageBox::about(this, tr("About JKQTPlotter"),
+                           tr("<ul>JKQTPlotter is an extensive C++ "
+                              "library for data visualization "
+                              ", plotting and charting for Qt.<a "
+                              "href=\"https://jkriege2.github.io/"
+                              "JKQtPlotter\">Visit JKQTPlotter</a></ul>"));
+    }
+
+    void LabMainWindow::aboutEigen()
+    {
+        QMessageBox::about(
+            this, tr("About Eigen"),
+            tr("<ul>Eigen is a C++ template library for "
+               "linear algebra: matrices, vectors, numerical "
+               "solvers, and related algorithms. <a "
+               "href=\"https://libeigen.gitlab.io\">Visit Eigen</a></ul>"));
     }
 } // namespace sparsely
