@@ -135,30 +135,26 @@ namespace sparsely
         sparsePC.iWinner = m_N / 2;
         switch (method)
         {
-        case Enums::Method::DCA: {
+        case Enums::Method::DCA:
             sparsePC.candidates = DCA::computeNextComponentCandidates(
                 m_Sigma, DCA::ModelParam(1), m_ValidatedComponents,
                 progressBar);
             break;
-        }
-        case Enums::Method::BGSPCA: {
+        case Enums::Method::BGSPCA:
             sparsePC.candidates = BackwardGSPA::computeNextComponentCandidates(
                 m_Sigma, BackwardGSPA::ModelParam(1), m_ValidatedComponents,
                 progressBar);
             break;
-        }
-        case Enums::Method::FGSPCA: {
+        case Enums::Method::FGSPCA:
             sparsePC.candidates = ForwardGSPCA::computeNextComponentCandidates(
                 m_Sigma, ForwardGSPCA::ModelParam(1), m_ValidatedComponents,
                 progressBar);
             break;
-        }
-        case Enums::Method::CUSTOM: {
+        case Enums::Method::CUSTOM:
             sparsePC.candidates = CustomSolver::computeNextComponentCandidates(
                 m_Sigma, CustomSolver::ModelParam(1), m_ValidatedComponents,
                 progressBar);
             break;
-        }
         case Enums::Method::USERDYNAMICLIB: {
             auto &library = m_DynamicLibSolverLoaders.at(0);
             if (library)
@@ -178,12 +174,11 @@ namespace sparsely
             }
             break;
         }
-        default: {
+        default:
             sparsePC.candidates = DCA::computeNextComponentCandidates(
                 m_Sigma, DCA::ModelParam(1), m_ValidatedComponents,
                 progressBar);
             break;
-        }
         }
 
         for (auto &[k, candidate] : sparsePC.candidates)

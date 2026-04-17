@@ -160,9 +160,8 @@ namespace sparsely
             pCGraph.graph = graph;
             break;
         }
-        default: {
+        default:
             break;
-        }
         }
 
         pCGraph.graph->setTitle(legend);
@@ -385,26 +384,21 @@ namespace sparsely
             preferences.plotType == Enums::PlotType::FILLED ? 0 : 1);
         switch (preferences.method)
         { // should use a map type ontainer!
-        case Enums::Method::DCA: {
+        case Enums::Method::DCA:
             m_MethodComboBox->setCurrentIndex(0);
             break;
-        }
-        case Enums::Method::FGSPCA: {
+        case Enums::Method::FGSPCA:
             m_MethodComboBox->setCurrentIndex(1);
             break;
-        }
-        case Enums::Method::BGSPCA: {
+        case Enums::Method::BGSPCA:
             m_MethodComboBox->setCurrentIndex(2);
             break;
-        }
-        case Enums::Method::CUSTOM: {
+        case Enums::Method::CUSTOM:
             m_MethodComboBox->setCurrentIndex(3);
             break;
-        }
-        default: {
+        default:
             m_MethodComboBox->setCurrentIndex(0);
             break;
-        }
         }
         if (!addonName.isEmpty() &&
             preferences.method == Enums::Method::USERDYNAMICLIB)
