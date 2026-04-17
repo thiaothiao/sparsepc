@@ -1,6 +1,6 @@
 set(appName "Sparsely")
 set(exeName "sparsely")
-set(appVersion "1.0.0")
+set(appVersion "0.1.0")
 set(appTitle "SPARSELY Software - SPARSE principal component LaboratorY")
 set(appVendor "Indilo")
 set(appDomain "?.com")

@@ -3,7 +3,7 @@
 
 #define MyAppExeName "sparsely.exe"
 #define MyAppName "Sparsely"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "0.1.0"
 #define MyAppPublisher "Indilo"
 #define DeployementFolder GetEnv('DEPLOYMENT_DIR')
 
@@ -21,7 +21,7 @@ DisableProgramGroupPage=yes
 ;PrivilegesRequired=lowest
 OutputDir={#DeployementFolder}\INSTALEUR
 OutputBaseFilename=SparselySetup
-SetupIconFile={#DeployementFolder}\bin\images\logo_transparent.ico
+SetupIconFile={#DeployementFolder}\images\logo_transparent.ico
 UninstallDisplayIcon={app}\images\logo_transparent.ico
 Compression=lzma
 SolidCompression=yes
@@ -35,15 +35,29 @@ Name: "french"; MessagesFile: "compiler:Languages\French.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "{#DeployementFolder}\bin\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "{#DeployementFolder}\plugins\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
+Source: "{#DeployementFolder}\*"; DestDir: "{app}"; Excludes: "*VC_redist.x64.exe"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
-Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\images\logo_transparent.ico"
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\images\logo_transparent.ico"; Tasks: desktopicon
-Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\images\logo_transparent.ico"
+Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\bin\{#MyAppExeName}"; IconFilename: "{app}\images\logo_transparent.ico"
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\bin\{#MyAppExeName}"; IconFilename: "{app}\images\logo_transparent.ico"; Tasks: desktopicon
+Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\bin\{#MyAppExeName}"; IconFilename: "{app}\images\logo_transparent.ico"
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\bin\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
+[Files]
+Source: "{#DeployementFolder}\bin\VC_redist.x64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
+
+[Run]
+Filename: "{tmp}\vc_redist.x64.exe"; Parameters: "/install /quiet /norestart"; \
+    Check: VC_IsNeeded; StatusMsg: "Installing Visual C++ Redistributable..."; \
+    Flags: waituntilterminated
+    
+[Code]
+function VC_IsNeeded: Boolean;
+begin
+  // Example for VC++ 2013 x64 detection using its UpgradeCode
+  // You can use IsMsiProductInstalled for reliable detection
+  Result := not IsMsiProductInstalled('{20400CF0-DE7C-327E-9AE4-F0F38D9085F8}', PackVersionComponents(12, 0, 0, 0));
+end;
