@@ -20,7 +20,7 @@ configure_file(
 		
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui PrintSupport Xml REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui Xml REQUIRED)
 find_package(JKQTPlotter6 REQUIRED COMPONENTS JKQTPlotter6 JKQTCommon6 JKQTMath6 JKQTMathText6 REQUIRED)
 
 set(sources main.cpp labmainwindow.cpp labwidget.cpp labcontroller.cpp labmodel.cpp labpreferences.cpp labpreferencesdialog.cpp labprogressdialog.cpp labenums.h labmainwindow.h labwidget.h labcontroller.h labmodel.h labpreferences.h labpreferencesdialog.h labprogressdialog.h)
@@ -48,6 +48,7 @@ target_link_libraries(${exeName} PRIVATE JKQTPlotter6::JKQTMathText6)
 target_link_libraries(${exeName} PRIVATE Qt6::Core)
 target_link_libraries(${exeName} PRIVATE Qt6::Widgets)
 target_link_libraries(${exeName} PRIVATE Qt6::Gui)
+target_link_libraries(${exeName} PRIVATE Qt6::Xml)
 
 add_custom_command(TARGET ${exeName} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -108,7 +109,6 @@ install(SCRIPT ${deploy_script})
 
 if (LINUX)
     #fixing weird missing PrintSupport, Xml after installation
-    install(FILES   $<TARGET_FILE:Qt6::PrintSupport>
-                    $<TARGET_FILE:Qt6::Xml>
+    install(FILES   $<TARGET_FILE:Qt6::Xml>
         DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")
 endif()
