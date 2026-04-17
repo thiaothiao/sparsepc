@@ -16,6 +16,7 @@
 #include <QStackedLayout>
 #include <QString>
 #include <QVBoxLayout>
+#include <utility>
 
 #include "jkqtplotter/graphs/jkqtpfilledcurve.h"
 #include "jkqtplotter/graphs/jkqtpimpulses.h"
@@ -330,18 +331,23 @@ namespace sparsely
         auto *methodGroupBox = new QGroupBox(tr("Method"), this);
         auto *methodGroupBoxLayout = new QHBoxLayout(methodGroupBox);
         m_MethodComboBox = new QComboBox(this);
-        m_MethodComboBox->addItem(tr("Dca"),
-                                  QVariant::fromValue(Enums::Method::DCA));
-        m_MethodComboBox->addItem(tr("Forward Gspca"),
-                                  QVariant::fromValue(Enums::Method::FGSPCA));
-        m_MethodComboBox->addItem(tr("Backward Gspca"),
-                                  QVariant::fromValue(Enums::Method::BGSPCA));
-        m_MethodComboBox->addItem(tr("Custom"),
-                                  QVariant::fromValue(Enums::Method::CUSTOM));
+        m_MethodComboBox->insertItem(std::to_underlying(Enums::Method::DCA),
+                                     tr("Dca"),
+                                     QVariant::fromValue(Enums::Method::DCA));
+        m_MethodComboBox->insertItem(
+            std::to_underlying(Enums::Method::FGSPCA), tr("Forward Gspca"),
+            QVariant::fromValue(Enums::Method::FGSPCA));
+        m_MethodComboBox->insertItem(
+            std::to_underlying(Enums::Method::BGSPCA), tr("Backward Gspca"),
+            QVariant::fromValue(Enums::Method::BGSPCA));
+        m_MethodComboBox->insertItem(
+            std::to_underlying(Enums::Method::CUSTOM), tr("Custom"),
+            QVariant::fromValue(Enums::Method::CUSTOM));
         if (!addonName.isEmpty())
         {
-            m_MethodComboBox->addItem(
-                addonName, QVariant::fromValue(Enums::Method::USERDYNAMICLIB));
+            m_MethodComboBox->insertItem(
+                std::to_underlying(Enums::Method::USERDYNAMICLIB), addonName,
+                QVariant::fromValue(Enums::Method::USERDYNAMICLIB));
         }
         methodGroupBoxLayout->addWidget(m_MethodComboBox);
         buttonsWidgetLayout->addWidget(methodGroupBox);
@@ -379,32 +385,21 @@ namespace sparsely
         m_ColumnX = datastore->addLinearColumn(m_N, 0, m_N - 1);
         m_Slider->setRange(1, m_N);
         m_Slider->setSingleStep(1);
-        setSliderColor("blue");
+        setSliderColor("black");
         m_PlotTypeComboBox->setCurrentIndex(
-            preferences.plotType == Enums::PlotType::FILLED ? 0 : 1);
-        switch (preferences.method)
-        { // should use a map type ontainer!
-        case Enums::Method::DCA:
-            m_MethodComboBox->setCurrentIndex(0);
-            break;
-        case Enums::Method::FGSPCA:
-            m_MethodComboBox->setCurrentIndex(1);
-            break;
-        case Enums::Method::BGSPCA:
-            m_MethodComboBox->setCurrentIndex(2);
-            break;
-        case Enums::Method::CUSTOM:
-            m_MethodComboBox->setCurrentIndex(3);
-            break;
-        default:
-            m_MethodComboBox->setCurrentIndex(0);
-            break;
-        }
-        if (!addonName.isEmpty() &&
-            preferences.method == Enums::Method::USERDYNAMICLIB)
+            std::to_underlying(preferences.plotType));
+        if (preferences.method != Enums::Method::USERDYNAMICLIB)
         {
-            m_MethodComboBox->setCurrentIndex(4);
+            m_MethodComboBox->setCurrentIndex(
+                std::to_underlying(preferences.method));
         }
+        else
+        {
+            m_MethodComboBox->setCurrentIndex(std::to_underlying(
+                addonName.isEmpty() ? Enums::Method::DCA
+                                    : Enums::Method::USERDYNAMICLIB));
+        }
+
         m_SliderOrProgressBarWidgetStackedLayout->setCurrentWidget(
             m_SliderGroupBox);
         m_ProcessingsGoupboxStackedLayout->setCurrentWidget(m_ButtonsWidget);
