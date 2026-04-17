@@ -35,7 +35,7 @@ Name: "french"; MessagesFile: "compiler:Languages\French.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "{#DeployementFolder}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#DeployementFolder}\*"; DestDir: "{app}"; Excludes: "*VC_redist.x64.exe"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
@@ -46,3 +46,18 @@ Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\bin\{#MyAppExeName}"; Ico
 [Run]
 Filename: "{app}\bin\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
+[Files]
+Source: "{#DeployementFolder}\bin\VC_redist.x64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
+
+[Run]
+Filename: "{tmp}\vc_redist.x64.exe"; Parameters: "/install /quiet /norestart"; \
+    Check: VC_IsNeeded; StatusMsg: "Installing Visual C++ Redistributable..."; \
+    Flags: waituntilterminated
+    
+[Code]
+function VC_IsNeeded: Boolean;
+begin
+  // Example for VC++ 2013 x64 detection using its UpgradeCode
+  // You can use IsMsiProductInstalled for reliable detection
+  Result := not IsMsiProductInstalled('{20400CF0-DE7C-327E-9AE4-F0F38D9085F8}', PackVersionComponents(12, 0, 0, 0));
+end;
