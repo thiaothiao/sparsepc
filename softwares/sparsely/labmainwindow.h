@@ -25,6 +25,9 @@ namespace sparsely
         Enums::SaveStatus save(bool checked);
         void close(bool checked) const;
         void showPreferences();
+        void about();
+        void aboutJKQTPlotter();
+        void aboutEigen();
 
       public:
         LabMainWindow(QWidget *parent = nullptr);
