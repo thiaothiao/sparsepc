@@ -260,6 +260,8 @@ namespace sparsely
         layout->addWidget(plotGroupbox, 0, 0);
         auto *plotGroupboxLayout = new QHBoxLayout(plotGroupbox);
         m_Plotter = new JKQTPlotter(plotGroupbox);
+        m_Plotter->getMainKey()->setFrameLineStyle(Qt::NoPen);
+        m_Plotter->getMainKey()->setBackgroundBrush(QBrush(Qt::transparent));
         addSparselyIconGraphs(*m_Plotter);
         m_Plotter->zoomToFit();
         m_Plotter->resize(400, 300);
