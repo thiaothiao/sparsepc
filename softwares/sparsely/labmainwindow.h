@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 
+#include "labenums.h"
 #include "labmodel.h"
 
 class QWidget;
@@ -19,9 +20,9 @@ namespace sparsely
         Q_OBJECT
 
       public slots:
-        void newFile(bool checked);
-        void open(bool checked);
-        void save(bool checked);
+        bool newFile(bool checked);
+        bool open(bool checked);
+        Enums::SaveStatus save(bool checked);
         void close(bool checked) const;
         void showPreferences();
 

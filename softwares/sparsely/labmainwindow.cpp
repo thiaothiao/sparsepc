@@ -1,11 +1,11 @@
 #include "labmainwindow.h"
 
 #include <QAction>
-#include <QApplication>
 #include <QCloseEvent>
 #include <QDebug>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QGuiApplication>
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
@@ -21,11 +21,11 @@
 
 namespace
 {
-    void lauchMsgBox(const QString &msg)
+    void lauchMessageBox(const QString &text, QWidget *parent = nullptr)
     {
-        QMessageBox msgBox;
-        msgBox.setText(msg);
-        msgBox.exec();
+        QMessageBox messageBox(parent);
+        messageBox.setText(text);
+        messageBox.exec();
     }
 
     void saveLastFolder(const QString &path)
@@ -102,95 +102,133 @@ namespace sparsely
         setCentralWidget(mainWidget);
     }
 
-    void LabMainWindow::newFile(bool checked)
+    bool LabMainWindow::newFile(bool checked)
     {
-        if (!m_LabWidget || !m_LabController)
-        { // bad news
-            return;
-        }
-
         if (!m_LabController->projectIsEmpty())
         {
-            lauchMsgBox("Quit current project first.");
-            return;
+            lauchMessageBox(tr("Quit current project first."), this);
+            return false;
         }
 
         const auto lastDir = getLastFolder();
         const auto fileName = QFileDialog::getOpenFileName(
             this, tr("Open File"), lastDir, tr("Text Files (*.csv)"));
 
-        if (!fileName.isEmpty())
+        if (fileName.isEmpty())
         {
-            saveLastFolder(QFileInfo(fileName).dir().path());
-            if (!m_LabController->init(fileName, true))
-            {
-                lauchMsgBox("Create new project failed.");
-            }
+            return false;
         }
+
+        saveLastFolder(QFileInfo(fileName).dir().path());
+        if (!m_LabController->init(fileName, true))
+        {
+            lauchMessageBox(tr("Create new project failed."), this);
+            return false;
+        }
+
+        return true;
     }
 
-    void LabMainWindow::open(bool checked)
+    bool LabMainWindow::open(bool checked)
     {
-        if (!m_LabWidget || !m_LabController)
-        { // bad news
-            return;
-        }
-
         if (!m_LabController->projectIsEmpty())
         {
-            lauchMsgBox("Quit current project first.");
-            return;
+            lauchMessageBox(tr("Quit current project first."), this);
+            return false;
         }
 
         const auto lastDir = getLastFolder();
         const auto fileName = QFileDialog::getOpenFileName(
             this, tr("Open File"), lastDir, tr("Files (*.sparsely)"));
 
-        if (!fileName.isEmpty())
+        if (fileName.isEmpty())
         {
-            saveLastFolder(QFileInfo(fileName).dir().path());
-            if (!m_LabController->init(fileName, false))
-            {
-                lauchMsgBox("Load project failed.");
-            }
+            return false;
         }
+
+        saveLastFolder(QFileInfo(fileName).dir().path());
+        if (!m_LabController->init(fileName, false))
+        {
+            lauchMessageBox(tr("Load project failed."), this);
+            return false;
+        }
+        return true;
     }
 
-    void LabMainWindow::save(bool checked)
+    Enums::SaveStatus LabMainWindow::save(bool checked)
     {
-        if (!m_LabWidget || !m_LabController)
-        { // bad news
-            return;
-        }
-
         if (m_LabController->projectIsEmpty())
         {
-            lauchMsgBox("Nothing to save. Empty project.");
-            return;
+            lauchMessageBox(tr("Nothing to save. Empty project."), this);
+            return Enums::SaveStatus::EMPTY;
         }
         const auto lastDir = getLastFolder();
         const auto fileName = QFileDialog::getSaveFileName(
             this, tr("Save File"), lastDir, tr("Files (*.sparsely)"));
 
-        if (!fileName.isEmpty())
+        if (fileName.isEmpty())
         {
-            saveLastFolder(QFileInfo(fileName).dir().path());
-            if (!m_LabController->saveProject(fileName))
-            {
-                lauchMsgBox("Save project failed.");
-            }
+            return Enums::SaveStatus::NOK;
         }
+
+        saveLastFolder(QFileInfo(fileName).dir().path());
+        if (!m_LabController->saveProject(fileName))
+        {
+            lauchMessageBox(tr("Save project failed."), this);
+            return Enums::SaveStatus::NOK;
+        }
+        return Enums::SaveStatus::OK;
     }
 
     void LabMainWindow::close(bool checked) const { QCoreApplication::quit(); }
 
     void LabMainWindow::closeEvent(QCloseEvent *event)
     {
-        save(true);
-        if (event)
+        if (!event)
         {
-            event->accept();
+            return;
         }
+
+        if (m_LabController->projectIsEmpty())
+        {
+            const auto reply = QMessageBox::question(
+                this, QGuiApplication::applicationDisplayName(), tr("Quit?"),
+                QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+
+            if (reply != QMessageBox::Yes)
+            {
+                event->ignore();
+                return;
+            }
+        }
+        else
+        {
+            QMessageBox messageBox(this);
+            messageBox.setText(tr("Should save before quitting!"));
+            messageBox.setStandardButtons(
+                QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+            messageBox.setDefaultButton(QMessageBox::Save);
+            const auto reply = messageBox.exec();
+            switch (reply)
+            {
+            case QMessageBox::Discard:
+                // Don't save
+                break;
+            case QMessageBox::Save:
+                if (save(true) == Enums::SaveStatus::OK)
+                { // Save
+                    break;
+                }
+                [[fallthrough]];
+            case QMessageBox::Cancel:
+                [[fallthrough]];
+            default:
+                event->ignore();
+                return;
+            }
+        }
+
+        event->accept();
     }
 
     void LabMainWindow::showPreferences()
