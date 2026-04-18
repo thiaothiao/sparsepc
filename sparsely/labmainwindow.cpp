@@ -18,7 +18,7 @@
 #include "labcontroller.h"
 #include "labpreferencesdialog.h"
 #include "labwidget.h"
-#include "version.h"
+#include "infos.h"
 
 namespace
 {

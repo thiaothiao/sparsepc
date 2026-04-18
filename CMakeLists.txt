@@ -1,15 +1,30 @@
 cmake_minimum_required(VERSION 4.1)
 
-project(
-  sparsepc
-  VERSION 0.1.0
-  LANGUAGES CXX
-)
+set(libraryName "Sparsepc")
+set(libName "sparsepc")
+set(libVersion "0.1.0")
+set(libTitle "Sparse principal component C++ Library")
+set(libVendor "Indilo")
+set(libDomain "?.com")
+string(TIMESTAMP buildTime "%Y-%m-%d %H:%M:%S")
+
+project(${libName}
+        VERSION ${libVersion}
+        DESCRIPTION ${libTitle}
+        LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(cmake/CPM.cmake)
+# Generate the header file
+configure_file(
+    "${CMAKE_CURRENT_LIST_DIR}/infos.hpp.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/infos.hpp"
+    @ONLY
+)
+
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # PackageProject.cmake will be used to make our target installable
 CPMAddPackage("gh:TheLartians/PackageProject.cmake@1.8.0")

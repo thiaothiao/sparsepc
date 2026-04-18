@@ -26,8 +26,8 @@ include(../cmake/CPM.cmake)
 
 # Generate the header file
 configure_file(
-    "${CMAKE_CURRENT_LIST_DIR}/version.h.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/version.h"
+    "${CMAKE_CURRENT_LIST_DIR}/infos.h.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/infos.h"
     @ONLY
 )
 
