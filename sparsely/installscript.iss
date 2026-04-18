@@ -18,9 +18,9 @@ DefaultDirName={autopf}\{#MyAppName}
 DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
-OutputDir=\INSTALEUR
+OutputDir=INSTALEUR
 OutputBaseFilename=SparselySetup
-SetupIconFile=\images\logo_transparent.ico
+SetupIconFile=images\logo_transparent.ico
 UninstallDisplayIcon={app}\images\logo_transparent.ico
 Compression=lzma
 SolidCompression=yes
@@ -34,10 +34,10 @@ Name: "french"; MessagesFile: "compiler:Languages\French.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "\bin\*"; DestDir: "{app}\bin"; Excludes: "*VC_redist.x64.exe"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "\plugins"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "\configurations"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "\images"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "bin\*"; DestDir: "{app}\bin"; Excludes: "*VC_redist.x64.exe"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "plugins\*"; DestDir: "{app}\plugins"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "configurations\*"; DestDir: "{app}\configurations"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "images\*"; DestDir: "{app}\images"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
@@ -49,7 +49,7 @@ Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\bin\{#MyAppExeName}"; Ico
 Filename: "{app}\bin\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 [Files]
-Source: "\bin\VC_redist.x64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
+Source: "bin\VC_redist.x64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 
 [Run]
 Filename: "{tmp}\vc_redist.x64.exe"; Parameters: "/install /quiet /norestart"; \
