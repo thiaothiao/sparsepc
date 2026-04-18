@@ -84,11 +84,6 @@ target_compile_definitions(${exeName} PRIVATE _CRT_SECURE_NO_WARNINGS)
 target_compile_definitions(${exeName} PRIVATE _SILENCE_ALL_CXX23_DEPRECATION_WARNINGS)
 target_compile_definitions(${exeName} PRIVATE JKQTPLOTTER_COMPILE_WITHOUT_PRINTSUPPORT)
 
-find_package(OpenMP REQUIRED)
-if(OpenMP_CXX_FOUND)
-    target_link_libraries(${exeName} PRIVATE OpenMP::OpenMP_CXX)
-endif()
-
 if(eigen_ADDED)
     target_link_libraries(${exeName} PRIVATE Eigen3::Eigen)
 endif()
