@@ -62,9 +62,9 @@ jobs:
       - name: Configure CMake
         run: |
           cmake -Ssparsely -Bbuild 
-          -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
+          -DCMAKE_PREFIX_PATH=${{ env.Qt6_DIR }}
           -DCMAKE_BUILD_TYPE=Release
-    #-DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/install"
+    #-DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install
 
       - name: Build Project
         run: cmake --build build --config Release
