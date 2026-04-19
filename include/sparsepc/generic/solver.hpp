@@ -130,8 +130,6 @@ namespace sparsepc
             const Matrix<Scalar> &deflatedSigma, const Matrix<Scalar> &B,
             ProgressBar *progressBar)
         {
-            using Matrix = Matrix<Scalar>;
-
             if (B.size() == static_cast<Scalar>(0))
             {
                 auto candidates =
