@@ -58,14 +58,13 @@ jobs:
           
       - name: Set up MSVC (if using MSVC)
         uses: ilammy/msvc-dev-cmd@v1
-
-      - name: Configure CMake
-        run: cmake -Ssparsely -Bbuild -DCMAKE_PREFIX_PATH=${{ env.Qt6_DIR }} -DCMAKE_BUILD_TYPE=Release
-    #-DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install
-
-      - name: Build Project
-        run: cmake --build build --target all 
-        
-      - name: Install
-        # This triggers the installation logic defined in your CMakeLists.txt
-        run: cmake --build build --target install
+          
+      - name: Build & Install
+        run: |
+          cmake -S sparsely -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --target install --config Release
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: qt-app-dist
+          path: ${{ env.MY_INSTALL_DIR }}/
