@@ -60,10 +60,8 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
 
       - name: Configure CMake
-        run: |
-          cmake -Ssparsely -Bbuild 
-          -DCMAKE_PREFIX_PATH=${{ env.Qt6_DIR }}
-          -DCMAKE_BUILD_TYPE=Release
+        run: cmake -Ssparsely -Bbuild -DCMAKE_PREFIX_PATH=${{ env.Qt6_DIR }}
+    #-DCMAKE_BUILD_TYPE=Release
     #-DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install
 
       - name: Build Project
