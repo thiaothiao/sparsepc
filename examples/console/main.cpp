@@ -4,14 +4,13 @@
 
 #include <Eigen/Dense>
 
-#include "simu.hpp"
-#include "sparsepc/core.hpp"
-#include "sparsepc/version.hpp"
+#include <simu.hpp>
+#include <sparsepc/core.hpp>
+#include <sparsepc/version.hpp>
 
 int main()
 {
-    constexpr std::string_view version =
-        SPARSEPC_MACRO_STRINGIFY(SPARSEPC_VERSION);
+    constexpr std::string_view version = SPARSEPC_VERSION;
     std::cout << "sparsepc library version " << version << "\n";
 
     using Scalar = double;
@@ -44,7 +43,7 @@ int main()
               << std::chrono::duration_cast<std::chrono::microseconds>(tac -
                                                                        toc)
               << "\n";
-
+    return 0;
     const Index k0 = 6;
     const Index k1 = 2;
     const Index k2 = 2;

@@ -3,7 +3,7 @@
 
 #include <concepts>
 
-#include "sparsepc/utils/matrix.hpp"
+#include <sparsepc/utils/matrix.hpp>
 
 namespace sparsepc
 {
