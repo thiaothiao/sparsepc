@@ -16,10 +16,9 @@ project(${exeName}
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(MY_DEPLOYMENT_DIR "$ENV{DEPLOYMENT_DIR}")
-
-set(CMAKE_INSTALL_PREFIX "${MY_DEPLOYMENT_DIR}" CACHE PATH "Default install path" FORCE)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_INSTALL_PREFIX}/bin)
+set(MY_INSTALL_PREFIX "$ENV{MY_INSTALL_DIR}")
+set(CMAKE_INSTALL_PREFIX "${MY_INSTALL_PREFIX}" CACHE PATH "Default install path" FORCE)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_INSTALL_PREFIX}/bin")
 
 include(../cmake/tools.cmake)
 include(../cmake/CPM.cmake)
@@ -118,6 +117,9 @@ add_custom_command(TARGET ${exeName} POST_BUILD
     COMMENT "Copying configurations to build directory"
 )
 
+install(TARGETS ${exeName}
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
+
 if(WIN32)
     install(FILES   $<TARGET_FILE:JKQTPlotter6::JKQTPlotter6>
                     $<TARGET_FILE:JKQTPlotter6::JKQTCommon6>
@@ -131,6 +133,9 @@ endif()
 	
 install(DIRECTORY   "${CMAKE_CURRENT_LIST_DIR}/addons"
     DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
+
+#install(DIRECTORY   "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+#    DESTINATION "${CMAKE_INSTALL_PREFIX}/toto")
 
 if (LINUX)
     # Install the icon to the standard pixmaps directory
