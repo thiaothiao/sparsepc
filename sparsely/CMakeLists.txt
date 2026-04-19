@@ -89,7 +89,7 @@ if(eigen_ADDED)
 endif()
 
 if(sparsepc_ADDED)
-    target_link_libraries(${exeName} PRIVATE sparsepc)
+    target_link_libraries(${exeName} PRIVATE sparsepc::sparsepc)
 endif()
 
 if(JKQTPlotter6_ADDED)
