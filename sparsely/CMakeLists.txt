@@ -126,13 +126,6 @@ add_custom_command(TARGET ${exeName} POST_BUILD
     COMMENT "Copying configurations to build directory"
 )
 
-add_custom_command(TARGET ${exeName} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_CURRENT_LIST_DIR}/addons"
-        "${CMAKE_INSTALL_PREFIX}/bin/addons"
-    COMMENT "Copying addons to build directory"
-)
-
 install(TARGETS ${exeName}
     DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
 
@@ -146,12 +139,6 @@ if(WIN32)
     install(FILES   "${CMAKE_CURRENT_LIST_DIR}/installscript.iss"
         DESTINATION "${CMAKE_INSTALL_PREFIX}")
 endif()
-	
-#install(DIRECTORY   "${CMAKE_CURRENT_LIST_DIR}/addons/"
-#    DESTINATION "${CMAKE_INSTALL_PREFIX}/bin/addons")
-
-#install(DIRECTORY   "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-#    DESTINATION "${CMAKE_INSTALL_PREFIX}/toto")
 
 if (LINUX)
     # Install the icon to the standard pixmaps directory
