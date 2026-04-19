@@ -22,6 +22,10 @@ jobs:
     runs-on: windows-latest
 
     steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+          
       - name: Checkout Code
         uses: actions/checkout@v5
         
@@ -43,7 +47,7 @@ jobs:
         uses: jurplel/install-qt-action@v4
         with:
           version: '6.11.0'
-          setup-python: 'false' # Add this line
+          #setup-python: 'false' # Add this line
           # For Linux, it automatically installs required system dependencies
           install-deps: 'true' 
           # Specify additional modules if needed (e.g., qtcharts, qtwebengine)
