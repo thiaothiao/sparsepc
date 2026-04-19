@@ -1,0 +1,69 @@
+name: Sparsely Windows Build
+
+on:
+  push:
+    branches:
+      - master
+      - main
+      - develop
+      - add_ci
+  pull_request:
+    branches:
+      - master
+      - main
+      - develop
+      
+env:
+  CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm_modules
+  MY_INSTALL_DIR: ${{ github.workspace }}/install
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v5
+        
+      - name: Setup CMake 4.1
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          # Use '4.1.x' to automatically get the latest 4.1.z release
+          cmake-version: '4.1.x'
+
+      - name: Verify Version
+        run: cmake --version
+
+      - uses: actions/cache@v5
+        with:
+          path: "**/cpm_modules"
+          key: ${{ github.workflow }}-cpm-modules-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+
+      - name: Install Qt6
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.11.0'
+          # For Linux, it automatically installs required system dependencies
+          install-deps: 'true' 
+          # Specify additional modules if needed (e.g., qtcharts, qtwebengine)
+          modules: 'qtcore qtwidgets qtgui qtxml qtsvg'
+          host: 'windows'
+          target: 'desktop'
+          arch: 'win64_msvc2022_64'
+          
+      - name: Set up MSVC (if using MSVC)
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Configure CMake
+        run: |
+          cmake -Ssparsely -Bbuild 
+          -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
+          -DCMAKE_BUILD_TYPE=Release
+    #-DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/install"
+
+      - name: Build Project
+        run: cmake --build build --config Release
+        
+      - name: Install
+        # This triggers the installation logic defined in your CMakeLists.txt
+        run: cmake --install build

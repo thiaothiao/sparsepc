@@ -16,8 +16,16 @@ project(${exeName}
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(MY_INSTALL_PREFIX "$ENV{MY_INSTALL_DIR}")
-set(CMAKE_INSTALL_PREFIX "${MY_INSTALL_PREFIX}" CACHE PATH "Default install path" FORCE)
+# Check if the environment variable is defined
+if(DEFINED ENV{MY_INSTALL_DIR})
+    message(STATUS "MY_INSTALL_DIR is set to: $ENV{MY_INSTALL_DIR}")
+    # Use it to set a CMake variable
+    set(MY_INSTALL_PREFIX "$ENV{MY_INSTALL_DIR}")
+    set(CMAKE_INSTALL_PREFIX "${MY_INSTALL_PREFIX}" CACHE PATH "Default install path" FORCE)
+else()
+    message(WARNING "MY_INSTALL_DIR env. variable not found. Using default.")
+endif()
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_INSTALL_PREFIX}/bin")
 
 include(../cmake/tools.cmake)
@@ -50,7 +58,7 @@ CPMAddPackage(
 #  FIND_PACKAGE_ARGUMENTS REQUIRED
 #)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui Xml REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui Xml Svg REQUIRED)
 
 CPMAddPackage(
     NAME JKQTPlotter6
@@ -102,6 +110,7 @@ target_link_libraries(${exeName} PRIVATE Qt6::Core)
 target_link_libraries(${exeName} PRIVATE Qt6::Widgets)
 target_link_libraries(${exeName} PRIVATE Qt6::Gui)
 target_link_libraries(${exeName} PRIVATE Qt6::Xml)
+target_link_libraries(${exeName} PRIVATE Qt6::Svg)
 
 add_custom_command(TARGET ${exeName} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
