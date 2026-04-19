@@ -46,7 +46,7 @@ jobs:
       - name: Install Qt6
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.11.0'
+          version: '6.10.x'
           #setup-python: 'false' # Add this line
           # For Linux, it automatically installs required system dependencies
           install-deps: 'true' 
