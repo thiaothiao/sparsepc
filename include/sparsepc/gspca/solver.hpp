@@ -339,7 +339,7 @@ namespace sparsepc
 
                 if (progressBar)
                 {
-                    progressBar->setValue(j0 + 1);
+                    progressBar->setValue(static_cast<int>(j0) + 1);
 
                     progressBar->processEvents();
 
@@ -544,7 +544,7 @@ namespace sparsepc
 
                 if (progressBar)
                 {
-                    progressBar->setValue(j0 + 1);
+                    progressBar->setValue(static_cast<int>(j0) + 1);
 
                     progressBar->processEvents();
 
