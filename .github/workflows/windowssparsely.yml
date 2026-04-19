@@ -40,9 +40,10 @@ jobs:
           key: ${{ github.workflow }}-cpm-modules-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
 
       - name: Install Qt6
-        uses: jurplel/install-qt-action@v3
+        uses: jurplel/install-qt-action@v4
         with:
           version: '6.11.0'
+          setup-python: 'false' # Add this line
           # For Linux, it automatically installs required system dependencies
           install-deps: 'true' 
           # Specify additional modules if needed (e.g., qtcharts, qtwebengine)
