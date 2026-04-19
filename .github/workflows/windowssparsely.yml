@@ -60,13 +60,12 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
 
       - name: Configure CMake
-        run: cmake -Ssparsely -Bbuild -DCMAKE_PREFIX_PATH=${{ env.Qt6_DIR }}
-    #-DCMAKE_BUILD_TYPE=Release
+        run: cmake -Ssparsely -Bbuild -DCMAKE_PREFIX_PATH=${{ env.Qt6_DIR }} -DCMAKE_BUILD_TYPE=Release
     #-DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install
 
       - name: Build Project
-        run: cmake --build build --config Release
+        run: cmake --build build --target all 
         
       - name: Install
         # This triggers the installation logic defined in your CMakeLists.txt
-        run: cmake --install build
+        run: cmake --build build --target install
