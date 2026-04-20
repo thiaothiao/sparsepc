@@ -16,6 +16,7 @@ class QSlider;
 class QStackedLayout;
 class QComboBox;
 class QPushButton;
+class QRadioButton;
 
 class JKQTPPlotElement;
 class JKQTPlotter;
@@ -79,6 +80,8 @@ namespace sparsely
         QComboBox *m_PlotTypeComboBox;
         QPushButton *m_AddNewSparseComponentButton;
         QPushButton *m_RemoveLastSparseComponentButton;
+        QRadioButton *m_SparsePCRadioButton;
+        QRadioButton *m_StandardPCRadioButton;
         QWidget *m_ButtonsWidget;
         QVector<QString> m_Colors;
 
