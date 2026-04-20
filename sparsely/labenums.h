@@ -1,5 +1,4 @@
-#ifndef SPARSEPC_ENUMS_HPP
-#define SPARSEPC_ENUMS_HPP
+#pragma once
 
 #include <QMetaEnum>
 
@@ -37,4 +36,3 @@ namespace sparsely
         Q_ENUM(SaveStatus)
     };
 } // namespace sparsely
-#endif // SPARSEPC_ENUMS_HPP

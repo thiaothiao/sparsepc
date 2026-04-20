@@ -1,12 +1,11 @@
-#ifndef SPARSEPC_PREFERENCES_HPP
-#define SPARSEPC_PREFERENCES_HPP
+#pragma once
 
 #include <QJsonObject>
 #include <QPen>
 #include <QString>
 #include <QStringList>
 
-#include "labenums.h"
+#include <labenums.h>
 
 namespace sparsely
 {
@@ -37,4 +36,3 @@ namespace sparsely
         Enums::Method method;
     };
 } // namespace sparsely
-#endif // SPARSEPC_PREFERENCES_HPP

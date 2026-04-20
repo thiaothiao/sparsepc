@@ -1,4 +1,4 @@
-#include "labmainwindow.h"
+#include <labmainwindow.h>
 
 #include <QAction>
 #include <QApplication>
@@ -15,10 +15,10 @@
 #include <QStandardPaths>
 #include <QWidget>
 
-#include "labcontroller.h"
-#include "labpreferencesdialog.h"
-#include "labwidget.h"
-#include "infos.h"
+#include <infos.h>
+#include <labcontroller.h>
+#include <labpreferencesdialog.h>
+#include <labwidget.h>
 
 namespace
 {

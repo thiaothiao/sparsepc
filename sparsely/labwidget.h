@@ -1,5 +1,4 @@
-#ifndef SPARSEPC_WIDGET_HPP
-#define SPARSEPC_WIDGET_HPP
+#pragma once
 
 #include <cstddef>
 #include <vector>
@@ -9,9 +8,8 @@
 #include <QVector>
 #include <QWidget>
 
-#include "labpreferences.h"
-
-#include "sparsepc/core.hpp"
+#include <labpreferences.h>
+#include <sparsepc/core.hpp>
 
 class QGroupBox;
 class QSlider;
@@ -97,4 +95,3 @@ namespace sparsely
         JKQTPlotter *m_Plotter;
     };
 } // namespace sparsely
-#endif // SPARSEPC_WIDGET_HPP

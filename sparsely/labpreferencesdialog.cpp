@@ -1,4 +1,4 @@
-#include "labpreferencesdialog.h"
+#include <labpreferencesdialog.h>
 
 #include <QComboBox>
 #include <QDialog>
@@ -17,7 +17,7 @@
 #include <QVBoxLayout>
 #include <QVariantList>
 
-#include "labpreferences.h"
+#include <labpreferences.h>
 
 namespace sparsely
 {

@@ -1,10 +1,9 @@
-#ifndef SPARSEPC_DL_SOLVER_HPP
-#define SPARSEPC_DL_SOLVER_HPP
+#pragma once
 
-#include "sparsepc/eigen/solver.hpp"
-#include "sparsepc/generic/solver.hpp"
-#include "sparsepc/progress/bar.hpp"
-#include "sparsepc/utils/matrix.hpp"
+#include <sparsepc/eigen/solver.hpp>
+#include <sparsepc/generic/solver.hpp>
+#include <sparsepc/progress/bar.hpp>
+#include <sparsepc/utils/matrix.hpp>
 
 using ComputeSparseEigenVector = void (*)(const double *, int, int, double *);
 
@@ -174,4 +173,3 @@ namespace sparsepc
         // EigenSolver<ScalarType>>>;
     } // namespace linearmodel
 } // namespace sparsepc
-#endif // SPARSEPC_DL_SOLVER_HPP

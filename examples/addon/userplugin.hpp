@@ -1,5 +1,4 @@
-#ifndef DCA_PLUGIN_HPP
-#define DCA_PLUGIN_HPP
+#pragma once
 
 // clang-format off
 #ifdef _MSC_VER
@@ -13,4 +12,3 @@ MY_EXPORT void computeSparseEigenVector(const double* sigmaData,int n, int k, do
 }
 
 // clang-format on
-#endif // DCA_PLUGIN_HPP

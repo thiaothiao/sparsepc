@@ -1,10 +1,9 @@
-#ifndef SPARSEPC_CUSTOM_SOLVER_HPP
-#define SPARSEPC_CUSTOM_SOLVER_HPP
+#pragma once
 
-#include "sparsepc/eigen/solver.hpp"
-#include "sparsepc/generic/solver.hpp"
-#include "sparsepc/progress/bar.hpp"
-#include "sparsepc/utils/matrix.hpp"
+#include <sparsepc/eigen/solver.hpp>
+#include <sparsepc/generic/solver.hpp>
+#include <sparsepc/progress/bar.hpp>
+#include <sparsepc/utils/matrix.hpp>
 
 namespace
 {
@@ -197,4 +196,3 @@ namespace sparsepc
         // EigenSolver<ScalarType>>>;
     } // namespace linearmodel
 } // namespace sparsepc
-#endif // SPARSEPC_CUSTOM_SOLVER_HPP

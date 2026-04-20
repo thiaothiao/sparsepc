@@ -1,5 +1,4 @@
-#ifndef SPARSEPC_SIMU_HPP
-#define SPARSEPC_SIMU_HPP
+#pragma once
 
 #include <concepts>
 
@@ -37,4 +36,3 @@ namespace sparsepc
         }
     } // namespace linearmodel
 } // namespace sparsepc
-#endif // SPARSEPC_SIMU_HPP

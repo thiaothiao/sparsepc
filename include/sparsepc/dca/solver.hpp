@@ -1,13 +1,12 @@
-#ifndef SPARSEPC_DCA_SOLVER_HPP
-#define SPARSEPC_DCA_SOLVER_HPP
+#pragma once
 
 #include <algorithm>
 #include <concepts>
 
-#include "sparsepc/eigen/solver.hpp"
-#include "sparsepc/generic/solver.hpp"
-#include "sparsepc/progress/bar.hpp"
-#include "sparsepc/utils/matrix.hpp"
+#include <sparsepc/eigen/solver.hpp>
+#include <sparsepc/generic/solver.hpp>
+#include <sparsepc/progress/bar.hpp>
+#include <sparsepc/utils/matrix.hpp>
 
 namespace sparsepc
 {
@@ -610,4 +609,3 @@ namespace sparsepc
         using Dca = SparsePC<DcaModel<ScalarType, EigenSolver<ScalarType>>>;
     } // namespace linearmodel
 } // namespace sparsepc
-#endif // SPARSEPC_DCA_SOLVER_HPP

@@ -1,4 +1,4 @@
-#include "labwidget.h"
+#include <labwidget.h>
 
 #include <QColor>
 #include <QComboBox>
@@ -18,9 +18,9 @@
 #include <QVBoxLayout>
 #include <utility>
 
-#include "jkqtplotter/graphs/jkqtpfilledcurve.h"
-#include "jkqtplotter/graphs/jkqtpimpulses.h"
-#include "jkqtplotter/jkqtplotter.h"
+#include <jkqtplotter/graphs/jkqtpfilledcurve.h>
+#include <jkqtplotter/graphs/jkqtpimpulses.h>
+#include <jkqtplotter/jkqtplotter.h>
 
 namespace
 {

@@ -1,4 +1,4 @@
-#include "labmodel.h"
+#include <labmodel.h>
 
 #include <ranges>
 #include <utility>
@@ -9,7 +9,7 @@
 #include <QLibrary>
 #include <QString>
 
-#include "labprogressdialog.h"
+#include <labprogressdialog.h>
 
 namespace
 {

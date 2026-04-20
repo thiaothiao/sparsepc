@@ -1,4 +1,4 @@
-#include "labpreferences.h"
+#include <labpreferences.h>
 
 #include <QDir>
 #include <QFile>

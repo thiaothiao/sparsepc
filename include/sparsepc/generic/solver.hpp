@@ -1,12 +1,11 @@
-#ifndef SPARSEPC_GENERIC_SOLVER_HPP
-#define SPARSEPC_GENERIC_SOLVER_HPP
+#pragma once
 
 #include <concepts>
 #include <utility>
 #include <vector>
 
-#include "sparsepc/eigen/solver.hpp"
-#include "sparsepc/utils/matrix.hpp"
+#include <sparsepc/eigen/solver.hpp>
+#include <sparsepc/utils/matrix.hpp>
 
 namespace sparsepc
 {
@@ -203,4 +202,3 @@ namespace sparsepc
         }
     } // namespace linearmodel
 } // namespace sparsepc
-#endif // SPARSEPC_GENERIC_SOLVER_HPP

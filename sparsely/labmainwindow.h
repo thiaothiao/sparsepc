@@ -1,10 +1,9 @@
-#ifndef SPARSEPC_MAINWINDOW_HPP
-#define SPARSEPC_MAINWINDOW_HPP
+#pragma once
 
 #include <QMainWindow>
 
-#include "labenums.h"
-#include "labmodel.h"
+#include <labenums.h>
+#include <labmodel.h>
 
 class QWidget;
 class QCloseEvent;
@@ -40,5 +39,3 @@ namespace sparsely
         LabController *m_LabController;
     };
 } // namespace sparsely
-
-#endif // SPARSEPC_MAINWINDOW_HPP

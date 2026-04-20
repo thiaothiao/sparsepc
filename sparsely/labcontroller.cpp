@@ -1,4 +1,4 @@
-#include "labcontroller.h"
+#include <labcontroller.h>
 
 #include <functional>
 #include <thread>
@@ -12,9 +12,9 @@
 #include <QSlider>
 #include <QString>
 
-#include "labmodel.h"
-#include "labprogressdialog.h"
-#include "labwidget.h"
+#include <labmodel.h>
+#include <labprogressdialog.h>
+#include <labwidget.h>
 
 namespace
 {
