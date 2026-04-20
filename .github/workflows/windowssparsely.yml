@@ -3,15 +3,15 @@ name: Sparsely Windows Build
 on:
   push:
     branches:
-      - master
+#      - master
       - main
-      - develop
-      - add_ci
-  pull_request:
-    branches:
-      - master
+#      - develop
+#      - add_ci
+#  pull_request:
+#    branches:
+#      - master
       - main
-      - develop
+#      - develop
       
 env:
   CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm_modules
