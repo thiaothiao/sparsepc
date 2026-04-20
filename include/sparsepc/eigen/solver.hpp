@@ -1,5 +1,4 @@
-#ifndef SPARSEPC_MAX_EIGEN_VALUE_SOLVER_HPP
-#define SPARSEPC_MAX_EIGEN_VALUE_SOLVER_HPP
+#pragma once
 
 #include <iostream>
 #include <set>
@@ -8,7 +7,7 @@
 
 #include <Eigen/Dense>
 
-#include "sparsepc/utils/matrix.hpp"
+#include <sparsepc/utils/matrix.hpp>
 
 namespace sparsepc
 {
@@ -304,4 +303,3 @@ namespace sparsepc
         return indices;
     }
 } // namespace sparsepc
-#endif // SPARSEPC_MAX_EIGEN_VALUE_SOLVER_HPP

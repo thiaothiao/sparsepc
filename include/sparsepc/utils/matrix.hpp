@@ -1,5 +1,4 @@
-#ifndef SPARSEPC_UTILS_HPP
-#define SPARSEPC_UTILS_HPP
+#pragma once
 
 #include <concepts>
 #include <fstream>
@@ -99,5 +98,3 @@ namespace sparsepc
         return matrix;
     }
 } // namespace sparsepc
-
-#endif // SPARSEPC_UTILS_HPP

@@ -1,5 +1,4 @@
-#ifndef SPARSEPC_MODEL_HPP
-#define SPARSEPC_MODEL_HPP
+#pragma once
 
 #include <functional>
 #include <memory>
@@ -10,9 +9,9 @@
 #include <QString>
 #include <QVector>
 
-#include "sparsepc/core.hpp"
+#include <sparsepc/core.hpp>
 
-#include "labenums.h"
+#include <labenums.h>
 
 class QLibrary;
 
@@ -66,4 +65,3 @@ namespace sparsely
         QVector<QString> m_DynamicLibSolverNames;
     };
 } // namespace sparsely
-#endif // SPARSEPC_MODEL_HPP

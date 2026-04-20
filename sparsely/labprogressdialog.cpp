@@ -1,4 +1,4 @@
-#include "labprogressdialog.h"
+#include <labprogressdialog.h>
 
 #include <QApplication>
 #include <QProgressDialog>

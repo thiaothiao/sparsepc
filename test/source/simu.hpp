@@ -1,9 +1,8 @@
-#ifndef SPARSEPC_SIMU_HPP
-#define SPARSEPC_SIMU_HPP
+#pragma once
 
 #include <concepts>
 
-#include "sparsepc/utils/matrix.hpp"
+#include <sparsepc/utils/matrix.hpp>
 
 namespace sparsepc
 {

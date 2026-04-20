@@ -1,12 +1,11 @@
-#ifndef SPARSEPC_CONTROLLER_HPP
-#define SPARSEPC_CONTROLLER_HPP
+#pragma once
 
 #include <functional>
 
 #include <QObject>
 #include <QString>
 
-#include "labpreferences.h"
+#include <labpreferences.h>
 
 namespace sparsely
 {
@@ -44,4 +43,3 @@ namespace sparsely
         std::reference_wrapper<LabModel> m_LabModel;
     };
 } // namespace sparsely
-#endif // SPARSEPC_CONTROLLER_HPP

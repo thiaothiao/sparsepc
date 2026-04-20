@@ -1,5 +1,4 @@
-#ifndef SPARSELY_VERSION_HPP
-#define SPARSELY_VERSION_HPP
+#pragma once
 
 #include <string_view>
 
@@ -17,4 +16,3 @@ namespace sparsely
 	}
 }
 
-#endif //SPARSELY_VERSION_HPP

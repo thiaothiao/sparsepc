@@ -1,5 +1,4 @@
-#ifndef SPARSEPC_PREFERENCES_DIALOG_HPP
-#define SPARSEPC_PREFERENCES_DIALOG_HPP
+#pragma once
 
 #include <QDialog>
 
@@ -50,4 +49,3 @@ namespace sparsely
         QPushButton *m_SavePushButton;
     };
 } // namespace sparsely
-#endif // SPARSEPC_PREFERENCES_DIALOG_HPP

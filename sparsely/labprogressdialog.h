@@ -1,5 +1,4 @@
-#ifndef SPARSEPC_PROGRESS_DIALOG_HPP
-#define SPARSEPC_PROGRESS_DIALOG_HPP
+#pragma once
 
 #include <functional>
 
@@ -21,4 +20,3 @@ namespace sparsely
         std::reference_wrapper<QProgressDialog> qProgressDialog;
     };
 } // namespace sparsely
-#endif // SPARSEPC_PROGRESS_DIALOG_HPP

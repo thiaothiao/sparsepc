@@ -1,13 +1,13 @@
-#include "labmainwindow.h"
 #include <QApplication>
 #include <QDir>
 #include <QIcon>
 #include <QPixmap>
 #include <QSplashScreen>
+#include <labmainwindow.h>
 
 #include <thread>
 
-#include "infos.h"
+#include <infos.h>
 
 int main(int argc, char *argv[])
 {

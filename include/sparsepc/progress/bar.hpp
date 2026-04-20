@@ -1,5 +1,4 @@
-#ifndef SPARSEPC_PROGRESSBAR_HPP
-#define SPARSEPC_PROGRESSBAR_HPP
+#pragma once
 
 #include <concepts>
 #include <utility>
@@ -27,4 +26,3 @@ namespace sparsepc
         void processEvents() const {}
     };
 } // namespace sparsepc
-#endif // SPARSEPC_PROGRESSBAR_HPP
