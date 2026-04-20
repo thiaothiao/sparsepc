@@ -4,6 +4,7 @@
 #include <iostream>
 #include <set>
 #include <vector>
+#include <utility>
 
 #include <Eigen/Dense>
 
@@ -128,7 +129,7 @@ namespace sparsepc
 
         auto twoPowerMinusCount = static_cast<Scalar>(1);
 
-        int count = 0;
+        unsigned int count = 0;
         Scalar maximumEigenValue = static_cast<Scalar>(-1);
         while (true)
         {

@@ -1,5 +1,9 @@
 build*/
 *egg-info
+/build*
+/.vscode
+/cpm_modules
+.DS_Store
 
 # Pdfs
 *.synctex*

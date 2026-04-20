@@ -1,20 +1,32 @@
 cmake_minimum_required(VERSION 4.1)
-project(console_example CXX)
 
+project(ConsoleExample LANGUAGES CXX)
+		
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-find_package(OpenMP REQUIRED) 
-if(OpenMP_CXX_FOUND)
-	link_libraries(OpenMP::OpenMP_CXX)
+option(USE_INSTALLED_VERSION "Use the version found by find_package" OFF)
+
+include(../../cmake/tools.cmake)
+include(../../cmake/CPM.cmake)
+
+CPMAddPackage(
+  NAME eigen
+  GITLAB_REPOSITORY libeigen/eigen
+  GIT_TAG 5.0.1
+  OPTIONS "EIGEN_BUILD_DOC OFF" "BUILD_TESTING OFF"
+)
+
+if(USE_INSTALLED_VERSION)
+  find_package(sparsepc REQUIRED)
+else()
+  CPMAddPackage(
+    NAME sparsepc
+    SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/../..)
 endif()
 
-add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
-add_compile_definitions(_SILENCE_ALL_CXX23_DEPRECATION_WARNINGS)
-
-set(MY_EIGEN3_INCLUDE_DIR "$ENV{EIGEN3_INCLUDE_DIR}")
-
 add_executable(${PROJECT_NAME} main.cpp simu.hpp)
-
-include_directories("../../include" ${MY_EIGEN3_INCLUDE_DIR})
+target_compile_definitions(${PROJECT_NAME} PUBLIC _CRT_SECURE_NO_WARNINGS)
+target_compile_definitions(${PROJECT_NAME} PUBLIC _SILENCE_ALL_CXX23_DEPRECATION_WARNINGS)
+target_link_libraries(${PROJECT_NAME} Eigen3::Eigen sparsepc::sparsepc)

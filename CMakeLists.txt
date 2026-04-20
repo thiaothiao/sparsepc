@@ -1,27 +1,52 @@
 cmake_minimum_required(VERSION 4.1)
-project(sparsepc CXX)
+
+project(sparsepc
+        VERSION 0.1.0
+        LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(MY_DEPLOYMENT_DIR "$ENV{DEPLOYMENT_DIR}")
+include(cmake/CPM.cmake)
 
-set(CMAKE_INSTALL_PREFIX "${MY_DEPLOYMENT_DIR}" CACHE PATH "Default install path" FORCE)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_INSTALL_PREFIX}/bin)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-find_package(OpenMP REQUIRED) 
-if(OpenMP_CXX_FOUND)
-	link_libraries(OpenMP::OpenMP_CXX)
-endif()
+# PackageProject.cmake will be used to make our target installable
+CPMAddPackage("gh:TheLartians/PackageProject.cmake@1.8.0")
 
 add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 add_compile_definitions(_SILENCE_ALL_CXX23_DEPRECATION_WARNINGS)
-add_compile_definitions(JKQTPLOTTER_COMPILE_WITHOUT_PRINTSUPPORT)
 
+# Note: for header-only libraries change all PUBLIC flags to INTERFACE and create an interface
+add_library(${PROJECT_NAME} INTERFACE)
 
-set(MY_EIGEN3_INCLUDE_DIR "$ENV{EIGEN3_INCLUDE_DIR}")
+# being a cross-platform target, we enforce standards conformance on MSVC
+target_compile_options(${PROJECT_NAME} INTERFACE "$<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/permissive->")
+target_compile_definitions(${PROJECT_NAME} INTERFACE _CRT_SECURE_NO_WARNINGS)
+target_compile_definitions(${PROJECT_NAME} INTERFACE _SILENCE_ALL_CXX23_DEPRECATION_WARNINGS)
 
-message(STATUS "Using Eigen3")
-include_directories(${PROJECT_SOURCE_DIR}/include ${MY_EIGEN3_INCLUDE_DIR})
+target_link_libraries(${PROJECT_NAME} INTERFACE $<BUILD_INTERFACE:Eigen3::Eigen>)
 
-add_subdirectory(softwares)
+target_include_directories(
+  ${PROJECT_NAME} INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+                         $<INSTALL_INTERFACE:include/${PROJECT_NAME}-${PROJECT_VERSION}>
+)
+
+# ---- Create an installable target ----
+# this allows users to install and find the library via `find_package()`.
+
+# the location where the project's version header will be placed should match the project's regular
+# header paths
+string(TOLOWER ${PROJECT_NAME}/version.hpp VERSION_HEADER_LOCATION)
+
+packageProject(
+  NAME ${PROJECT_NAME}
+  VERSION ${PROJECT_VERSION}
+  NAMESPACE ${PROJECT_NAME}
+  BINARY_DIR ${PROJECT_BINARY_DIR}
+  INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include
+  INCLUDE_DESTINATION include/${PROJECT_NAME}-${PROJECT_VERSION}
+  VERSION_HEADER "${VERSION_HEADER_LOCATION}"
+  COMPATIBILITY SameMajorVersion
+  DEPENDENCIES "eigen"
+)

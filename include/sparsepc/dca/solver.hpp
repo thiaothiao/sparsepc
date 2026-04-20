@@ -277,7 +277,7 @@ namespace sparsepc
 
                 if (progressBar)
                 {
-                    progressBar->setValue(k + 1);
+                    progressBar->setValue(static_cast<int>(k) + 1);
 
                     progressBar->processEvents();
 
@@ -514,7 +514,8 @@ namespace sparsepc
             auto r = static_cast<Scalar>(-1);
             Scalar al = static_cast<Scalar>(0);
             auto qPlusYsortedIndices = sort(qPlusY);
-            const Scalar kMinusSum = k - (y.array() > bm + zero).count();
+            const auto kMinusSum =
+                static_cast<Scalar>(k - (y.array() > bm + zero).count());
             const Scalar kMinusSumSquared = kMinusSum * kMinusSum;
             for (auto l : qPlusYsortedIndices)
             {
@@ -531,7 +532,7 @@ namespace sparsepc
 
                 const auto iInIlMask =
                     (y.array() <= bm + zero && qPlusY.array() > al + zero);
-                const Scalar sum = iInIlMask.count();
+                const auto sum = static_cast<Scalar>(iInIlMask.count());
                 const auto sumQPlusY =
                     iInIlMask.select(qPlusY, static_cast<Scalar>(0)).sum();
 

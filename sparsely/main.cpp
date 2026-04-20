@@ -7,7 +7,7 @@
 
 #include <thread>
 
-#include "version.h"
+#include "infos.h"
 
 int main(int argc, char *argv[])
 {
