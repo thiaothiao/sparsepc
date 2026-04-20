@@ -179,8 +179,13 @@ qt6_generate_deploy_app_script(
     DEPLOY_TOOL_OPTIONS ${DEPLOY_OPTIONS}
 )
 
-install(TARGETS ${exeName}
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
+if(APPLE)
+    install(TARGETS ${exeName}
+        BUNDLE DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
+else()
+    install(TARGETS ${exeName}
+        DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
+endif()
 
 install(SCRIPT ${deploy_script})
 
