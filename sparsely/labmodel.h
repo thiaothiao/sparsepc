@@ -40,11 +40,14 @@ namespace sparsely
         bool saveProject(const QString &fileName) const;
         bool loadProject(const QString &fileName);
         void computeStandardPCs();
+        sparsepc::Component<double> &computeStandardPC();
         Nominees &computeSparsePC(const Enums::Method &method,
                                   ProgressDialog *progressBar);
+        bool removeLastStandardPC();
         bool removeLastSparsePC();
         double computeValidatedCumulativeVariance() const;
         double computeCumulativeVariance() const;
+        double computeStandardCumulativeVariance() const;
         void validateCurrentSparsePC();
         int getiWinner() const;
         int getCurrentRank() const;

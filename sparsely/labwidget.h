@@ -65,6 +65,7 @@ namespace sparsely
         updateLastSparsePCGraph(const sparsepc::Component<double> &component,
                                 const QString &legend);
         void removeLastSparsePCGraph(int sliderValue);
+        void removeLastStandardPCGraph();
         void clearAlls();
         void reInitSlider(int value);
         void setSliderColor(const QString &colorString);

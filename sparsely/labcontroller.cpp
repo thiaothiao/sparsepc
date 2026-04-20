@@ -9,6 +9,7 @@
 #include <QKeyEvent>
 #include <QProgressDialog>
 #include <QPushButton>
+#include <QRadioButton>
 #include <QSlider>
 #include <QString>
 
@@ -213,6 +214,21 @@ namespace sparsely
         auto &labWidget = m_LabWidget.get();
         auto &labModel = m_LabModel.get();
 
+        if (!labWidget.m_SparsePCRadioButton->isChecked())
+        {
+            const DeferredUpdateForPlots deferredUpdateForPlots(labWidget);
+            const auto &component = labModel.computeStandardPC();
+            const auto cumulativeVariancePercentage =
+                labModel.computeVarianceRatio(
+                    labModel.computeStandardCumulativeVariance()) *
+                100.0;
+            labWidget.addStandardPCGraph(
+                m_Preferences, component,
+                generateGraphName(labModel.m_StandardPCs.size() - 1,
+                                  cumulativeVariancePercentage));
+            return;
+        }
+
         const SliderDisconnectConnect sliderDisconnectConnect(
             *labWidget.m_Slider, *this);
 
@@ -262,6 +278,19 @@ namespace sparsely
     {
         auto &labWidget = m_LabWidget.get();
         auto &labModel = m_LabModel.get();
+
+        if (!labWidget.m_SparsePCRadioButton->isChecked())
+        {
+            if (!labModel.removeLastStandardPC())
+            {
+                return;
+            }
+
+            labWidget.removeLastStandardPCGraph();
+
+            return;
+        }
+
         if (!labModel.removeLastSparsePC())
         {
             return;

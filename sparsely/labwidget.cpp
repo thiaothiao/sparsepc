@@ -214,6 +214,19 @@ namespace sparsely
         m_Plotter->redrawPlot();
     }
 
+    void LabWidget::removeLastStandardPCGraph()
+    {
+        if (m_StandardPCGraphs.empty())
+        {
+            return;
+        }
+        m_Plotter->deleteGraph(m_StandardPCGraphs.back().graph, true);
+        m_Plotter->getDatastore()->deleteColumn(
+            m_StandardPCGraphs.back().pcColumn, true);
+
+        m_StandardPCGraphs.pop_back();
+    }
+
     void LabWidget::removeLastSparsePCGraph(int sliderValue)
     {
         if (m_SparsePCGraphs.empty())
@@ -223,10 +236,7 @@ namespace sparsely
         m_Plotter->deleteGraph(m_SparsePCGraphs.back().graph, true);
         m_Plotter->getDatastore()->deleteColumn(
             m_SparsePCGraphs.back().pcColumn, true);
-        if (!m_SparsePCGraphs.empty())
-        {
-            m_SparsePCGraphs.pop_back();
-        }
+        m_SparsePCGraphs.pop_back();
         if (!m_SparsePCGraphs.empty())
         {
             setSliderColor(m_SparsePCGraphs.back().color);
@@ -364,7 +374,7 @@ namespace sparsely
         groupButton->addButton(m_StandardPCRadioButton);
         groupButton->addButton(m_SparsePCRadioButton);
         m_StandardPCRadioButton->setChecked(true);
-        auto *groupButtonLayout = new QVBoxLayout(this);
+        auto *groupButtonLayout = new QVBoxLayout();
         groupButtonLayout->addWidget(m_StandardPCRadioButton);
         groupButtonLayout->addWidget(m_SparsePCRadioButton);
         actionGroupBoxLayout->addLayout(groupButtonLayout);
