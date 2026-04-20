@@ -179,8 +179,8 @@ qt6_generate_deploy_app_script(
     DEPLOY_TOOL_OPTIONS ${DEPLOY_OPTIONS}
 )
 
-#install(TARGETS ${exeName}
-#    DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
+install(TARGETS ${exeName}
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
 
 install(SCRIPT ${deploy_script})
 
