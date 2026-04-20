@@ -71,25 +71,42 @@ CPMAddPackage(
 
 file(GLOB sources CONFIGURE_DEPENDS ${CMAKE_CURRENT_LIST_DIR}/*.cpp)
 file(GLOB headers CONFIGURE_DEPENDS ${CMAKE_CURRENT_LIST_DIR}/*.h)
-file(GLOB appiconrcs CONFIGURE_DEPENDS ${CMAKE_CURRENT_LIST_DIR}/images/*.rc)
 file(GLOB apprccs CONFIGURE_DEPENDS ${CMAKE_CURRENT_LIST_DIR}/*.qrc)
 
 if(WIN32)
     message(STATUS "Running on Windows")
+	file(GLOB appiconrcs CONFIGURE_DEPENDS ${CMAKE_CURRENT_LIST_DIR}/images/*.rc)
     enable_language(RC)
+endif()
+
+if(APPLE)
+	message(STATUS "Running on Mac")
+	set(appiconrcs "${CMAKE_CURRENT_LIST_DIR}/images/ico_transparent.icns")
+	set(MACOSX_BUNDLE_ICON_FILE "ico_transparent.icns")
+	set_source_files_properties(${appiconrcs} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 endif()
 
 qt_standard_project_setup()
 qt_add_resources(sources ${apprccs})
 qt_add_executable(${exeName} ${sources} ${appiconrcs} ${headers})
 
-set_target_properties(${exeName} PROPERTIES
-    WIN32_EXECUTABLE ON
-)
+if(WIN32)
+	set_target_properties(${exeName} PROPERTIES
+		WIN32_EXECUTABLE ON)
+endif()
+
+if(APPLE)
+    set_target_properties(${exeName} PROPERTIES 
+        MACOSX_BUNDLE TRUE
+        MACOSX_BUNDLE_GUI_IDENTIFIER "com.indilo.sparsely"
+        MACOSX_BUNDLE_BUNDLE_NAME ${appName}
+        MACOSX_BUNDLE_SHORT_VERSION_STRING ${appVersion}
+        MACOSX_BUNDLE_LONG_VERSION_STRING ${appVersion})
+endif()
 
 target_compile_definitions(${exeName} PRIVATE _CRT_SECURE_NO_WARNINGS)
 target_compile_definitions(${exeName} PRIVATE _SILENCE_ALL_CXX23_DEPRECATION_WARNINGS)
-target_compile_definitions(${exeName} PRIVATE JKQTPLOTTER_COMPILE_WITHOUT_PRINTSUPPORT)
+#target_compile_definitions(${exeName} PRIVATE JKQTPLOTTER_COMPILE_WITHOUT_PRINTSUPPORT)
 
 if(eigen_ADDED)
     target_link_libraries(${exeName} PRIVATE Eigen3::Eigen)
@@ -144,10 +161,18 @@ if (LINUX)
                     DESTINATION "/usr/local/share/applications")
 endif()
 
+if(APPLE)
+    # Define your signing identity
+    set(SIGNING_IDENTITY "-")#"Developer ID Application: Your Company (ID)")
+    set(DEPLOY_OPTIONS "-codesign=${SIGNING_IDENTITY}" "-hardened-runtime" "-timestamp")
+else()
+    set(DEPLOY_OPTIONS "--no-translations")
+endif()
+
 qt6_generate_deploy_app_script(
     TARGET ${exeName}
     OUTPUT_SCRIPT deploy_script
-    NO_TRANSLATIONS
+    DEPLOY_TOOL_OPTIONS ${DEPLOY_OPTIONS}
 )
 
 install(SCRIPT ${deploy_script})
