@@ -92,7 +92,7 @@ qt_add_executable(${exeName} ${sources} ${appiconrcs} ${headers})
 
 if(WIN32)
 	set_target_properties(${exeName} PROPERTIES
-		WIN32_EXECUTABLE ON)
+                WIN32_EXECUTABLE TRUE)
 endif()
 
 if(APPLE)
@@ -177,13 +177,13 @@ else()
     set(DEPLOY_OPTIONS "--no-translations")
 endif()
 
-qt6_generate_deploy_app_script(
-    TARGET ${exeName}
-    OUTPUT_SCRIPT deploy_script
-    DEPLOY_TOOL_OPTIONS ${DEPLOY_OPTIONS}
-)
+#qt6_generate_deploy_app_script(
+#    TARGET ${exeName}
+#    OUTPUT_SCRIPT deploy_script
+#    DEPLOY_TOOL_OPTIONS ${DEPLOY_OPTIONS}
+#)
 
-install(SCRIPT ${deploy_script})
+#install(SCRIPT ${deploy_script})
 
 if (LINUX)
     #fixing weird missing PrintSupport, Xml after installation
