@@ -1,0 +1,67 @@
+name: Sparsely MacOS Build
+
+on:
+  push:
+    branches:
+#      - master
+      - main
+#      - develop
+      - macos_build
+#  pull_request:
+#    branches:
+#      - master
+      - main
+#      - develop
+      
+env:
+  CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm_modules
+  MY_INSTALL_DIR: ${{ github.workspace }}/install
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+          
+      - name: Checkout Code
+        uses: actions/checkout@v5
+        
+      - name: Setup CMake 4.1
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          # Use '4.1.x' to automatically get the latest 4.1.z release
+          cmake-version: '4.1.x'
+
+      - name: Verify Version
+        run: cmake --version
+
+      - uses: actions/cache@v5
+        with:
+          path: "**/cpm_modules"
+          key: ${{ github.workflow }}-cpm-modules-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+
+      - name: Install Qt6
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.10.0'
+          setup-python: 'false' # Add this line
+          # For Linux, it automatically installs required system dependencies
+          install-deps: 'true' 
+          # Specify additional modules if needed (e.g., qtcharts, qtwebengine)
+          modules: 'qtpdf qtwebengine'
+          host: 'mac'
+          target: 'desktop'
+          arch: 'clang_64'
+          
+      - name: Build & Install
+        run: |
+          cmake -S sparsely -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --target install --config Release
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sparsely-dist
+          path: ${{ env.MY_INSTALL_DIR }}/
