@@ -19,8 +19,8 @@ namespace sparsely
         Preferences &operator=(Preferences &&) = default;
         QJsonObject toJson() const;
         static Preferences fromJson(const QJsonObject &obj);
-        void save(const QString &fileName) const;
-        static Preferences load(const QString &fileName);
+        void save() const;
+        static Preferences load();
 
         int maximumNumberOfComponents;
         QStringList componentsColors;

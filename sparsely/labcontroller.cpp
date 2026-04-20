@@ -1,11 +1,8 @@
 #include <labcontroller.h>
 
 #include <functional>
-#include <thread>
 
 #include <QComboBox>
-#include <QDir>
-#include <QFile>
 #include <QKeyEvent>
 #include <QProgressDialog>
 #include <QPushButton>
@@ -114,11 +111,7 @@ namespace sparsely
                                  QObject *parent)
         : QObject(parent), m_LabModel{labModel}, m_LabWidget{labWidget}, m_N{0}
     {
-        QDir dir = QDir::current();
-        dir.cdUp();
-        m_Preferences =
-            Preferences::load(QDir(dir.path() + "/configurations")
-                                  .absoluteFilePath("sparsely.json"));
+        m_Preferences = Preferences::load();
     }
 
     void LabController::connectWidget()
