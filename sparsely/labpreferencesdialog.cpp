@@ -2,7 +2,6 @@
 
 #include <QComboBox>
 #include <QDialog>
-#include <QDir>
 #include <QDoubleSpinBox>
 #include <QFile>
 #include <QGroupBox>
@@ -24,9 +23,7 @@ namespace sparsely
     PreferencesDialog::PreferencesDialog(QWidget *parent) : QDialog(parent)
     {
         // must load preferense json file
-        Preferences prefs =
-            Preferences::load(QDir(QDir::currentPath() + "/configurations")
-                                  .absoluteFilePath("sparsely.json"));
+        Preferences prefs = Preferences::load();
         QWidget *container = new QWidget(this);
         QVBoxLayout *containerLayout = new QVBoxLayout(container);
         auto *maximumNumberOfComponentsGroupBox =
@@ -364,8 +361,7 @@ namespace sparsely
         prefs.plotType =
             m_PlotTypeComboBox->currentData().value<Enums::PlotType>();
         prefs.method = m_MethodComboBox->currentData().value<Enums::Method>();
-        prefs.save(QDir(QDir::currentPath() + "/configurations")
-                       .absoluteFilePath("sparsely.json"));
+        prefs.save();
         QDialog::accept();
     }
 } // namespace sparsely

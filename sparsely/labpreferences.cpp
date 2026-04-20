@@ -1,10 +1,12 @@
 #include <labpreferences.h>
 
+#include <QCoreApplication>
 #include <QDir>
 #include <QFile>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QStandardPaths>
 #include <QVariantList>
 
 namespace
@@ -160,13 +162,64 @@ namespace sparsely
         return prefs;
     }
 
-    Preferences Preferences::load(const QString &fileName)
+    Preferences Preferences::load()
     {
+        const auto dataPath =
+            QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+
+        if (!QDir().mkpath(dataPath))
+        { // critical
+            return {};
+        }
+
+        QDir dir(dataPath);
+        if (!dir.exists("configurations"))
+        {
+            if (!dir.mkdir("configurations"))
+            { // critical
+                return {};
+            }
+        }
+
+        if (!dir.cd("configurations"))
+        { // critical
+            return {};
+        }
+
+        if (!dir.exists("sparsely.json"))
+        { // use default preferences
+            return {};
+        }
+
+        const auto fileName = dir.absoluteFilePath("sparsely.json");
         return Preferences::fromJson(loadJson(fileName));
     }
 
-    void Preferences::save(const QString &fileName) const
+    void Preferences::save() const
     {
+        const auto dataPath =
+            QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+
+        if (!QDir().mkpath(dataPath))
+        { // critical
+            return;
+        }
+
+        QDir dir(dataPath);
+        if (!dir.exists("configurations"))
+        {
+            if (!dir.mkdir("configurations"))
+            { // critical
+                return;
+            }
+        }
+
+        if (!dir.cd("configurations"))
+        { // critical
+            return;
+        }
+
+        const auto fileName = dir.absoluteFilePath("sparsely.json");
         saveJson(toJson(), fileName);
     }
 } // namespace sparsely
