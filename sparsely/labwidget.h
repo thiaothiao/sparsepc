@@ -16,6 +16,7 @@ class QSlider;
 class QStackedLayout;
 class QComboBox;
 class QPushButton;
+class QRadioButton;
 
 class JKQTPPlotElement;
 class JKQTPlotter;
@@ -64,6 +65,7 @@ namespace sparsely
         updateLastSparsePCGraph(const sparsepc::Component<double> &component,
                                 const QString &legend);
         void removeLastSparsePCGraph(int sliderValue);
+        void removeLastStandardPCGraph();
         void clearAlls();
         void reInitSlider(int value);
         void setSliderColor(const QString &colorString);
@@ -79,6 +81,8 @@ namespace sparsely
         QComboBox *m_PlotTypeComboBox;
         QPushButton *m_AddNewSparseComponentButton;
         QPushButton *m_RemoveLastSparseComponentButton;
+        QRadioButton *m_SparsePCRadioButton;
+        QRadioButton *m_StandardPCRadioButton;
         QWidget *m_ButtonsWidget;
         QVector<QString> m_Colors;
 

@@ -128,6 +128,20 @@ namespace sparsely
         }
     }
 
+    sparsepc::Component<double> &LabModel::computeStandardPC()
+    {
+        using Index = sparsepc::Index;
+        const DCA::Param param{std::vector<DCA::ModelParam>(
+            m_StandardPCs.size() + 1, {static_cast<Index>(m_N)})};
+        auto components = DCA{param}.run(m_Sigma);
+        m_StandardPCs.emplace_back();
+        auto &standardPC = m_StandardPCs.back();
+        standardPC.iWinner = m_N;
+        components.back().state = sparsepc::ComponentState::Validated;
+        return standardPC.candidates.emplace(m_N, std::move(components.back()))
+            .first->second;
+    }
+
     Nominees &LabModel::computeSparsePC(const Enums::Method &method,
                                         ProgressDialog *progressBar)
     {
@@ -189,6 +203,18 @@ namespace sparsely
         return sparsePC;
     }
 
+    bool LabModel::removeLastStandardPC()
+    {
+        if (m_StandardPCs.size() <= 2)
+        {
+            return false;
+        }
+
+        m_StandardPCs.pop_back();
+
+        return true;
+    }
+
     bool LabModel::removeLastSparsePC()
     {
         if (m_SparsePCs.empty())
@@ -226,6 +252,14 @@ namespace sparsely
             m_ValidatedComponents, 0.0,
             [](double done, const sparsepc::Component<double> &c) {
                 return done + c.value;
+            });
+    }
+
+    double LabModel::computeStandardCumulativeVariance() const
+    {
+        return std::ranges::fold_left(
+            m_StandardPCs, 0.0, [](double done, const Nominees &c) {
+                return done + c.candidates.at(c.iWinner).value;
             });
     }
 

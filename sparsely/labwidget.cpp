@@ -1,9 +1,11 @@
 #include <labwidget.h>
 
+#include <QButtonGroup>
 #include <QColor>
 #include <QComboBox>
 #include <QDir>
 #include <QFile>
+#include <QFormLayout>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -12,6 +14,7 @@
 #include <QProgressBar>
 #include <QProgressDialog>
 #include <QPushButton>
+#include <QRadioButton>
 #include <QSlider>
 #include <QStackedLayout>
 #include <QString>
@@ -211,6 +214,19 @@ namespace sparsely
         m_Plotter->redrawPlot();
     }
 
+    void LabWidget::removeLastStandardPCGraph()
+    {
+        if (m_StandardPCGraphs.empty())
+        {
+            return;
+        }
+        m_Plotter->deleteGraph(m_StandardPCGraphs.back().graph, true);
+        m_Plotter->getDatastore()->deleteColumn(
+            m_StandardPCGraphs.back().pcColumn, true);
+
+        m_StandardPCGraphs.pop_back();
+    }
+
     void LabWidget::removeLastSparsePCGraph(int sliderValue)
     {
         if (m_SparsePCGraphs.empty())
@@ -220,10 +236,7 @@ namespace sparsely
         m_Plotter->deleteGraph(m_SparsePCGraphs.back().graph, true);
         m_Plotter->getDatastore()->deleteColumn(
             m_SparsePCGraphs.back().pcColumn, true);
-        if (!m_SparsePCGraphs.empty())
-        {
-            m_SparsePCGraphs.pop_back();
-        }
+        m_SparsePCGraphs.pop_back();
         if (!m_SparsePCGraphs.empty())
         {
             setSliderColor(m_SparsePCGraphs.back().color);
@@ -321,18 +334,9 @@ namespace sparsely
         m_ProcessingsGoupboxStackedLayout->addWidget(m_ButtonsWidget);
         auto *buttonsWidgetLayout = new QHBoxLayout(m_ButtonsWidget);
 
-        auto *plotTypeGroupBox = new QGroupBox(tr("Plot"), this);
-        auto *plotTypeGroupBoxLayout = new QHBoxLayout(plotTypeGroupBox);
-        m_PlotTypeComboBox = new QComboBox(this);
-        m_PlotTypeComboBox->addItem(
-            tr("Filled"), QVariant::fromValue(Enums::PlotType::FILLED));
-        m_PlotTypeComboBox->addItem(
-            tr("Impulses"), QVariant::fromValue(Enums::PlotType::IMPULSES));
-        plotTypeGroupBoxLayout->addWidget(m_PlotTypeComboBox);
-        buttonsWidgetLayout->addWidget(plotTypeGroupBox);
-        auto *methodGroupBox = new QGroupBox(tr("Method"), this);
-        auto *methodGroupBoxLayout = new QHBoxLayout(methodGroupBox);
-        m_MethodComboBox = new QComboBox(this);
+        auto *methodGroupBox = new QGroupBox(tr("Method and Plot"), this);
+        auto *methodGroupBoxLayout = new QFormLayout(methodGroupBox);
+        m_MethodComboBox = new QComboBox(methodGroupBox);
         m_MethodComboBox->insertItem(std::to_underlying(Enums::Method::DCA),
                                      tr("Dca"),
                                      QVariant::fromValue(Enums::Method::DCA));
@@ -351,11 +355,29 @@ namespace sparsely
                 std::to_underlying(Enums::Method::USERDYNAMICLIB), addonName,
                 QVariant::fromValue(Enums::Method::USERDYNAMICLIB));
         }
-        methodGroupBoxLayout->addWidget(m_MethodComboBox);
+        methodGroupBoxLayout->addRow(new QLabel("Method:", methodGroupBox),
+                                     m_MethodComboBox);
+        m_PlotTypeComboBox = new QComboBox(methodGroupBox);
+        m_PlotTypeComboBox->addItem(
+            tr("Filled"), QVariant::fromValue(Enums::PlotType::FILLED));
+        m_PlotTypeComboBox->addItem(
+            tr("Impulses"), QVariant::fromValue(Enums::PlotType::IMPULSES));
+        methodGroupBoxLayout->addRow(new QLabel("Plot:", methodGroupBox),
+                                     m_PlotTypeComboBox);
         buttonsWidgetLayout->addWidget(methodGroupBox);
-        auto *actionGroupBox = new QGroupBox(tr("Sparse component"), this);
+        auto *actionGroupBox = new QGroupBox(tr("Component"), this);
         auto *actionGroupBoxLayout = new QHBoxLayout(actionGroupBox);
         buttonsWidgetLayout->addWidget(actionGroupBox);
+        m_StandardPCRadioButton = new QRadioButton(tr("Standard"), this);
+        m_SparsePCRadioButton = new QRadioButton(tr("Sparse"), this);
+        auto *groupButton = new QButtonGroup(this);
+        groupButton->addButton(m_StandardPCRadioButton);
+        groupButton->addButton(m_SparsePCRadioButton);
+        m_StandardPCRadioButton->setChecked(true);
+        auto *groupButtonLayout = new QVBoxLayout();
+        groupButtonLayout->addWidget(m_StandardPCRadioButton);
+        groupButtonLayout->addWidget(m_SparsePCRadioButton);
+        actionGroupBoxLayout->addLayout(groupButtonLayout);
         m_AddNewSparseComponentButton = new QPushButton(tr("Add new"), this);
         actionGroupBoxLayout->addWidget(m_AddNewSparseComponentButton);
         m_RemoveLastSparseComponentButton =
