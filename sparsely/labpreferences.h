@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QCoreApplication>
 #include <QJsonObject>
 #include <QPen>
 #include <QString>
@@ -12,15 +13,14 @@ namespace sparsely
     struct Preferences
     {
         Preferences();
-
         Preferences(const Preferences &) = default;
         Preferences &operator=(const Preferences &) = default;
         Preferences(Preferences &&) = default;
         Preferences &operator=(Preferences &&) = default;
         QJsonObject toJson() const;
-        static Preferences fromJson(const QJsonObject &obj);
+        void fromJson(const QJsonObject &obj);
         void save() const;
-        static Preferences load();
+        void load();
 
         int maximumNumberOfComponents;
         QStringList componentsColors;
@@ -34,5 +34,8 @@ namespace sparsely
         double sparseComponentsFillingColorsAlpha;
         Enums::PlotType plotType;
         Enums::Method method;
+        QString addonsPath;
+
+        Q_DECLARE_TR_FUNCTIONS(Preferences)
     };
 } // namespace sparsely

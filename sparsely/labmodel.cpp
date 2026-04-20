@@ -32,12 +32,12 @@ namespace
         sparsepc::linearmodel::DynamicLibSolverModel<
             double, sparsepc::EigenSolver<double>, sparsely::ProgressDialog>>;
 
-    auto getPluginList()
+    auto getPluginList(const QString &path)
     {
-        QDir path(QDir::currentPath() + "/addons");
+        const QDir dir(path);
         QStringList filters;
         filters << "*.dll" << "*.so" << "*.dylib";
-        return path.entryInfoList(filters, QDir::Files | QDir::NoDotAndDotDot);
+        return dir.entryInfoList(filters, QDir::Files | QDir::NoDotAndDotDot);
     }
 } // namespace
 
@@ -47,27 +47,6 @@ namespace sparsely
         : m_Sigma{}, m_ValidatedComponents{}, m_SparsePCs{}, m_StandardPCs{},
           m_N{0}, m_Trace{0.0}
     {
-        const auto pluginList = getPluginList();
-        if (!pluginList.empty())
-        {
-            m_DynamicLibSolverLoaders.reserve(pluginList.size());
-            m_DynamicLibSolverNames.reserve(pluginList.size());
-            foreach (const auto &fileInfo, pluginList)
-            {
-                QString noExtensionAbsolutePath =
-                    QDir(fileInfo.absolutePath()).filePath(fileInfo.baseName());
-                m_DynamicLibSolverLoaders.push_back(
-                    std::make_unique<QLibrary>(noExtensionAbsolutePath));
-                if (m_DynamicLibSolverLoaders.back()->load())
-                {
-                    m_DynamicLibSolverNames.push_back(fileInfo.baseName());
-                }
-                else
-                {
-                    m_DynamicLibSolverLoaders.pop_back();
-                }
-            }
-        }
     }
 
     bool LabModel::init(const QString &fileName, bool newProject)
@@ -289,6 +268,36 @@ namespace sparsely
     {
         return m_DynamicLibSolverNames.empty() ? ""
                                                : m_DynamicLibSolverNames.at(0);
+    }
+
+    void LabModel::loadAddon(const QString &path)
+    {
+        if (!m_DynamicLibSolverLoaders.empty())
+        {
+            return;
+        }
+
+        const auto pluginList = getPluginList(path);
+        if (!pluginList.empty())
+        {
+            m_DynamicLibSolverLoaders.reserve(pluginList.size());
+            m_DynamicLibSolverNames.reserve(pluginList.size());
+            foreach (const auto &fileInfo, pluginList)
+            {
+                QString noExtensionAbsolutePath =
+                    QDir(fileInfo.absolutePath()).filePath(fileInfo.baseName());
+                m_DynamicLibSolverLoaders.push_back(
+                    std::make_unique<QLibrary>(noExtensionAbsolutePath));
+                if (m_DynamicLibSolverLoaders.back()->load())
+                {
+                    m_DynamicLibSolverNames.push_back(fileInfo.baseName());
+                }
+                else
+                {
+                    m_DynamicLibSolverLoaders.pop_back();
+                }
+            }
+        }
     }
 
     double LabModel::computeVarianceRatio(double variance) const
