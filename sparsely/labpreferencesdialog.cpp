@@ -4,6 +4,8 @@
 #include <QDialog>
 #include <QDoubleSpinBox>
 #include <QFile>
+#include <QFileDialog>
+#include <QFormLayout>
 #include <QGroupBox>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -12,18 +14,44 @@
 #include <QMetaEnum>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QSettings>
 #include <QSpinBox>
+#include <QStandardPaths>
 #include <QVBoxLayout>
 #include <QVariantList>
 
+#include <infos.h>
 #include <labpreferences.h>
+
+namespace
+{
+    void saveLastFolder(const QString &path)
+    {
+        QSettings settings(
+            QString::fromStdString(std::string(sparsely::metadata::appVendor)),
+            QString::fromStdString(std::string(sparsely::metadata::appName)));
+        settings.setValue("lastAddonFolder", path);
+    }
+
+    QString getLastFolder()
+    {
+        const QSettings settings(
+            QString::fromStdString(std::string(sparsely::metadata::appVendor)),
+            QString::fromStdString(std::string(sparsely::metadata::appName)));
+
+        const auto defaultPath =
+            QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+        return settings.value("lastAddonFolder", defaultPath).toString();
+    }
+} // namespace
 
 namespace sparsely
 {
     PreferencesDialog::PreferencesDialog(QWidget *parent) : QDialog(parent)
     {
-        // must load preferense json file
-        Preferences prefs = Preferences::load();
+        setMinimumSize(500, 400);
+        Preferences prefs;
+        prefs.load();
         QWidget *container = new QWidget(this);
         QVBoxLayout *containerLayout = new QVBoxLayout(container);
         auto *maximumNumberOfComponentsGroupBox =
@@ -252,6 +280,18 @@ namespace sparsely
         QObject::connect(m_MethodComboBox,
                          qOverload<int>(&QComboBox::currentIndexChanged), this,
                          &PreferencesDialog::onMethodSelectionChanged);
+        auto *addonsPathGroupBox = new QGroupBox(tr("Addons path"), this);
+        auto *addonsPathGroupBoxLayout = new QVBoxLayout(addonsPathGroupBox);
+        m_AddonsPathLineEdit = new QLineEdit(prefs.addonsPath, this);
+        m_AddonsPathLineEdit->setReadOnly(true);
+        addonsPathGroupBoxLayout->addWidget(m_AddonsPathLineEdit);
+        auto *addonsPathPushButton = new QPushButton(tr("Choose"), this);
+        addonsPathGroupBoxLayout->addWidget(addonsPathPushButton);
+        containerLayout->addWidget(addonsPathGroupBox);
+        QObject::connect(m_AddonsPathLineEdit, &QLineEdit::textChanged, this,
+                         &PreferencesDialog::onAddonsPathTextChanged);
+        QObject::connect(addonsPathPushButton, &QPushButton::clicked, this,
+                         &PreferencesDialog::onAddonsPath);
         m_SavePushButton = new QPushButton(tr("Save"), this);
         containerLayout->addWidget(m_SavePushButton);
         m_SavePushButton->setDisabled(true);
@@ -333,6 +373,26 @@ namespace sparsely
         m_SavePushButton->setEnabled(true);
     }
 
+    void PreferencesDialog::onAddonsPathTextChanged()
+    {
+        m_SavePushButton->setEnabled(true);
+    }
+
+    void PreferencesDialog::onAddonsPath(bool checked)
+    {
+        const auto lastDir = getLastFolder();
+        const auto dir = QFileDialog::getExistingDirectory(
+            this, tr("Open Directory"), lastDir,
+            QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+        if (dir.isEmpty())
+        {
+            return;
+        }
+        const auto path = QDir(dir).path();
+        saveLastFolder(path);
+        m_AddonsPathLineEdit->setText(path);
+    }
+
     void PreferencesDialog::onSave(bool checked)
     {
         Preferences prefs;
@@ -361,6 +421,7 @@ namespace sparsely
         prefs.plotType =
             m_PlotTypeComboBox->currentData().value<Enums::PlotType>();
         prefs.method = m_MethodComboBox->currentData().value<Enums::Method>();
+        prefs.addonsPath = m_AddonsPathLineEdit->text();
         prefs.save();
         QDialog::accept();
     }

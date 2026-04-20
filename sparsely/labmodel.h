@@ -53,6 +53,7 @@ namespace sparsely
         int getCurrentRank() const;
         int getN() const;
         QString getAddonName() const;
+        void loadAddon(const QString &path);
         double computeVarianceRatio(double variance) const;
 
         std::vector<std::reference_wrapper<sparsepc::Component<double>>>

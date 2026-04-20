@@ -8,6 +8,7 @@ class QLineEdit;
 class QDoubleSpinBox;
 class QComboBox;
 class QPushButton;
+class QLineEdit;
 
 namespace sparsely
 {
@@ -31,6 +32,8 @@ namespace sparsely
         void onSparseComponentsFillingColorsAlphaValueChanged(double value);
         void onPlotTypeSelectionChanged(int index);
         void onMethodSelectionChanged(int index);
+        void onAddonsPath(bool checked);
+        void onAddonsPathTextChanged();
         void onSave(bool checked);
 
       private:
@@ -46,6 +49,8 @@ namespace sparsely
         QDoubleSpinBox *m_SparseComponentsFillingColorsAlphaDoubleSpinBox;
         QComboBox *m_PlotTypeComboBox;
         QComboBox *m_MethodComboBox;
+        // QPushButton *m_AddonsPathPushButton;
+        QLineEdit *m_AddonsPathLineEdit;
         QPushButton *m_SavePushButton;
     };
 } // namespace sparsely

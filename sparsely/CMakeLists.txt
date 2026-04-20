@@ -119,13 +119,6 @@ add_custom_command(TARGET ${exeName} POST_BUILD
     COMMENT "Copying images to build directory"
 )
 
-add_custom_command(TARGET ${exeName} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_CURRENT_LIST_DIR}/configurations"
-        "${CMAKE_INSTALL_PREFIX}/configurations"
-    COMMENT "Copying configurations to build directory"
-)
-
 install(TARGETS ${exeName}
     DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
 

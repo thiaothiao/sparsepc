@@ -7,6 +7,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QStandardPaths>
+#include <QString>
 #include <QVariantList>
 
 namespace
@@ -59,7 +60,8 @@ namespace sparsely
           sparseComponentsLineStyle{Qt::DotLine},
           standardComponentsFillingColorsAlpha{0.125},
           sparseComponentsFillingColorsAlpha{0.25},
-          plotType{Enums::PlotType::FILLED}, method{Enums::Method::DCA}
+          plotType{Enums::PlotType::FILLED}, method{Enums::Method::DCA},
+          addonsPath{tr("Addons path here")}
     {
     }
 
@@ -103,73 +105,72 @@ namespace sparsely
             obj["method"] = QString::fromUtf8(key);
         }
 
+        obj["addonsPath"] = addonsPath;
+
         return obj;
     }
 
     // Load Struct from JSON
-    Preferences Preferences::fromJson(const QJsonObject &obj)
+    void Preferences::fromJson(const QJsonObject &obj)
     {
-        Preferences prefs;
         if (obj.isEmpty())
         {
-            return prefs;
+            return;
         }
-        prefs.maximumNumberOfComponents =
+        maximumNumberOfComponents =
             obj["maximumNumberOfComponents"].toString().toInt();
-        prefs.componentsColors =
+        componentsColors =
             obj["componentsColors"].toString().split(u',', Qt::SkipEmptyParts);
-        prefs.standardComponentsLineWidthFilledPlot =
+        standardComponentsLineWidthFilledPlot =
             obj["standardComponentsLineWidthFilledPlot"].toString().toDouble();
-        prefs.sparseComponentsLineWidthFilledPlot =
+        sparseComponentsLineWidthFilledPlot =
             obj["sparseComponentsLineWidthFilledPlot"].toString().toDouble();
-        prefs.standardComponentsLineWidthImpulsesPlot =
+        standardComponentsLineWidthImpulsesPlot =
             obj["standardComponentsLineWidthImpulsesPlot"]
                 .toString()
                 .toDouble();
-        prefs.sparseComponentsLineWidthImpulsesPlot =
+        sparseComponentsLineWidthImpulsesPlot =
             obj["sparseComponentsLineWidthImpulsesPlot"].toString().toDouble();
         {
             const QMetaEnum metaEnum = QMetaEnum::fromType<Qt::PenStyle>();
             const QString jsonVal =
                 obj["standardComponentsLineStyle"].toString();
             const int enumVal = metaEnum.keyToValue(jsonVal.toUtf8().data());
-            prefs.standardComponentsLineStyle =
-                static_cast<Qt::PenStyle>(enumVal);
+            standardComponentsLineStyle = static_cast<Qt::PenStyle>(enumVal);
         }
         {
             const QMetaEnum metaEnum = QMetaEnum::fromType<Qt::PenStyle>();
             const QString jsonVal = obj["sparseComponentsLineStyle"].toString();
             const int enumVal = metaEnum.keyToValue(jsonVal.toUtf8().data());
-            prefs.sparseComponentsLineStyle =
-                static_cast<Qt::PenStyle>(enumVal);
+            sparseComponentsLineStyle = static_cast<Qt::PenStyle>(enumVal);
         }
-        prefs.standardComponentsFillingColorsAlpha =
+        standardComponentsFillingColorsAlpha =
             obj["standardComponentsFillingColorsAlpha"].toString().toDouble();
-        prefs.sparseComponentsFillingColorsAlpha =
+        sparseComponentsFillingColorsAlpha =
             obj["sparseComponentsFillingColorsAlpha"].toString().toDouble();
         {
             const QMetaEnum metaEnum = QMetaEnum::fromType<Enums::PlotType>();
             const QString jsonVal = obj["plotType"].toString();
             const int enumVal = metaEnum.keyToValue(jsonVal.toUtf8().data());
-            prefs.plotType = static_cast<Enums::PlotType>(enumVal);
+            plotType = static_cast<Enums::PlotType>(enumVal);
         }
         {
             const QMetaEnum metaEnum = QMetaEnum::fromType<Enums::Method>();
             const QString jsonVal = obj["method"].toString();
             const int enumVal = metaEnum.keyToValue(jsonVal.toUtf8().data());
-            prefs.method = static_cast<Enums::Method>(enumVal);
+            method = static_cast<Enums::Method>(enumVal);
         }
-        return prefs;
+        addonsPath = obj["addonsPath"].toString();
     }
 
-    Preferences Preferences::load()
+    void Preferences::load()
     {
         const auto dataPath =
             QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
 
         if (!QDir().mkpath(dataPath))
         { // critical
-            return {};
+            return;
         }
 
         QDir dir(dataPath);
@@ -177,22 +178,21 @@ namespace sparsely
         {
             if (!dir.mkdir("configurations"))
             { // critical
-                return {};
+                return;
             }
         }
 
         if (!dir.cd("configurations"))
         { // critical
-            return {};
+            return;
         }
 
         if (!dir.exists("sparsely.json"))
         { // use default preferences
-            return {};
+            return;
         }
 
-        const auto fileName = dir.absoluteFilePath("sparsely.json");
-        return Preferences::fromJson(loadJson(fileName));
+        fromJson(loadJson(dir.absoluteFilePath("sparsely.json")));
     }
 
     void Preferences::save() const
@@ -219,7 +219,6 @@ namespace sparsely
             return;
         }
 
-        const auto fileName = dir.absoluteFilePath("sparsely.json");
-        saveJson(toJson(), fileName);
+        saveJson(toJson(), dir.absoluteFilePath("sparsely.json"));
     }
 } // namespace sparsely

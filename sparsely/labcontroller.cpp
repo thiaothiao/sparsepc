@@ -111,7 +111,8 @@ namespace sparsely
                                  QObject *parent)
         : QObject(parent), m_LabModel{labModel}, m_LabWidget{labWidget}, m_N{0}
     {
-        m_Preferences = Preferences::load();
+        m_Preferences.load();
+        m_LabModel.get().loadAddon(m_Preferences.addonsPath);
     }
 
     void LabController::connectWidget()

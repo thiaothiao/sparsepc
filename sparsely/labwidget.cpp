@@ -355,14 +355,14 @@ namespace sparsely
                 std::to_underlying(Enums::Method::USERDYNAMICLIB), addonName,
                 QVariant::fromValue(Enums::Method::USERDYNAMICLIB));
         }
-        methodGroupBoxLayout->addRow(new QLabel("Method:", methodGroupBox),
+        methodGroupBoxLayout->addRow(new QLabel(tr("Method:"), methodGroupBox),
                                      m_MethodComboBox);
         m_PlotTypeComboBox = new QComboBox(methodGroupBox);
         m_PlotTypeComboBox->addItem(
             tr("Filled"), QVariant::fromValue(Enums::PlotType::FILLED));
         m_PlotTypeComboBox->addItem(
             tr("Impulses"), QVariant::fromValue(Enums::PlotType::IMPULSES));
-        methodGroupBoxLayout->addRow(new QLabel("Plot:", methodGroupBox),
+        methodGroupBoxLayout->addRow(new QLabel(tr("Plot:"), methodGroupBox),
                                      m_PlotTypeComboBox);
         buttonsWidgetLayout->addWidget(methodGroupBox);
         auto *actionGroupBox = new QGroupBox(tr("Component"), this);
