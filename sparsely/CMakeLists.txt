@@ -166,10 +166,14 @@ if (LINUX)
 endif()
 
 if(APPLE)
+    install(TARGETS ${exeName}
+        BUNDLE DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
     # Define your signing identity
     set(SIGNING_IDENTITY "-")#"Developer ID Application: Your Company (ID)")
     set(DEPLOY_OPTIONS "-codesign=${SIGNING_IDENTITY}" "-hardened-runtime" "-timestamp")
 else()
+    install(TARGETS ${exeName}
+        DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
     set(DEPLOY_OPTIONS "--no-translations")
 endif()
 
@@ -178,14 +182,6 @@ qt6_generate_deploy_app_script(
     OUTPUT_SCRIPT deploy_script
     DEPLOY_TOOL_OPTIONS ${DEPLOY_OPTIONS}
 )
-
-if(APPLE)
-    install(TARGETS ${exeName}
-        BUNDLE DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
-else()
-    install(TARGETS ${exeName}
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
-endif()
 
 install(SCRIPT ${deploy_script})
 
