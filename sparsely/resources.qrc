@@ -1,10 +1,7 @@
 <RCC>
-    <qresource prefix="/icons">
-        <file alias="logo.png">images/logo.png</file>
-        <file alias="logo_transparent.png">images/logo_transparent.png</file>
-    </qresource>
+    <qresource prefix="/icons"/>
+		<file alias="logo.png">images/logo.png</file>
     <qresource prefix="/images">
         <file alias="welcome.png">images/welcome.png</file>
-        <file alias="welcome_transparent.png">images/welcome_transparent.png</file>
     </qresource>
 </RCC>
