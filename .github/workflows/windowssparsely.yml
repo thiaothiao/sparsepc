@@ -6,7 +6,7 @@ on:
 #      - master
       - main
 #      - develop
-#      - add_ci
+      - windows_action
 #  pull_request:
 #    branches:
 #      - master
