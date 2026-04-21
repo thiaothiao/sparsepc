@@ -3,13 +3,13 @@ name: Sparsely MacOS Build
 on:
   push:
     branches:
-#      - master
+      - master
       - main
 #      - develop
-      - macos_build
+#      - macos_build
 #  pull_request:
 #    branches:
-#      - master
+      - master
       - main
 #      - develop
       
