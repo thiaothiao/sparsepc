@@ -26,7 +26,9 @@ else()
     message(WARNING "MY_INSTALL_DIR env. variable not found. Using default.")
 endif()
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_INSTALL_PREFIX}/bin")
+if(WIN32)
+	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_INSTALL_PREFIX}/bin")
+endif()
 
 include(../cmake/tools.cmake)
 include(../cmake/CPM.cmake)
@@ -106,7 +108,6 @@ endif()
 
 target_compile_definitions(${exeName} PRIVATE _CRT_SECURE_NO_WARNINGS)
 target_compile_definitions(${exeName} PRIVATE _SILENCE_ALL_CXX23_DEPRECATION_WARNINGS)
-#target_compile_definitions(${exeName} PRIVATE JKQTPLOTTER_COMPILE_WITHOUT_PRINTSUPPORT)
 
 if(eigen_ADDED)
     target_link_libraries(${exeName} PRIVATE Eigen3::Eigen)
@@ -129,21 +130,14 @@ target_link_libraries(${exeName} PRIVATE Qt6::Gui)
 target_link_libraries(${exeName} PRIVATE Qt6::Xml)
 target_link_libraries(${exeName} PRIVATE Qt6::Svg)
 
-add_custom_command(TARGET ${exeName} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_CURRENT_LIST_DIR}/images"
-        "${CMAKE_INSTALL_PREFIX}/images"
-    COMMENT "Copying images to build directory"
-)
-
-add_custom_command(TARGET ${exeName} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_CURRENT_LIST_DIR}/configurations"
-        "${CMAKE_INSTALL_PREFIX}/configurations"
-    COMMENT "Copying configurations to build directory"
-)
-
 if(WIN32)
+	add_custom_command(TARGET ${exeName} POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_directory
+			"${CMAKE_CURRENT_LIST_DIR}/images"
+			"${CMAKE_INSTALL_PREFIX}/images"
+		COMMENT "Copying images to build directory"
+	)
+
     install(FILES   $<TARGET_FILE:JKQTPlotter6::JKQTPlotter6>
                     $<TARGET_FILE:JKQTPlotter6::JKQTCommon6>
                     $<TARGET_FILE:JKQTPlotter6::JKQTMath6>
@@ -171,6 +165,10 @@ if(APPLE)
     # Define your signing identity
     set(SIGNING_IDENTITY "-")#"Developer ID Application: Your Company (ID)")
     set(DEPLOY_OPTIONS "-codesign=${SIGNING_IDENTITY}" "-hardened-runtime" "-timestamp")
+elseif(WIN32)
+    install(TARGETS ${exeName}
+        DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
+    set(DEPLOY_OPTIONS "--no-translations")
 else()
     install(TARGETS ${exeName}
         DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")

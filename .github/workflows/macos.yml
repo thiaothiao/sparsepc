@@ -5,13 +5,13 @@ on:
     branches:
       - master
       - main
-      - develop
-      - add_ci
+#      - develop
+#      - add_ci
   pull_request:
     branches:
       - master
       - main
-      - develop
+#      - develop
 
 env:
   CTEST_OUTPUT_ON_FAILURE: 1
