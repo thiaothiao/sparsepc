@@ -6,7 +6,7 @@ on:
 #      - master
       - main
 #      - develop
-      - windows_action
+#      - windows_action
 #  pull_request:
 #    branches:
 #      - master
@@ -66,5 +66,5 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: qt-app-dist
+          name: sparsely-dist
           path: ${{ env.MY_INSTALL_DIR }}/
