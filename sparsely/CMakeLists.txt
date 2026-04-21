@@ -11,7 +11,8 @@ string(TIMESTAMP buildTime "%Y-%m-%d %H:%M:%S")
 project(${exeName}
         VERSION ${appVersion}
         DESCRIPTION ${appTitle}
-        LANGUAGES CXX)
+        LANGUAGES CXX
+)
 		
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -24,10 +25,6 @@ if(DEFINED ENV{MY_INSTALL_DIR})
     set(CMAKE_INSTALL_PREFIX "${MY_INSTALL_PREFIX}" CACHE PATH "Default install path" FORCE)
 else()
     message(WARNING "MY_INSTALL_DIR env. variable not found. Using default.")
-endif()
-
-if(WIN32)
-	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_INSTALL_PREFIX}/bin")
 endif()
 
 include(../cmake/tools.cmake)
@@ -50,15 +47,9 @@ CPMAddPackage(
 )
 
 CPMAddPackage(
-    NAME sparsepc
-    SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/..)
-
-#CPMFindPackage(
-#  NAME Qt6
-#  VERSION 6.11.0
-#  COMPONENTS Core Widgets Gui Xml
-#  FIND_PACKAGE_ARGUMENTS REQUIRED
-#)
+	NAME sparsepc
+	SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/..
+)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui Xml Svg REQUIRED)
 
@@ -68,7 +59,10 @@ CPMAddPackage(
     GIT_TAG master # Or a specific version/commit
 	COMPONENTS JKQTPlotter6 JKQTCommon6 JKQTMath6 JKQTMathText6
 	FIND_PACKAGE_ARGUMENTS REQUIRED
-	OPTIONS "JKQtPlotter_BUILD_FORCE_NO_PRINTER_SUPPORT ON" "JKQtPlotter_BUILD_TESTS OFF" "JKQtPlotter_BUILD_EXAMPLES OFF" "JKQtPlotter_BUILD_LIB_JKQTFASTPLOTTER OFF"
+	OPTIONS 
+		"JKQtPlotter_BUILD_FORCE_NO_PRINTER_SUPPORT ON" 
+		"JKQtPlotter_BUILD_TESTS OFF" "JKQtPlotter_BUILD_EXAMPLES OFF" 
+		"JKQtPlotter_BUILD_LIB_JKQTFASTPLOTTER OFF"
 )
 
 file(GLOB sources CONFIGURE_DEPENDS ${CMAKE_CURRENT_LIST_DIR}/*.cpp)
@@ -79,9 +73,7 @@ if(WIN32)
     message(STATUS "Running on Windows")
 	file(GLOB appiconrcs CONFIGURE_DEPENDS ${CMAKE_CURRENT_LIST_DIR}/images/*.rc)
     enable_language(RC)
-endif()
-
-if(APPLE)
+elseif(APPLE)
 	message(STATUS "Running on Mac")
 	set(appiconrcs "${CMAKE_CURRENT_LIST_DIR}/images/ico_transparent.icns")
 	set(MACOSX_BUNDLE_ICON_FILE "ico_transparent.icns")
@@ -93,36 +85,28 @@ qt_add_resources(sources ${apprccs})
 qt_add_executable(${exeName} ${sources} ${appiconrcs} ${headers})
 
 if(WIN32)
-	set_target_properties(${exeName} PROPERTIES
-                WIN32_EXECUTABLE TRUE)
-endif()
-
-if(APPLE)
-    set_target_properties(${exeName} PROPERTIES 
-        MACOSX_BUNDLE TRUE
-        MACOSX_BUNDLE_GUI_IDENTIFIER "com.indilo.sparsely"
-        MACOSX_BUNDLE_BUNDLE_NAME ${exeName}
-        MACOSX_BUNDLE_SHORT_VERSION_STRING ${appVersion}
-        MACOSX_BUNDLE_LONG_VERSION_STRING ${appVersion})
+	set_target_properties(${exeName} PROPERTIES WIN32_EXECUTABLE TRUE)
+elseif(APPLE)
+	set_target_properties(${exeName} PROPERTIES 
+		MACOSX_BUNDLE TRUE
+		MACOSX_BUNDLE_GUI_IDENTIFIER "com.indilo.sparsely"
+		MACOSX_BUNDLE_BUNDLE_NAME ${exeName}
+		MACOSX_BUNDLE_SHORT_VERSION_STRING ${appVersion}
+		MACOSX_BUNDLE_LONG_VERSION_STRING ${appVersion}
+	)	
 endif()
 
 target_compile_definitions(${exeName} PRIVATE _CRT_SECURE_NO_WARNINGS)
 target_compile_definitions(${exeName} PRIVATE _SILENCE_ALL_CXX23_DEPRECATION_WARNINGS)
 
-if(eigen_ADDED)
-    target_link_libraries(${exeName} PRIVATE Eigen3::Eigen)
-endif()
+target_link_libraries(${exeName} PRIVATE Eigen3::Eigen)
 
-if(sparsepc_ADDED)
-    target_link_libraries(${exeName} PRIVATE sparsepc::sparsepc)
-endif()
+target_link_libraries(${exeName} PRIVATE sparsepc::sparsepc)
 
-if(JKQTPlotter6_ADDED)
-    target_link_libraries(${exeName} PRIVATE JKQTPlotter6::JKQTPlotter6)
-    target_link_libraries(${exeName} PRIVATE JKQTPlotter6::JKQTCommon6)
-    target_link_libraries(${exeName} PRIVATE JKQTPlotter6::JKQTMath6)
-    target_link_libraries(${exeName} PRIVATE JKQTPlotter6::JKQTMathText6)
-endif()
+target_link_libraries(${exeName} PRIVATE JKQTPlotter6::JKQTPlotter6)
+target_link_libraries(${exeName} PRIVATE JKQTPlotter6::JKQTCommon6)
+target_link_libraries(${exeName} PRIVATE JKQTPlotter6::JKQTMath6)
+target_link_libraries(${exeName} PRIVATE JKQTPlotter6::JKQTMathText6)
 
 target_link_libraries(${exeName} PRIVATE Qt6::Core)
 target_link_libraries(${exeName} PRIVATE Qt6::Widgets)
@@ -137,41 +121,29 @@ if(WIN32)
 			"${CMAKE_INSTALL_PREFIX}/images"
 		COMMENT "Copying images to build directory"
 	)
-
     install(FILES   $<TARGET_FILE:JKQTPlotter6::JKQTPlotter6>
                     $<TARGET_FILE:JKQTPlotter6::JKQTCommon6>
                     $<TARGET_FILE:JKQTPlotter6::JKQTMath6>
                     $<TARGET_FILE:JKQTPlotter6::JKQTMathText6>
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
-
+        DESTINATION "${CMAKE_INSTALL_PREFIX}/bin"
+	)
     install(FILES   "${CMAKE_CURRENT_LIST_DIR}/installscript.iss"
         DESTINATION "${CMAKE_INSTALL_PREFIX}")
-endif()
-
-if (LINUX)
-    # Install the icon to the standard pixmaps directory
-    install(FILES "${CMAKE_CURRENT_LIST_DIR}/images/logo_transparent.png"
-                    DESTINATION "/usr/local/share/icons"
-                    RENAME "sparselyIcon.png")
-
-    # Install the desktop entry
-    install(FILES "${CMAKE_CURRENT_LIST_DIR}/sparsely.desktop"
-                    DESTINATION "/usr/local/share/applications")
-endif()
-
-if(APPLE)
-    install(TARGETS ${exeName}
-        BUNDLE DESTINATION .)#"${CMAKE_INSTALL_PREFIX}/bin")
+    set(DEPLOY_OPTIONS "--no-translations")	
+elseif(APPLE)
     # Define your signing identity
     set(SIGNING_IDENTITY "-")#"Developer ID Application: Your Company (ID)")
     set(DEPLOY_OPTIONS "-codesign=${SIGNING_IDENTITY}" "-hardened-runtime" "-timestamp")
-elseif(WIN32)
-    install(TARGETS ${exeName}
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
-    set(DEPLOY_OPTIONS "--no-translations")
-else()
-    install(TARGETS ${exeName}
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
+else()# Linux or trying as linux
+	# Install the icon to the standard pixmaps directory
+    install(FILES "${CMAKE_CURRENT_LIST_DIR}/images/logo_transparent.png"
+		DESTINATION "/usr/local/share/icons"
+		RENAME "sparselyIcon.png"
+	)
+    # Install the desktop entry
+    install(FILES "${CMAKE_CURRENT_LIST_DIR}/sparsely.desktop"
+		DESTINATION "/usr/local/share/applications"
+	)
     set(DEPLOY_OPTIONS "--no-translations")
 endif()
 
@@ -181,10 +153,17 @@ qt6_generate_deploy_app_script(
     DEPLOY_TOOL_OPTIONS ${DEPLOY_OPTIONS}
 )
 
+if (APPLE)
+    install(TARGETS ${exeName} BUNDLE DESTINATION .)
+else()
+    install(TARGETS ${exeName} DESTINATION .)
+endif()
+
 install(SCRIPT ${deploy_script})
 
-if (LINUX)
-    #fixing weird missing PrintSupport, Xml after installation
+if (WIN32)
+    #fixing weird missing Xml after deploy
     install(FILES   $<TARGET_FILE:Qt6::Xml>
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")
+        DESTINATION "${CMAKE_INSTALL_PREFIX}/bin"
+    )
 endif()
