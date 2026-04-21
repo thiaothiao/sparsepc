@@ -211,7 +211,29 @@ namespace sparsely
         if (!labWidget.m_SparsePCRadioButton->isChecked())
         {
             const DeferredUpdateForPlots deferredUpdateForPlots(labWidget);
-            const auto &component = labModel.computeStandardPC();
+            const auto newStandardPCColor =
+                labWidget.m_Colors[labModel.m_StandardPCs.size()];
+            NoEscapeQProgressDialog qProgressDialog(
+                "Computing standard pcs...", "Abort", 0, 100, &labWidget);
+            ProgressDialog progressDialog(qProgressDialog);
+
+            qProgressDialog.setStyleSheet(
+                "QProgressBar::chunk { background-color:" + newStandardPCColor +
+                "; }");
+            qProgressDialog.setWindowFlags(qProgressDialog.windowFlags() &
+                                           ~Qt::WindowCloseButtonHint);
+            qProgressDialog.setWindowModality(Qt::WindowModal);
+            qProgressDialog.setMinimumDuration(0);
+
+            const auto &component = labModel.computeStandardPC(&progressDialog);
+
+            progressDialog.setValue(100);
+            if (progressDialog.wasCanceled())
+            {
+                labModel.removeLastStandardPC();
+                return;
+            }
+
             const auto cumulativeVariancePercentage =
                 labModel.computeVarianceRatio(
                     labModel.computeStandardCumulativeVariance()) *

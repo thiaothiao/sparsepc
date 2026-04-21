@@ -40,7 +40,8 @@ namespace sparsely
         bool saveProject(const QString &fileName) const;
         bool loadProject(const QString &fileName);
         void computeStandardPCs();
-        sparsepc::Component<double> &computeStandardPC();
+        sparsepc::Component<double> &
+        computeStandardPC(ProgressDialog *progressBar);
         Nominees &computeSparsePC(const Enums::Method &method,
                                   ProgressDialog *progressBar);
         bool removeLastStandardPC();

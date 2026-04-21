@@ -107,8 +107,9 @@ namespace sparsely
         }
     }
 
-    sparsepc::Component<double> &LabModel::computeStandardPC()
-    {
+    sparsepc::Component<double> &
+    LabModel::computeStandardPC(ProgressDialog *progressBar)
+    { // TODO really update the progress during computations
         using Index = sparsepc::Index;
         const DCA::Param param{std::vector<DCA::ModelParam>(
             m_StandardPCs.size() + 1, {static_cast<Index>(m_N)})};
