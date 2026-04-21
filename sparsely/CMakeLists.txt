@@ -20,11 +20,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Check if the environment variable is defined
 if(DEFINED ENV{MY_INSTALL_DIR})
     message(STATUS "MY_INSTALL_DIR is set to: $ENV{MY_INSTALL_DIR}")
-    # Use it to set a CMake variable
     set(MY_INSTALL_PREFIX "$ENV{MY_INSTALL_DIR}")
     set(CMAKE_INSTALL_PREFIX "${MY_INSTALL_PREFIX}" CACHE PATH "Default install path" FORCE)
 else()
     message(WARNING "MY_INSTALL_DIR env. variable not found. Using default.")
+endif()
+
+if(WIN32)
+	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_INSTALL_PREFIX}/bin")
 endif()
 
 include(../cmake/tools.cmake)
@@ -70,11 +73,9 @@ file(GLOB headers CONFIGURE_DEPENDS ${CMAKE_CURRENT_LIST_DIR}/*.h)
 file(GLOB apprccs CONFIGURE_DEPENDS ${CMAKE_CURRENT_LIST_DIR}/*.qrc)
 
 if(WIN32)
-    message(STATUS "Running on Windows")
 	file(GLOB appiconrcs CONFIGURE_DEPENDS ${CMAKE_CURRENT_LIST_DIR}/images/*.rc)
     enable_language(RC)
 elseif(APPLE)
-	message(STATUS "Running on Mac")
 	set(appiconrcs "${CMAKE_CURRENT_LIST_DIR}/images/ico_transparent.icns")
 	set(MACOSX_BUNDLE_ICON_FILE "ico_transparent.icns")
 	set_source_files_properties(${appiconrcs} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
@@ -155,15 +156,10 @@ qt6_generate_deploy_app_script(
 
 if (APPLE)
     install(TARGETS ${exeName} BUNDLE DESTINATION .)
+elseif(WIN32)
+    install(TARGETS ${exeName} DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
 else()
     install(TARGETS ${exeName} DESTINATION .)
 endif()
 
 install(SCRIPT ${deploy_script})
-
-if (WIN32)
-    #fixing weird missing Xml after deploy
-    install(FILES   $<TARGET_FILE:Qt6::Xml>
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/bin"
-    )
-endif()
