@@ -333,10 +333,18 @@ namespace sparsely
         m_ButtonsWidget = new QWidget(this);
         m_ProcessingsGoupboxStackedLayout->addWidget(m_ButtonsWidget);
         auto *buttonsWidgetLayout = new QHBoxLayout(m_ButtonsWidget);
-
-        auto *methodGroupBox = new QGroupBox(tr("Method and Plot"), this);
-        auto *methodGroupBoxLayout = new QFormLayout(methodGroupBox);
-        m_MethodComboBox = new QComboBox(methodGroupBox);
+        auto *plotTypeGroupBox = new QGroupBox(tr("Plot"), this);
+        auto *plotTypeGroupBoxLayout = new QHBoxLayout(plotTypeGroupBox);
+        m_PlotTypeComboBox = new QComboBox(this);
+        m_PlotTypeComboBox->addItem(
+            tr("Filled"), QVariant::fromValue(Enums::PlotType::FILLED));
+        m_PlotTypeComboBox->addItem(
+            tr("Impulses"), QVariant::fromValue(Enums::PlotType::IMPULSES));
+        plotTypeGroupBoxLayout->addWidget(m_PlotTypeComboBox);
+        buttonsWidgetLayout->addWidget(plotTypeGroupBox);
+        auto *methodGroupBox = new QGroupBox(tr("Method"), this);
+        auto *methodGroupBoxLayout = new QHBoxLayout(methodGroupBox);
+        m_MethodComboBox = new QComboBox(this);
         m_MethodComboBox->insertItem(std::to_underlying(Enums::Method::DCA),
                                      tr("Dca"),
                                      QVariant::fromValue(Enums::Method::DCA));
@@ -355,15 +363,7 @@ namespace sparsely
                 std::to_underlying(Enums::Method::USERDYNAMICLIB), addonName,
                 QVariant::fromValue(Enums::Method::USERDYNAMICLIB));
         }
-        methodGroupBoxLayout->addRow(new QLabel(tr("Method:"), methodGroupBox),
-                                     m_MethodComboBox);
-        m_PlotTypeComboBox = new QComboBox(methodGroupBox);
-        m_PlotTypeComboBox->addItem(
-            tr("Filled"), QVariant::fromValue(Enums::PlotType::FILLED));
-        m_PlotTypeComboBox->addItem(
-            tr("Impulses"), QVariant::fromValue(Enums::PlotType::IMPULSES));
-        methodGroupBoxLayout->addRow(new QLabel(tr("Plot:"), methodGroupBox),
-                                     m_PlotTypeComboBox);
+        methodGroupBoxLayout->addWidget(m_MethodComboBox);
         buttonsWidgetLayout->addWidget(methodGroupBox);
         auto *actionGroupBox = new QGroupBox(tr("Component"), this);
         auto *actionGroupBoxLayout = new QHBoxLayout(actionGroupBox);
@@ -374,10 +374,8 @@ namespace sparsely
         groupButton->addButton(m_StandardPCRadioButton);
         groupButton->addButton(m_SparsePCRadioButton);
         m_StandardPCRadioButton->setChecked(true);
-        auto *groupButtonLayout = new QVBoxLayout();
-        groupButtonLayout->addWidget(m_StandardPCRadioButton);
-        groupButtonLayout->addWidget(m_SparsePCRadioButton);
-        actionGroupBoxLayout->addLayout(groupButtonLayout);
+        actionGroupBoxLayout->addWidget(m_StandardPCRadioButton);
+        actionGroupBoxLayout->addWidget(m_SparsePCRadioButton);
         m_AddNewSparseComponentButton = new QPushButton(tr("Add new"), this);
         actionGroupBoxLayout->addWidget(m_AddNewSparseComponentButton);
         m_RemoveLastSparseComponentButton =
