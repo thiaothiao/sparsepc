@@ -36,4 +36,3 @@ namespace sparsepc
         }
     } // namespace linearmodel
 } // namespace sparsepc
-#endif // SPARSEPC_SIMU_HPP

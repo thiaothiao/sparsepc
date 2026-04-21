@@ -5,13 +5,13 @@ on:
     branches:
       - master
       - main
-      - develop
-      - add_ci
+#      - develop
+#      - add_ci
   pull_request:
     branches:
       - master
       - main
-      - develop
+#      - develop
 
 env:
   CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm_modules
