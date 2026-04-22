@@ -74,8 +74,8 @@ if(WIN32)
 	file(GLOB appiconrcs CONFIGURE_DEPENDS ${CMAKE_CURRENT_LIST_DIR}/images/*.rc)
     enable_language(RC)
 elseif(APPLE)
-	set(appiconrcs "${CMAKE_CURRENT_LIST_DIR}/images/logo.icns")
-	set(MACOSX_BUNDLE_ICON_FILE "logo.icns")
+	set(appiconrcs "${CMAKE_CURRENT_LIST_DIR}/images/app.icns")
+	set(MACOSX_BUNDLE_ICON_FILE "app.icns")
 	set_source_files_properties(${appiconrcs} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 endif()
 
@@ -142,7 +142,7 @@ elseif(APPLE)
     set(DEPLOY_OPTIONS "-codesign=${SIGNING_IDENTITY}" "-hardened-runtime" "-timestamp")
 else()# Linux or trying as linux
 	# Install the icon to the standard pixmaps directory
-    install(FILES "${CMAKE_CURRENT_LIST_DIR}/images/icon.png"
+    install(FILES "${CMAKE_CURRENT_LIST_DIR}/images/app.png"
         DESTINATION "/usr/local/share/icons"
         RENAME "sparselyIcon.png"
         COMPONENT ${appName}
@@ -217,18 +217,19 @@ set(CPACK_PACKAGE_DESCRIPTION_SUMMARY ${appTitle})
 set(CPACK_PACKAGE_VERSION ${appVersion})
 #set(CPACK_COMPONENTS_ALL ${appName})#Application Runtime Documentation)
 
-set(CPACK_IFW_PACKAGE_LOGO "${CMAKE_CURRENT_LIST_DIR}/images/ico.png")
-set(CPACK_IFW_PACKAGE_BANNER "${CMAKE_CURRENT_LIST_DIR}/images/sparselybanner.png")
-set(CPACK_IFW_PACKAGE_WINDOW_ICON "${CMAKE_CURRENT_LIST_DIR}/images/iconCopy.png")
+set(CPACK_IFW_PACKAGE_LOGO "${CMAKE_CURRENT_LIST_DIR}/images/app.png")
+set(CPACK_IFW_PACKAGE_BANNER "${CMAKE_CURRENT_LIST_DIR}/images/banner.png")
+set(CPACK_IFW_PACKAGE_WINDOW_ICON "${CMAKE_CURRENT_LIST_DIR}/images/window.png")
 
 # 3. Set the main installer executable icon
 if(WIN32)
-    set(CPACK_IFW_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/images/logo.ico")
+    set(CPACK_IFW_PACKAGE_ICON "${CMAKE_CURRENT_LIST_DIR}/images/app.ico")
+	set(CPACK_RESOURCE_FILE_ICON "${CMAKE_CURRENT_LIST_DIR}/images/uninstall.ico")
 elseif(APPLE)
-    set(CPACK_IFW_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/images/logo.icns")
+    set(CPACK_IFW_PACKAGE_ICON "${CMAKE_CURRENT_LIST_DIR}/images/app.icns")
 endif()
 
-set(CPACK_IFW_CONFIG_FILE "${CMAKE_CURRENT_SOURCE_DIR}/config.xml")
+#set(CPACK_IFW_CONFIG_FILE "${CMAKE_CURRENT_LIST_DIR}/config.xml")
 
 include(CPack)
 include(CPackIFW)

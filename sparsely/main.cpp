@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
     app.setApplicationVersion(
         QString::fromStdString(std::string(sparsely::metadata::appVersion)));
 
-    app.setWindowIcon(QIcon(":/icons/logo.png"));
+    app.setWindowIcon(QIcon(":/icons/window.png"));
     QPixmap pixmap(":/images/welcome.png");
     QSplashScreen splash(pixmap);
     splash.setMask(pixmap.mask());
