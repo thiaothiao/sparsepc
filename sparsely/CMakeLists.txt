@@ -26,9 +26,7 @@ else()
     message(WARNING "MY_INSTALL_DIR env. variable not found. Using default.")
 endif()
 
-if(WIN32)
-	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_INSTALL_PREFIX}/bin")
-endif()
+include(GNUInstallDirs)
 
 include(../cmake/tools.cmake)
 include(../cmake/CPM.cmake)
@@ -76,8 +74,8 @@ if(WIN32)
 	file(GLOB appiconrcs CONFIGURE_DEPENDS ${CMAKE_CURRENT_LIST_DIR}/images/*.rc)
     enable_language(RC)
 elseif(APPLE)
-	set(appiconrcs "${CMAKE_CURRENT_LIST_DIR}/images/ico_transparent.icns")
-	set(MACOSX_BUNDLE_ICON_FILE "ico_transparent.icns")
+	set(appiconrcs "${CMAKE_CURRENT_LIST_DIR}/images/logo.icns")
+	set(MACOSX_BUNDLE_ICON_FILE "logo.icns")
 	set_source_files_properties(${appiconrcs} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 endif()
 
@@ -115,21 +113,28 @@ target_link_libraries(${exeName} PRIVATE Qt6::Gui)
 target_link_libraries(${exeName} PRIVATE Qt6::Xml)
 target_link_libraries(${exeName} PRIVATE Qt6::Svg)
 
+include(GNUInstallDirs)
+
+include(CPackComponent)
+cpack_add_component(${appName}
+    DISPLAY_NAME ${appName}
+    DESCRIPTION ${appTitle}
+    REQUIRED
+)
+
 if(WIN32)
-	add_custom_command(TARGET ${exeName} POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy_directory
-			"${CMAKE_CURRENT_LIST_DIR}/images"
-			"${CMAKE_INSTALL_PREFIX}/images"
-		COMMENT "Copying images to build directory"
-	)
+    install(DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/images/"
+        DESTINATION "images"
+        COMPONENT ${appName}
+    )
     install(FILES   $<TARGET_FILE:JKQTPlotter6::JKQTPlotter6>
                     $<TARGET_FILE:JKQTPlotter6::JKQTCommon6>
                     $<TARGET_FILE:JKQTPlotter6::JKQTMath6>
                     $<TARGET_FILE:JKQTPlotter6::JKQTMathText6>
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/bin"
-	)
-    install(FILES   "${CMAKE_CURRENT_LIST_DIR}/installscript.iss"
-        DESTINATION "${CMAKE_INSTALL_PREFIX}")
+					$<TARGET_FILE:Qt6::Xml>
+        DESTINATION ${CMAKE_INSTALL_BINDIR}
+        COMPONENT ${appName}
+    )
     set(DEPLOY_OPTIONS "--no-translations")	
 elseif(APPLE)
     # Define your signing identity
@@ -137,14 +142,16 @@ elseif(APPLE)
     set(DEPLOY_OPTIONS "-codesign=${SIGNING_IDENTITY}" "-hardened-runtime" "-timestamp")
 else()# Linux or trying as linux
 	# Install the icon to the standard pixmaps directory
-    install(FILES "${CMAKE_CURRENT_LIST_DIR}/images/logo_transparent.png"
-		DESTINATION "/usr/local/share/icons"
-		RENAME "sparselyIcon.png"
-	)
+    install(FILES "${CMAKE_CURRENT_LIST_DIR}/images/icon.png"
+        DESTINATION "/usr/local/share/icons"
+        RENAME "sparselyIcon.png"
+        COMPONENT ${appName}
+    )
     # Install the desktop entry
     install(FILES "${CMAKE_CURRENT_LIST_DIR}/sparsely.desktop"
-		DESTINATION "/usr/local/share/applications"
-	)
+        DESTINATION "/usr/local/share/applications"
+        COMPONENT ${appName}
+    )
     set(DEPLOY_OPTIONS "--no-translations")
 endif()
 
@@ -155,11 +162,82 @@ qt6_generate_deploy_app_script(
 )
 
 if (APPLE)
-    install(TARGETS ${exeName} BUNDLE DESTINATION .)
+    install(TARGETS ${exeName}
+        BUNDLE DESTINATION .
+        COMPONENT ${appName}
+    )
 elseif(WIN32)
-    install(TARGETS ${exeName} DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
+    install(TARGETS ${exeName}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}    # 'bin'
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}    # 'lib' or 'lib64'
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}    # static libs
+        COMPONENT ${appName}
+    )
 else()
-    install(TARGETS ${exeName} DESTINATION .)
+    install(TARGETS ${exeName}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        COMPONENT ${appName}
+    )
 endif()
 
-install(SCRIPT ${deploy_script})
+install(SCRIPT ${deploy_script}
+    COMPONENT ${appName}
+)
+
+# 1. Define the Component
+#cpack_add_component(QtApplication
+#    DISPLAY_NAME "Main Application"
+#    DESCRIPTION "The core Qt C++ application"
+#    REQUIRED # Ensures this is always checked
+#)
+
+#cpack_add_component(Documentation
+#    DISPLAY_NAME "Manual"
+#    DESCRIPTION "Application documentation"
+#    GROUP UserDocumentation
+#)
+
+# 2. Map Targets to Components
+#install(TARGETS myQtApp
+#    DESTINATION bin
+#    COMPONENT QtApplication
+#)
+
+#install(FILES docs/manual.pdf
+#    DESTINATION share/doc
+#    COMPONENT Documentation
+#)
+
+set(CPACK_GENERATOR "IFW")
+set(CPACK_PACKAGE_NAME ${appName})
+set(CPACK_PACKAGE_VENDOR ${appVendor})
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY ${appTitle})
+set(CPACK_PACKAGE_VERSION ${appVersion})
+#set(CPACK_COMPONENTS_ALL ${appName})#Application Runtime Documentation)
+
+set(CPACK_IFW_PACKAGE_LOGO "${CMAKE_CURRENT_LIST_DIR}/images/ico.png")
+set(CPACK_IFW_PACKAGE_BANNER "${CMAKE_CURRENT_LIST_DIR}/images/sparselybanner.png")
+set(CPACK_IFW_PACKAGE_WINDOW_ICON "${CMAKE_CURRENT_LIST_DIR}/images/iconCopy.png")
+
+# 3. Set the main installer executable icon
+if(WIN32)
+    set(CPACK_IFW_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/images/logo.ico")
+elseif(APPLE)
+    set(CPACK_IFW_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/images/logo.icns")
+endif()
+
+set(CPACK_IFW_CONFIG_FILE "${CMAKE_CURRENT_SOURCE_DIR}/config.xml")
+
+include(CPack)
+include(CPackIFW)
+
+# Optional: Add IFW specific information
+cpack_ifw_configure_component(${appName}
+    NAME "com.${appVendor}.${appName}"
+    DISPLAY_NAME ${appName}
+    DESCRIPTION ${appTitle}
+    VERSION ${appVersion}
+    RELEASE_DATE ${buildTime}
+)
