@@ -4,7 +4,7 @@ set(appName "Sparsely")
 set(exeName "sparsely")
 set(appVersion "0.1.0")
 set(appTitle "SPARSELY Software - SPARSE principal component LaboratorY")
-set(appVendor "Indilo")
+set(appVendor "Inulo")
 set(appDomain "?.com")
 string(TIMESTAMP buildTime "%Y-%m-%d %H:%M:%S")
 
@@ -88,7 +88,7 @@ if(WIN32)
 elseif(APPLE)
 	set_target_properties(${exeName} PROPERTIES 
 		MACOSX_BUNDLE TRUE
-		MACOSX_BUNDLE_GUI_IDENTIFIER "com.indilo.sparsely"
+                MACOSX_BUNDLE_GUI_IDENTIFIER "com.inulo.sparsely"
 		MACOSX_BUNDLE_BUNDLE_NAME ${exeName}
 		MACOSX_BUNDLE_SHORT_VERSION_STRING ${appVersion}
 		MACOSX_BUNDLE_LONG_VERSION_STRING ${appVersion}
@@ -211,32 +211,70 @@ install(SCRIPT ${deploy_script}
 #)
 
 set(CPACK_GENERATOR "IFW")
+set(CPACK_IFW_VERBOSE ON)
 set(CPACK_PACKAGE_NAME ${appName})
 set(CPACK_PACKAGE_VENDOR ${appVendor})
+set(CPACK_PACKAGE_CONTACT "mamadou.thiao@gmail.com")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY ${appTitle})
 set(CPACK_PACKAGE_VERSION ${appVersion})
 #set(CPACK_COMPONENTS_ALL ${appName})#Application Runtime Documentation)
+#set(CPACK_PACKAGE_INSTALL_DIRECTORY ${CPACK_PACKAGE_NAME})
+#set(CPACK_PACKAGE_VERSION_MAJOR ${CMAKE_PROJECT_VERSION_MAJOR})
+#set(CPACK_PACKAGE_VERSION_MINOR ${CMAKE_PROJECT_VERSION_MINOR})
+#set(CPACK_PACKAGE_VERSION_PATCH ${CMAKE_PROJECT_VERSION_PATCH})
+#set(CPACK_VERBATIM_VARIABLES YES)
 
-set(CPACK_IFW_PACKAGE_LOGO "${CMAKE_CURRENT_LIST_DIR}/images/app.png")
-set(CPACK_IFW_PACKAGE_BANNER "${CMAKE_CURRENT_LIST_DIR}/images/banner.png")
-set(CPACK_IFW_PACKAGE_WINDOW_ICON "${CMAKE_CURRENT_LIST_DIR}/images/window.png")
+# if we not call the line below, groups won't show properlly in the GUI installer
+set(CPACK_COMPONENTS_GROUPING IGNORE)
+
+# ignore directories and files
+set(CPACK_SOURCE_IGNORE_FILES
+  "/.git/"
+  "/.vscode/"
+  "/build/"
+  "/CMakeCache.txt"
+  "/CMakeFiles/"
+  "/cmake_install.cmake"
+  "/CPackConfig.cmake"
+)
+
+set(CPACK_IFW_PACKAGE_LOGO ${CMAKE_CURRENT_LIST_DIR}/images/inulo.png)
+#set(CPACK_IFW_PACKAGE_BANNER ${CMAKE_CURRENT_LIST_DIR}/images/banner.png)
+#set(CPACK_IFW_PACKAGE_WINDOW_ICON ${CMAKE_CURRENT_LIST_DIR}/images/window.png)
+#set(CPACK_IFW_PACKAGE_WINDOWS_LOGO ${CMAKE_CURRENT_LIST_DIR}/images/windows.png)
+set(CPACK_IFW_PACKAGE_TITLE ${appTitle})
+set(CPACK_IFW_PACKAGE_PUBLISHER ${appVendor})
+set(CPACK_IFW_PRODUCT_URL ${appDomain})
+
+# create a more memorable name for the maintenance tool (used for uninstalling the package)
+set(CPACK_IFW_PACKAGE_MAINTENANCE_TOOL_NAME ${appName}_MaintenanceTool)
+#set(CPACK_IFW_PACKAGE_MAINTENANCE_TOOL_INI_FILE ${CMAKE_CURRENT_LIST_DIR}/configurations/maintenance_tool.ini)
+
+# customise the theme if required
+set(CPACK_IFW_PACKAGE_WIZARD_STYLE "Modern")
+
+# adjust the default size
+set(CPACK_IFW_PACKAGE_WIZARD_DEFAULT_HEIGHT 400)
+#set(CPACK_IFW_PACKAGE_WIZARD_DEFAULT_WIDTH ?)
+
+#set(CPACK_IFW_PACKAGE_WATERMARK ${CMAKE_CURRENT_LIST_DIR}/images/watermark.png)
 
 # 3. Set the main installer executable icon
 if(WIN32)
-    set(CPACK_IFW_PACKAGE_ICON "${CMAKE_CURRENT_LIST_DIR}/images/app.ico")
-	set(CPACK_RESOURCE_FILE_ICON "${CMAKE_CURRENT_LIST_DIR}/images/uninstall.ico")
+    set(CPACK_IFW_PACKAGE_ICON ${CMAKE_CURRENT_LIST_DIR}/images/app.ico)
+    set(CPACK_RESOURCE_FILE_ICON ${CMAKE_CURRENT_LIST_DIR}/images/uninstall.ico)
 elseif(APPLE)
-    set(CPACK_IFW_PACKAGE_ICON "${CMAKE_CURRENT_LIST_DIR}/images/app.icns")
+    set(CPACK_IFW_PACKAGE_ICON ${CMAKE_CURRENT_LIST_DIR}/images/app.icns)
 endif()
 
-#set(CPACK_IFW_CONFIG_FILE "${CMAKE_CURRENT_LIST_DIR}/config.xml")
+#set(CPACK_IFW_CONFIG_FILE ${CMAKE_CURRENT_LIST_DIR}/config.xml)
 
 include(CPack)
 include(CPackIFW)
 
 # Optional: Add IFW specific information
 cpack_ifw_configure_component(${appName}
-    NAME "com.${appVendor}.${appName}"
+    NAME com.${appVendor}.${appName}
     DISPLAY_NAME ${appName}
     DESCRIPTION ${appTitle}
     VERSION ${appVersion}
