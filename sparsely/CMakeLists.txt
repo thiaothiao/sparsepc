@@ -237,10 +237,12 @@ endif()
 #    @ONLY
 #)
 if(LINUX)
-        # Install the icon to the standard pixmaps directory
-    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/images/app.png"
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/images/icon.svg"
         DESTINATION "${CMAKE_INSTALL_DATADIR}/icons"
-        RENAME "sparselyIcon.png"
+        COMPONENT "${appName}"
+    )
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/sparsely.desktop"
+        DESTINATION "${CMAKE_INSTALL_DATADIR}/applications"
         COMPONENT "${appName}"
     )
 endif()
