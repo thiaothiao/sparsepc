@@ -79,7 +79,7 @@ if(WIN32)
 elseif(APPLE)
 	set_target_properties(${exeName} PROPERTIES 
 		MACOSX_BUNDLE TRUE
-                MACOSX_BUNDLE_GUI_IDENTIFIER "com.inulo.sparsely"
+		MACOSX_BUNDLE_GUI_IDENTIFIER "com.inulo.sparsely"
 		MACOSX_BUNDLE_BUNDLE_NAME ${exeName}
 		MACOSX_BUNDLE_SHORT_VERSION_STRING ${appVersion}
 		MACOSX_BUNDLE_LONG_VERSION_STRING ${appVersion}

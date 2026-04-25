@@ -33,4 +33,9 @@ Component.prototype.createOperations = function()
         component.addOperation("CreateShortcut", installPath + "/bin/" + baseName + ".exe",
             	startMenuDir + "/" + baseName + ".lnk", "workingDir=" + installPath + "/bin");
     }
+	else if (systemInfo.kernelType === "darwin") 
+	{
+        component.addOperation("CreateDesktopShortcut",
+            installPath + "/" + baseName + ".app", baseName); // Alias Name
+	}
 }
