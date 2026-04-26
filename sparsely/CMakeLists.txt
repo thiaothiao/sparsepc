@@ -104,8 +104,6 @@ target_link_libraries(${exeName} PRIVATE Qt6::Gui)
 target_link_libraries(${exeName} PRIVATE Qt6::Xml)
 target_link_libraries(${exeName} PRIVATE Qt6::Svg)
 
-#include(GNUInstallDirs)
-
 include(CPackComponent)
 cpack_add_component(${appName}
     DISPLAY_NAME ${appName}
@@ -113,11 +111,7 @@ cpack_add_component(${appName}
     REQUIRED
 )
 
-if(WIN32)
-    install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/images/"
-        DESTINATION "images"
-        COMPONENT ${appName}
-    )
+if(WIN32)# grab some dependencies
     install(FILES   $<TARGET_FILE:JKQTPlotter6::JKQTPlotter6>
                     $<TARGET_FILE:JKQTPlotter6::JKQTCommon6>
                     $<TARGET_FILE:JKQTPlotter6::JKQTMath6>
@@ -126,12 +120,21 @@ if(WIN32)
         DESTINATION ${CMAKE_INSTALL_BINDIR}
         COMPONENT ${appName}
     )
-    set(DEPLOY_OPTIONS "--no-translations")	
-elseif(APPLE)
-    # Define your signing identity
-    set(SIGNING_IDENTITY "-")#"Developer ID Application: Your Company (ID)")
+elseif(LINUX)# grab icons
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/images/icon.svg"
+        DESTINATION "${CMAKE_INSTALL_DATADIR}/icons"
+        COMPONENT "${appName}"
+    )
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/sparsely.desktop"
+        DESTINATION "${CMAKE_INSTALL_DATADIR}/applications"
+        COMPONENT "${appName}"
+    )
+endif()
+
+if(APPLE)
+    set(SIGNING_IDENTITY "-")#"Developer ID Application: Your Company (ID)") # Define your signing identity
     set(DEPLOY_OPTIONS "-codesign=${SIGNING_IDENTITY}" "-hardened-runtime" "-timestamp")
-else()# Linux or trying as linux
+else()
     set(DEPLOY_OPTIONS "--no-translations")
 endif()
 
@@ -146,18 +149,11 @@ if (APPLE)
         BUNDLE DESTINATION .
         COMPONENT ${appName}
     )
-elseif(WIN32)
+else()
     install(TARGETS ${exeName}
         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"    # 'bin'
         LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"    # 'lib' or 'lib64'
         ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"    # static libs
-        COMPONENT "${appName}"
-    )
-else()
-    install(TARGETS ${exeName}
-        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
-        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-        ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
         COMPONENT "${appName}"
     )
 endif()
@@ -202,12 +198,18 @@ set(CPACK_IFW_PACKAGE_TITLE "${appTitle}")
 set(CPACK_IFW_PACKAGE_PUBLISHER "${appVendor}")
 set(CPACK_IFW_PRODUCT_URL "${appDomain}")
 
+#set(CPACK_IFW_TARGET_DIRECTORY "@ApplicationsDir@/MonApplication")
+
+#set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENCE.txt")
+
+#set(CPACK_IFW_CONFIG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/installer/configuration")
+#set(CPACK_IFW_PACKAGE_REPOSITORIES_DEFAULT "remote")
+
 # create a more memorable name for the maintenance tool (used for uninstalling the package)
 set(CPACK_IFW_PACKAGE_MAINTENANCE_TOOL_NAME "${appName}_MaintenanceTool")
 #set(CPACK_IFW_PACKAGE_MAINTENANCE_TOOL_INI_FILE ${CMAKE_CURRENT_SOURCE_DIR}/configurations/maintenance_tool.ini)
 
-# customise the theme if required
-set(CPACK_IFW_PACKAGE_WIZARD_STYLE "Modern")
+set(CPACK_IFW_PACKAGE_WIZARD_STYLE "Modern") # customise the theme if required
 
 # adjust the default size
 set(CPACK_IFW_PACKAGE_WIZARD_DEFAULT_HEIGHT 400)
@@ -223,36 +225,14 @@ elseif(APPLE)
     set(CPACK_IFW_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/images/app.icns")
 endif()
 
-#set(CPACK_IFW_CONFIG_FILE ${CMAKE_CURRENT_SOURCE_DIR}/config.xml)
+#set(CPACK_IFW_CONFIG_FILE ${CMAKE_CURRENT_SOURCE_DIR}/installer/configuration/config.xml)
 
-# Define where the desktop file will be placed in the final installer package
-#set(DESKTOP_FILE_PATH "${CMAKE_CURRENT_BINARY_DIR}/myapp.desktop")
-
-# Copy the desktop file to the meta directory or a known data location
-#install(FILES "${DESKTOP_FILE_PATH}" DESTINATION "resources" COMPONENT main)
-# Generate the desktop file
-#configure_file(
-#    "${CMAKE_CURRENT_SOURCE_DIR}/sparsely.desktop.in"
-#    "${CMAKE_CURRENT_BINARY_DIR}/sparsely.desktop"
-#    @ONLY
-#)
-if(LINUX)
-    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/images/icon.svg"
-        DESTINATION "${CMAKE_INSTALL_DATADIR}/icons"
-        COMPONENT "${appName}"
-    )
-    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/sparsely.desktop"
-        DESTINATION "${CMAKE_INSTALL_DATADIR}/applications"
-        COMPONENT "${appName}"
-    )
-endif()
 # Link a custom control script to handle the installation logic
 #set(CPACK_IFW_PACKAGE_CONTROL_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/installscript.qs")
 
 include(CPack)
 include(CPackIFW)
 
-#message(STATUS "THE SCRIPT: ${CMAKE_CURRENT_SOURCE_DIR}/installscript.qs")
 # Optional: Add IFW specific information
 cpack_ifw_configure_component(${appName}
     NAME "com.${appVendor}.${appName}"
@@ -262,4 +242,3 @@ cpack_ifw_configure_component(${appName}
     RELEASE_DATE "${buildTime}"
     SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/installscript.qs"
 )
-
