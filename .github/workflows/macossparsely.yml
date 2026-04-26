@@ -64,7 +64,7 @@ jobs:
           
       - name: Build & Install
         run: |
-          cmake -S sparsely -B build -DCMAKE_BUILD_TYPE=Release -DCPACK_GENERATOR=IFW
+          cmake -S sparsely -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install -DCPACK_GENERATOR=IFW
           cmake --build build --target install --config Release
           
       - name: Package with CPack
@@ -75,4 +75,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: sparsely-dist
-          path: build/*.app
+          path: build/*.dmg
