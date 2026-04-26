@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 4.1)
 
 project(sparsepc
         VERSION 0.1.0
+		DESCRIPTION "A header-only sparse principal component C++ library."
         LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)

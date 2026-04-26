@@ -6,7 +6,7 @@ on:
       - master
       - main
 #      - develop
-#      - macos_build
+      - improve_ci_cd
 #  pull_request:
 #    branches:
       - master
@@ -15,7 +15,6 @@ on:
       
 env:
   CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm_modules
-  MY_INSTALL_DIR: ${{ github.workspace }}/install
 
 jobs:
   build:
@@ -48,6 +47,8 @@ jobs:
         with:
           version: '6.10.0'
           setup-python: 'false' # Add this line
+          tools: 'tools_ifw tools_qtcreator,qt.tools.qtcreator'
+          add-tools-to-path: 'true'
           # For Linux, it automatically installs required system dependencies
           install-deps: 'true' 
           # Specify additional modules if needed (e.g., qtcharts, qtwebengine)
@@ -56,12 +57,22 @@ jobs:
           target: 'desktop'
           arch: 'clang_64'
           
+#      - name: Install QtIFW
+#        uses: jmarrec/setup-qtifw@v1
+#        with:
+#          qtifw-version: '4.x'
+          
       - name: Build & Install
         run: |
-          cmake -S sparsely -B build -DCMAKE_BUILD_TYPE=Release
+          cmake -S sparsely -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install -DCPACK_GENERATOR=IFW
           cmake --build build --target install --config Release
+          
+      - name: Package with CPack
+        run: |
+          cd build
+          cpack -G IFW
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: sparsely-dist
-          path: ${{ env.MY_INSTALL_DIR }}/
+          path: build/*.dmg
