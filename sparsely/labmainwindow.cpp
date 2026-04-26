@@ -113,12 +113,13 @@ namespace sparsely
         helpMenu->addAction(aboutActionEigen);
 
         auto *mainWidget = new QWidget(this);
-        m_MainWidgetStackedLayout = new QStackedLayout(mainWidget);
-        m_MainWidgetStackedLayout->setStackingMode(QStackedLayout::StackOne);
+        auto *mainWidgetLayout = new QVBoxLayout(mainWidget);
         m_LabWidget = new LabWidget(this);
+        mainWidgetLayout->addWidget(m_LabWidget);
+
         m_LabController = new LabController(m_LabModel, *m_LabWidget, this);
-        m_MainWidgetStackedLayout->addWidget(m_LabWidget);
         m_LabController->welcome();
+
         setCentralWidget(mainWidget);
     }
 
