@@ -7,7 +7,6 @@
 
 class QWidget;
 class QCloseEvent;
-class QStackedLayout;
 
 namespace sparsely
 {
@@ -33,7 +32,6 @@ namespace sparsely
 
       private:
         void closeEvent(QCloseEvent *event) override;
-        QStackedLayout *m_MainWidgetStackedLayout;
         LabModel m_LabModel;
         LabWidget *m_LabWidget;
         LabController *m_LabController;
