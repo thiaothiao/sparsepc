@@ -73,11 +73,12 @@ namespace sparsely
 
             m_N = m_Sigma.cols();
             m_Trace = m_Sigma.trace();
-            m_ValidatedComponents.clear();
-            m_ValidatedComponents.reserve(m_N);
+            m_StandardPCs.clear();
+            m_StandardPCs.reserve(m_N);
             m_SparsePCs.clear();
             m_SparsePCs.reserve(m_N);
-            computeStandardPCs();
+            m_ValidatedComponents.clear();
+            m_ValidatedComponents.reserve(m_N);
         }
         else
         {
@@ -85,26 +86,6 @@ namespace sparsely
         }
 
         return true;
-    }
-
-    void LabModel::computeStandardPCs()
-    {
-        using Index = sparsepc::Index;
-        const DCA::Param param{{static_cast<Index>(m_N),
-                                static_cast<Index>(m_N),
-                                static_cast<Index>(m_N)}};
-        auto components = DCA{param}.run(m_Sigma);
-        m_StandardPCs.clear();
-        m_StandardPCs.reserve(components.size());
-        for (int j = 0; j < components.size(); ++j)
-        {
-            m_StandardPCs.emplace_back();
-            auto &standardPC = m_StandardPCs.back();
-            standardPC.iWinner = m_N;
-            auto &component = components[j];
-            component.state = sparsepc::ComponentState::Validated;
-            standardPC.candidates.emplace(m_N, std::move(components[j]));
-        }
     }
 
     sparsepc::Component<double> &
