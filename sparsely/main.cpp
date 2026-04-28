@@ -12,6 +12,7 @@
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+    QApplication::setStyle("fusion"); // force fusion style
     app.setApplicationName(
         QString::fromStdString(std::string(sparsely::metadata::appName)));
     app.setOrganizationName(
