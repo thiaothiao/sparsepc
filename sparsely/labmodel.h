@@ -39,7 +39,6 @@ namespace sparsely
         bool init(const QString &fileName, bool newProject = true);
         bool saveProject(const QString &fileName) const;
         bool loadProject(const QString &fileName);
-        void computeStandardPCs();
         sparsepc::Component<double> &
         computeStandardPC(ProgressDialog *progressBar);
         Nominees &computeSparsePC(const Enums::Method &method,
