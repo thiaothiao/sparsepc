@@ -298,10 +298,9 @@ namespace sparsely
 
         auto *welcomeGroupBox = new QGroupBox("Welcome", this);
         auto *welcomeGroupBoxLayout = new QHBoxLayout(welcomeGroupBox);
-        auto *topLevelLabel =
-            new QLabel("Here you will be a slider allowing the tuning of the "
-                       "sparsity level",
-                       this);
+        auto *topLevelLabel = new QLabel("A slider will appear here allowing "
+                                         "you to control the sparsity level",
+                                         this);
         welcomeGroupBoxLayout->addWidget(topLevelLabel, 0, Qt::AlignCenter);
 
         m_SliderOrProgressBarWidgetStackedLayout->addWidget(m_SliderGroupBox);
@@ -324,7 +323,7 @@ namespace sparsely
             new QHBoxLayout(buttonsWelcomeWidget);
         auto *buttonsWidgetWelcomeLabel =
             new QLabel("Click on File to create or load a project from a "
-                       "convariance matrix.\n"
+                       "features matrix.\n"
                        "And then compute or select sparse pcs",
                        this);
         buttonsWelcomeWidgetLayout->addWidget(buttonsWidgetWelcomeLabel, 0,
