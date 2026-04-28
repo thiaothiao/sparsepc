@@ -34,6 +34,7 @@ namespace
 
         ~DeferredUpdateForPlots()
         {
+            labWidget.get().zoomToFit();
             labWidget.get().setPlotUpdateEnabled(true);
             labWidget.get().redrawPlot();
         }
@@ -155,7 +156,6 @@ namespace sparsely
         addSparsePCGraphs();
         labWidget.reInitSlider(labModel.getiWinner());
         connectWidget();
-        labWidget.zoomToFit();
         return true;
     }
 
