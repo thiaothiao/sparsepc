@@ -211,7 +211,6 @@ namespace sparsely
             ds->inc(sparsePCGraph.pcColumn, i, component.vector[i]);
         }
         sparsePCGraph.graph->setTitle(legend);
-        m_Plotter->redrawPlot();
     }
 
     void LabWidget::removeLastStandardPCGraph()

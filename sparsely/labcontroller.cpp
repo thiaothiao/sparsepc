@@ -207,10 +207,9 @@ namespace sparsely
     {
         auto &labWidget = m_LabWidget.get();
         auto &labModel = m_LabModel.get();
-
-        if (!labWidget.m_SparsePCRadioButton->isChecked())
+        const DeferredUpdateForPlots deferredUpdateForPlots(labWidget);
+        if (labWidget.m_StandardPCRadioButton->isChecked())
         {
-            const DeferredUpdateForPlots deferredUpdateForPlots(labWidget);
             const auto newStandardPCColor =
                 labWidget.m_Colors[labModel.m_StandardPCs.size()];
             NoEscapeQProgressDialog qProgressDialog(
@@ -323,7 +322,7 @@ namespace sparsely
         {
             return;
         }
-
+        const DeferredUpdateForPlots deferredUpdateForPlots(labWidget);
         auto &sparsePC = labModel.m_SparsePCs.back();
         sparsePC.iWinner = value;
         const auto &component = sparsePC.candidates.at(sparsePC.iWinner);
