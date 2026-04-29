@@ -201,7 +201,7 @@ namespace sparsely
 
     bool LabModel::removeLastStandardPC()
     {
-        if (m_StandardPCs.size() <= 2)
+        if (m_StandardPCs.empty())
         {
             return false;
         }
