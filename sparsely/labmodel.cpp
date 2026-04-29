@@ -15,22 +15,27 @@ namespace
 {
     using BackwardGSPA = sparsepc::linearmodel::SparsePC<
         sparsepc::linearmodel::BackwardGspcaModel<
-            double, sparsepc::EigenSolver<double>, sparsely::ProgressDialog>>;
+            double, sparsepc::SpectraLibEigenSolver<double>,
+            sparsely::ProgressDialog>>;
 
     using ForwardGSPCA = sparsepc::linearmodel::SparsePC<
         sparsepc::linearmodel::ForwardGspcaModel<
-            double, sparsepc::EigenSolver<double>, sparsely::ProgressDialog>>;
+            double, sparsepc::SpectraLibEigenSolver<double>,
+            sparsely::ProgressDialog>>;
 
     using DCA = sparsepc::linearmodel::SparsePC<sparsepc::linearmodel::DcaModel<
-        double, sparsepc::EigenSolver<double>, sparsely::ProgressDialog>>;
+        double, sparsepc::SpectraLibEigenSolver<double>,
+        sparsely::ProgressDialog>>;
 
     using CustomSolver = sparsepc::linearmodel::SparsePC<
         sparsepc::linearmodel::CustomSolverModel<
-            double, sparsepc::EigenSolver<double>, sparsely::ProgressDialog>>;
+            double, sparsepc::SpectraLibEigenSolver<double>,
+            sparsely::ProgressDialog>>;
 
     using DynamicLibSolver = sparsepc::linearmodel::SparsePC<
         sparsepc::linearmodel::DynamicLibSolverModel<
-            double, sparsepc::EigenSolver<double>, sparsely::ProgressDialog>>;
+            double, sparsepc::SpectraLibEigenSolver<double>,
+            sparsely::ProgressDialog>>;
 
     auto getPluginList(const QString &path)
     {
