@@ -11,38 +11,66 @@ namespace sparsepc
 {
     namespace linearmodel
     {
-        template <class ModelImplementationType>
-        concept SparsePCModelLike = requires(ModelImplementationType impl) {
-            {
-                std::as_const(impl).run(
-                    Matrix<typename ModelImplementationType::Scalar>{})
-            } -> std::convertible_to<
-                Component<typename ModelImplementationType::Scalar>>;
+        /**
+         * @brief Concept for a type that can be used as sparse principal
+         * component solver in the generic class SparsePC.
+         * @details This concept ensures the type supports
+         * @param Scalar an inner type used as scalar type.
+         * @param Param an inner type that concentrates a set of parameters.
+         * @param ProgressBar an inner type that reports progress level.
+         * @param run a const member function that takes a Matrix and return a
+         * component.
+         * @param run a static member function that takes a Matrix, a Param, a
+         * progress and return a bunch of components.
+         * @tparam ImplementationType The type to check.
+         */
+        template <class ImplementationType>
+        concept SparsePCSolverLike =
+            requires(ImplementationType impl) {
+                {
+                    std::as_const(impl).run(
+                        Matrix<typename ImplementationType::Scalar>{})
+                } -> std::convertible_to<
+                    Component<typename ImplementationType::Scalar>>;
 
-            {
-                ModelImplementationType::run(
-                    Matrix<typename ModelImplementationType::Scalar>{},
-                    typename ModelImplementationType::Param{},
-                    static_cast<typename ModelImplementationType::ProgressBar
-                                    *>(nullptr))
-            } -> std::convertible_to<ComponentsContainer<
-                Component<typename ModelImplementationType::Scalar>>>;
-        }; // TODO bencmarkings on map, unordered_map, flat_map
+                {
+                    ImplementationType::run(
+                        Matrix<typename ImplementationType::Scalar>{},
+                        typename ImplementationType::Param{},
+                        static_cast<typename ImplementationType::ProgressBar *>(
+                            nullptr))
+                } -> std::convertible_to<ComponentsContainer<
+                    Component<typename ImplementationType::Scalar>>>;
+            }; // TODO bencmarkings on map, unordered_map, flat_map
 
-        template <SparsePCModelLike ModelImplementationType>
+        /**
+         * @brief A generic class for various sparse principal component
+         * solvers.
+         * @details It implements a static polymorphism on concrete solver
+         * implementations.
+         *
+         * @tparam ImplementationType A sparse principal component solver like
+         * implementation.
+         */
+        template <SparsePCSolverLike ImplementationType>
         class SparsePC final
         {
           public:
-            using ModelImplementation = ModelImplementationType;
-            using Scalar = typename ModelImplementation::Scalar;
-            using ModelParam = typename ModelImplementation::Param;
-            using ProgressBar = typename ModelImplementationType::ProgressBar;
+            using Implementation = ImplementationType;
+            using Scalar = typename Implementation::Scalar;
+            using ImplementationParam = typename Implementation::Param;
+            using ProgressBar = typename ImplementationType::ProgressBar;
 
+            /**
+             * @brief Generic solver parameter set.
+             * @details Store parameters needed for each principal component
+             * round.
+             */
             struct Param final
             {
-                Param(std::vector<ModelParam> modelParamsInput)
-                    : nbComponents{static_cast<Index>(modelParamsInput.size())},
-                      modelParams{modelParamsInput}
+                Param(std::vector<ImplementationParam> implementationParamsInput)
+                    : nbComponents{static_cast<Index>(implementationParamsInput.size())},
+                      implementationParams{implementationParamsInput}
                 {
                 }
 
@@ -52,32 +80,65 @@ namespace sparsepc
                 Param(Param &&) = default;
                 Param &operator=(Param &&) = default;
 
-                const Index nbComponents;
-                const std::vector<ModelParam> modelParams;
+                const Index
+                    nbComponents; /**< Number of rounds (or components) */
+                const std::vector<ImplementationParam>
+                    implementationParams; /**< Container for rounds parameters
+                                           */
             };
 
+            /**
+             * @brief Constructs a new SparsePC object with specified
+             * parameters.
+             * @param param The parameters used by the solver object.
+             */
             SparsePC(const Param &param) : m_Param{param} {}
 
+            /**
+             * @brief Computes the principal component associated with the
+             * parameters.
+             * @param sigma The covariance matrix.
+             * @return The computed principal component.
+             */
             auto run(const Matrix<Scalar> &sigma) const;
 
+            /**
+             * @brief Computes a set of candidates for the next round principal
+             * component.
+             * @param sigma The covariance matrix.
+             * @param param The parameters to be used during the computations.
+             * @param previousRoundComponents The previous rounds principal
+             * components.
+             * @param progressBar The computation progress reporter.
+             * @return The computed next round candidates.
+             */
             template <class ComponentType>
             static auto computeNextComponentCandidates(
-                const Matrix<Scalar> &sigma, const ModelParam &param,
-                const std::vector<ComponentType> &validatedComponents,
+                const Matrix<Scalar> &sigma, const ImplementationParam &param,
+                const std::vector<ComponentType> &previousRoundComponents,
                 ProgressBar *progressBar);
 
           private:
             const Param m_Param;
 
+            /**
+             * @brief Computes a set of candidates. Does not know about rounds.
+             * @param sigma The covariance matrix.
+             * @param param The parameters to be used during the computations.
+             * @param deflatedSigma The the delated covariance matrix.
+             * @param B The matrix that accumulates (I - projections).
+             * @param progressBar The computation progress reporter.
+             * @return The computed next round candidates.
+             */
             static auto computeComponentCandidates(
-                const Matrix<Scalar> &sigma, const ModelParam &param,
+                const Matrix<Scalar> &sigma, const ImplementationParam &param,
                 const Matrix<Scalar> &deflatedSigma, const Matrix<Scalar> &B,
                 ProgressBar *progressBar);
         };
 
-        template <SparsePCModelLike ModelImplementationType>
-        auto SparsePC<ModelImplementationType>::run(
-            const Matrix<Scalar> &sigma) const
+        template <SparsePCSolverLike ImplementationType>
+        auto
+        SparsePC<ImplementationType>::run(const Matrix<Scalar> &sigma) const
         {
             using Matrix = Matrix<Scalar>;
             using Component = Component<Scalar>;
@@ -88,7 +149,7 @@ namespace sparsepc
             sparseSolutions.reserve(m_Param.nbComponents);
 
             sparseSolutions.push_back(
-                ModelImplementationType{m_Param.modelParams[0]}.run(sigma));
+                ImplementationType{m_Param.implementationParams[0]}.run(sigma));
 
             Matrix B = Matrix::Identity(n, n);
             Matrix inverse = Matrix::Zero(n, n); // TODO optimize this block
@@ -111,8 +172,8 @@ namespace sparsepc
                            inverseQ.transpose();
 
                 sparseSolutions.push_back(
-                    ModelImplementationType{m_Param.modelParams[j]}.run(
-                        inverse * B * sigma * B));
+                    ImplementationType{m_Param.implementationParams[j]}.run(inverse * B *
+                                                                   sigma * B));
 
                 q = B * sparseSolutions.back().vector;
 
@@ -123,16 +184,16 @@ namespace sparsepc
             return sparseSolutions;
         }
 
-        template <SparsePCModelLike ModelImplementationType>
-        auto SparsePC<ModelImplementationType>::computeComponentCandidates(
-            const Matrix<Scalar> &sigma, const ModelParam &param,
+        template <SparsePCSolverLike ImplementationType>
+        auto SparsePC<ImplementationType>::computeComponentCandidates(
+            const Matrix<Scalar> &sigma, const ImplementationParam &param,
             const Matrix<Scalar> &deflatedSigma, const Matrix<Scalar> &B,
             ProgressBar *progressBar)
         {
             if (B.size() == static_cast<Scalar>(0))
             {
                 auto candidates =
-                    ModelImplementationType::run(sigma, param, progressBar);
+                    ImplementationType::run(sigma, param, progressBar);
 
                 for (auto &[i, cpnt] : candidates)
                 {
@@ -143,8 +204,8 @@ namespace sparsepc
             }
             else
             {
-                auto candidates = ModelImplementationType::run(
-                    deflatedSigma, param, progressBar);
+                auto candidates =
+                    ImplementationType::run(deflatedSigma, param, progressBar);
 
                 for (auto &[i, cpnt] : candidates)
                 {
@@ -158,10 +219,10 @@ namespace sparsepc
             }
         }
 
-        template <SparsePCModelLike ModelImplementationType>
+        template <SparsePCSolverLike ImplementationType>
         template <class ComponentType>
-        auto SparsePC<ModelImplementationType>::computeNextComponentCandidates(
-            const Matrix<Scalar> &sigma, const ModelParam &param,
+        auto SparsePC<ImplementationType>::computeNextComponentCandidates(
+            const Matrix<Scalar> &sigma, const ImplementationParam &param,
             const std::vector<ComponentType> &validatedComponents,
             ProgressBar *progressBar)
         {

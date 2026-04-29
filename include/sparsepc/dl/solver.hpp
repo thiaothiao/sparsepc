@@ -11,16 +11,31 @@ namespace sparsepc
 {
     namespace linearmodel
     {
+        /**
+         * @brief A wrapper class for the ComputeSparseEigenVector function from
+         * an addon.
+         * @details It calls the function exposed by the considered dynamic
+         * library.
+         * @tparam ScalarType The considered scalar type.
+         * @tparam EigenSolverType The eigen solver to be used for eigen
+         * elements computation.
+         * @tparam ProgressBarType The progress reporter.
+         */
         template <std::floating_point ScalarType,
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType = DummyProgressBar>
-        class DynamicLibSolverModel final
+        class DynamicLibSolver final
         {
           public:
             using Scalar = ScalarType;
             using EigenSolver = EigenSolverType;
             using ProgressBar = ProgressBarType;
 
+            /**
+             * @brief DynamicLibSolver parameter set.
+             * @details Store parameters needed for the computations and the
+             * addon interface.
+             */
             struct Param final
             {
                 Param(ComputeSparseEigenVector computeSparseEigenVectorInput =
@@ -45,10 +60,29 @@ namespace sparsepc
                 const ComputeSparseEigenVector computeSparseEigenVector;
             };
 
-            DynamicLibSolverModel(const Param &param = {}) : m_Param{param} {}
+            /**
+             * @brief Constructs a new DynamicLibSolver object with the
+             * specified parameters.
+             * @param param The parameters used by the solver object.
+             */
+            DynamicLibSolver(const Param &param = {}) : m_Param{param} {}
 
+            /**
+             * @brief Computes the principal component associated with the
+             * parameters by calling the addon interface.
+             * @param sigma The covariance matrix.
+             * @return The computed principal component.
+             */
             auto run(const Matrix<Scalar> &sigma) const;
 
+            /**
+             * @brief Computes a set of principal component candidates by
+             * several calls to the addon function.
+             * @param sigma The covariance matrix.
+             * @param param The parameters to be used.
+             * @param progressBar The computation progress reporter.
+             * @return The computed candidates.
+             */
             static auto run(const Matrix<Scalar> &sigma, const Param &param,
                             ProgressBar *progressBar);
 
@@ -59,7 +93,7 @@ namespace sparsepc
         template <std::floating_point ScalarType,
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
-        auto DynamicLibSolverModel<ScalarType, EigenSolverType,
+        auto DynamicLibSolver<ScalarType, EigenSolverType,
                                    ProgressBarType>::run(const Matrix<Scalar>
                                                              &sigma) const
         {
@@ -103,7 +137,7 @@ namespace sparsepc
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
         auto
-        DynamicLibSolverModel<ScalarType, EigenSolverType,
+        DynamicLibSolver<ScalarType, EigenSolverType,
                               ProgressBarType>::run(const Matrix<Scalar> &sigma,
                                                     const Param &param,
                                                     ProgressBar *progressBar)
@@ -133,7 +167,7 @@ namespace sparsepc
 
                 components.emplace(
                     std::min(k, n),
-                    DynamicLibSolverModel<Scalar, EigenSolver, ProgressBar>{
+                    DynamicLibSolver<Scalar, EigenSolver, ProgressBar>{
                         param}
                         .run(sigma));
 
@@ -201,7 +235,7 @@ namespace sparsepc
         }
 
         // template<std::floating_point ScalarType>
-        // using User = SparsePC<DynamicLibSolverModel<ScalarType,
+        // using User = SparsePC<DynamicLibSolver<ScalarType,
         // EigenSolver<ScalarType>>>;
     } // namespace linearmodel
 } // namespace sparsepc

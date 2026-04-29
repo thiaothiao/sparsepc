@@ -12,16 +12,29 @@ namespace sparsepc
 {
     namespace linearmodel
     {
+        /**
+         * @brief A Dca method class.
+         * @details It implements a Dca method applied to the constrained sparse
+         * principal component problem.
+         * @tparam ScalarType The considered scalar type.
+         * @tparam EigenSolverType The eigen solver to be used for eigen
+         * elements computation.
+         * @tparam ProgressBarType The progress reporter.
+         */
         template <std::floating_point ScalarType,
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType = DummyProgressBar>
-        class DcaModel final
+        class DcaSolver final
         {
           public:
             using Scalar = ScalarType;
             using EigenSolver = EigenSolverType;
             using ProgressBar = ProgressBarType;
 
+            /**
+             * @brief DcaSolver parameter set.
+             * @details Store parameters needed for the computations.
+             */
             struct Param final
             {
                 Param(Index kInput = static_cast<Index>(-1),
@@ -51,11 +64,30 @@ namespace sparsepc
                 const Scalar zero;
             };
 
-            DcaModel(const Param &param = {}) : m_Param{param} {}
+            /**
+             * @brief Constructs a new DcaSolver object with the specified
+             * parameters.
+             * @param param The parameters used by the solver object.
+             */
+            DcaSolver(const Param &param = {}) : m_Param{param} {}
 
+            /**
+             * @brief Computes the principal component associated with the
+             * parameters.
+             * @param sigma The covariance matrix.
+             * @param guess The starting point of Dca if nonempty.
+             * @return The computed principal component.
+             */
             auto run(const Matrix<Scalar> &sigma,
                      const Component<Scalar> &guess = {}) const;
 
+            /**
+             * @brief Computes a set of principal component candidates.
+             * @param sigma The covariance matrix.
+             * @param param The parameters to be used.
+             * @param progressBar The computation progress reporter.
+             * @return The computed candidates.
+             */
             static auto run(const Matrix<Scalar> &sigma, const Param &param,
                             ProgressBar *progressBar);
 
@@ -134,7 +166,7 @@ namespace sparsepc
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
         inline auto
-        DcaModel<ScalarType, EigenSolverType, ProgressBarType>::objectiveValue(
+        DcaSolver<ScalarType, EigenSolverType, ProgressBarType>::objectiveValue(
             const Matrix<Scalar> &sigma, const PrimalSolution &solution,
             double t) const
         {
@@ -145,7 +177,7 @@ namespace sparsepc
         template <std::floating_point ScalarType,
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
-        auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::run(
+        auto DcaSolver<ScalarType, EigenSolverType, ProgressBarType>::run(
             const Matrix<Scalar> &sigma, const Component<Scalar> &guess) const
         {
             using Component = Component<Scalar>;
@@ -228,7 +260,7 @@ namespace sparsepc
         template <std::floating_point ScalarType,
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
-        auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::run(
+        auto DcaSolver<ScalarType, EigenSolverType, ProgressBarType>::run(
             const Matrix<Scalar> &sigma, const Param &param,
             ProgressBar *progressBar)
         {
@@ -257,7 +289,7 @@ namespace sparsepc
 
                 components.emplace(
                     std::min(k, n),
-                    DcaModel<Scalar, EigenSolver, ProgressBar>{param}.run(
+                    DcaSolver<Scalar, EigenSolver, ProgressBar>{param}.run(
                         sigma));
 
                 if (progressBar)
@@ -299,7 +331,7 @@ namespace sparsepc
             // TODO use #pragma omp parallel and #pragma omp cancel
             for (Index k = 1; k < n; ++k)
             {
-                components.at(k) = DcaModel<Scalar, EigenSolver, ProgressBar>{
+                components.at(k) = DcaSolver<Scalar, EigenSolver, ProgressBar>{
                     Param{k, param.eigenSolver, param.t, param.tolerance,
                           param.maximumNumberOfIterations,
                           param.zero}}.run(sigma, component);
@@ -324,7 +356,7 @@ namespace sparsepc
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
         inline auto
-        DcaModel<ScalarType, EigenSolverType, ProgressBarType>::dual(
+        DcaSolver<ScalarType, EigenSolverType, ProgressBarType>::dual(
             const Matrix<Scalar> &sigma, const PrimalSolution &solution,
             double t) const
         {
@@ -335,7 +367,7 @@ namespace sparsepc
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
         auto
-        DcaModel<ScalarType, EigenSolverType, ProgressBarType>::kktCandidate(
+        DcaSolver<ScalarType, EigenSolverType, ProgressBarType>::kktCandidate(
             const Vector<Scalar> &q, const Vector<Scalar> &y, Scalar r) const
         {
             const auto zero = m_Param.zero;
@@ -343,7 +375,7 @@ namespace sparsepc
 
             const auto n = q.size();
 
-            DcaModel::PrimalSolution solution(n);
+            DcaSolver::PrimalSolution solution(n);
             auto &x = solution.x;
             auto &u = solution.u;
 
@@ -402,7 +434,7 @@ namespace sparsepc
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
         auto
-        DcaModel<ScalarType, EigenSolverType, ProgressBarType>::computePhir(
+        DcaSolver<ScalarType, EigenSolverType, ProgressBarType>::computePhir(
             const Vector<Scalar> &y, Scalar r,
             const PrimalSolution &solution) const
         {
@@ -426,7 +458,7 @@ namespace sparsepc
         template <std::floating_point ScalarType,
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
-        auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::primal(
+        auto DcaSolver<ScalarType, EigenSolverType, ProgressBarType>::primal(
             [[maybe_unused]] const Matrix<Scalar> &sigma,
             const DualSolution &dualSolution) const
         {
@@ -632,10 +664,10 @@ namespace sparsepc
                 return solution;
             }
 
-            return DcaModel::PrimalSolution{};
+            return DcaSolver::PrimalSolution{};
         }
 
         template <std::floating_point ScalarType>
-        using Dca = SparsePC<DcaModel<ScalarType, EigenSolver<ScalarType>>>;
+        using Dca = SparsePC<DcaSolver<ScalarType, EigenSolver<ScalarType>>>;
     } // namespace linearmodel
 } // namespace sparsepc
