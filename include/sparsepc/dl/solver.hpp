@@ -25,7 +25,7 @@ namespace sparsepc
             {
                 Param(ComputeSparseEigenVector computeSparseEigenVectorInput =
                           nullptr,
-                      Index kInput = static_cast<Index>(1),
+                      Index kInput = static_cast<Index>(-1),
                       const EigenSolver &eigenSolverInput = {},
                       Scalar zeroInput = static_cast<Scalar>(1e-6))
                     : computeSparseEigenVector{computeSparseEigenVectorInput},
@@ -49,8 +49,8 @@ namespace sparsepc
 
             auto run(const Matrix<Scalar> &sigma) const;
 
-            static auto runAll(const Matrix<Scalar> &sigma, const Param &param,
-                               ProgressBar *progressBar);
+            static auto run(const Matrix<Scalar> &sigma, const Param &param,
+                            ProgressBar *progressBar);
 
           private:
             const Param m_Param;
@@ -103,17 +103,30 @@ namespace sparsepc
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
         auto
-        DynamicLibSolverModel<ScalarType, EigenSolverType, ProgressBarType>::
-            runAll(const Matrix<Scalar> &sigma, const Param &param,
-                   ProgressBar *progressBar)
+        DynamicLibSolverModel<ScalarType, EigenSolverType,
+                              ProgressBarType>::run(const Matrix<Scalar> &sigma,
+                                                    const Param &param,
+                                                    ProgressBar *progressBar)
         {
             using Component = Component<Scalar>;
             using ComponentsContainer = ComponentsContainer<Component>;
 
             const auto &eigenSolver = param.eigenSolver;
+            const auto k = param.k;
             const auto n = sigma.cols();
 
             ComponentsContainer components;
+
+            if (k > static_cast<Index>(0))
+            {
+                components.emplace(
+                    std::min(k, n),
+                    DynamicLibSolverModel<Scalar, EigenSolver, ProgressBar>{
+                        param}
+                        .run(sigma));
+
+                return components;
+            }
 
             components.emplace(n, eigenSolver.maximumValueElement(sigma));
 

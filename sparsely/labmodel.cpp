@@ -117,22 +117,21 @@ namespace sparsely
         {
         case Enums::Method::DCA:
             sparsePC.candidates = DCA::computeNextComponentCandidates(
-                m_Sigma, DCA::ModelParam(1), m_ValidatedComponents,
-                progressBar);
+                m_Sigma, DCA::ModelParam{}, m_ValidatedComponents, progressBar);
             break;
         case Enums::Method::BGSPCA:
             sparsePC.candidates = BackwardGSPA::computeNextComponentCandidates(
-                m_Sigma, BackwardGSPA::ModelParam(1), m_ValidatedComponents,
+                m_Sigma, BackwardGSPA::ModelParam{}, m_ValidatedComponents,
                 progressBar);
             break;
         case Enums::Method::FGSPCA:
             sparsePC.candidates = ForwardGSPCA::computeNextComponentCandidates(
-                m_Sigma, ForwardGSPCA::ModelParam(1), m_ValidatedComponents,
+                m_Sigma, ForwardGSPCA::ModelParam{}, m_ValidatedComponents,
                 progressBar);
             break;
         case Enums::Method::CUSTOM:
             sparsePC.candidates = CustomSolver::computeNextComponentCandidates(
-                m_Sigma, CustomSolver::ModelParam(1), m_ValidatedComponents,
+                m_Sigma, CustomSolver::ModelParam{}, m_ValidatedComponents,
                 progressBar);
             break;
         case Enums::Method::USERDYNAMICLIB: {
@@ -147,8 +146,8 @@ namespace sparsely
                     sparsePC.candidates =
                         DynamicLibSolver::computeNextComponentCandidates(
                             m_Sigma,
-                            DynamicLibSolver::ModelParam(
-                                computeSparseEigenVector),
+                            DynamicLibSolver::ModelParam{
+                                computeSparseEigenVector},
                             m_ValidatedComponents, progressBar);
                 }
             }
@@ -156,8 +155,7 @@ namespace sparsely
         }
         default:
             sparsePC.candidates = DCA::computeNextComponentCandidates(
-                m_Sigma, DCA::ModelParam(1), m_ValidatedComponents,
-                progressBar);
+                m_Sigma, DCA::ModelParam{}, m_ValidatedComponents, progressBar);
             break;
         }
 

@@ -24,7 +24,7 @@ namespace sparsepc
 
             struct Param final
             {
-                Param(Index kInput = static_cast<Index>(1),
+                Param(Index kInput = static_cast<Index>(-1),
                       const EigenSolver &eigenSolverInput = {},
                       Scalar tInput = static_cast<Scalar>(1000000),
                       Scalar toleranceInput = static_cast<Scalar>(1e-4),
@@ -56,8 +56,8 @@ namespace sparsepc
             auto run(const Matrix<Scalar> &sigma,
                      const Component<Scalar> &guess = {}) const;
 
-            static auto runAll(const Matrix<Scalar> &sigma, const Param &param,
-                               ProgressBar *progressBar);
+            static auto run(const Matrix<Scalar> &sigma, const Param &param,
+                            ProgressBar *progressBar);
 
             struct PrimalSolution
             {
@@ -228,7 +228,7 @@ namespace sparsepc
         template <std::floating_point ScalarType,
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
-        auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::runAll(
+        auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::run(
             const Matrix<Scalar> &sigma, const Param &param,
             ProgressBar *progressBar)
         {
@@ -236,9 +236,20 @@ namespace sparsepc
             using ComponentsContainer = ComponentsContainer<Component>;
 
             const auto &eigenSolver = param.eigenSolver;
+            const auto k = param.k;
             const auto n = sigma.cols();
 
             ComponentsContainer components;
+
+            if (k > static_cast<Index>(0))
+            {
+                components.emplace(
+                    std::min(k, n),
+                    DcaModel<Scalar, EigenSolver, ProgressBar>{param}.run(
+                        sigma));
+
+                return components;
+            }
 
             const auto &component =
                 components.emplace(n, eigenSolver.maximumValueElement(sigma))

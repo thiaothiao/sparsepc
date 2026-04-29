@@ -20,7 +20,7 @@ namespace sparsepc
                 Component<typename ModelImplementationType::Scalar>>;
 
             {
-                ModelImplementationType::runAll(
+                ModelImplementationType::run(
                     Matrix<typename ModelImplementationType::Scalar>{},
                     typename ModelImplementationType::Param{},
                     static_cast<typename ModelImplementationType::ProgressBar
@@ -132,7 +132,7 @@ namespace sparsepc
             if (B.size() == static_cast<Scalar>(0))
             {
                 auto candidates =
-                    ModelImplementationType::runAll(sigma, param, progressBar);
+                    ModelImplementationType::run(sigma, param, progressBar);
 
                 for (auto &[i, cpnt] : candidates)
                 {
@@ -143,7 +143,7 @@ namespace sparsepc
             }
             else
             {
-                auto candidates = ModelImplementationType::runAll(
+                auto candidates = ModelImplementationType::run(
                     deflatedSigma, param, progressBar);
 
                 for (auto &[i, cpnt] : candidates)

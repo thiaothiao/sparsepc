@@ -26,7 +26,7 @@ namespace sparsepc
 
             struct Param final
             {
-                Param(Index kInput = static_cast<Index>(1),
+                Param(Index kInput = static_cast<Index>(-1),
                       const EigenSolver &eigenSolverInput = {},
                       Scalar zeroInput = static_cast<Scalar>(1e-8))
                     : k{kInput}, eigenSolver{eigenSolverInput}, zero{zeroInput}
@@ -48,8 +48,8 @@ namespace sparsepc
 
             auto run(const Matrix<Scalar> &sigma) const;
 
-            static auto runAll(const Matrix<Scalar> &sigma, const Param &param,
-                               ProgressBar *progressBar);
+            static auto run(const Matrix<Scalar> &sigma, const Param &param,
+                            ProgressBar *progressBar);
 
           private:
             const Param m_Param;
@@ -67,7 +67,7 @@ namespace sparsepc
 
             struct Param final
             {
-                Param(Index kInput = static_cast<Index>(1),
+                Param(Index kInput = static_cast<Index>(-1),
                       const EigenSolver &eigenSolverInput = {},
                       Scalar zeroInput = static_cast<Scalar>(1e-8))
                     : k{kInput}, eigenSolver{eigenSolverInput}, zero{zeroInput}
@@ -89,8 +89,8 @@ namespace sparsepc
 
             auto run(const Matrix<Scalar> &sigma) const;
 
-            static auto runAll(const Matrix<Scalar> &sigma, const Param &param,
-                               ProgressBar *progressBar);
+            static auto run(const Matrix<Scalar> &sigma, const Param &param,
+                            ProgressBar *progressBar);
 
           private:
             const Param m_Param;
@@ -114,7 +114,7 @@ namespace sparsepc
 
             struct Param final
             {
-                Param(Index kInput = static_cast<Index>(1),
+                Param(Index kInput = static_cast<Index>(-1),
                       const EigenSolver &eigenSolverForForwardInput = {},
                       const EigenSolver &eigenSolverForBackwardInput = {},
                       Scalar zeroInput = static_cast<Scalar>(1e-6))
@@ -141,8 +141,8 @@ namespace sparsepc
 
             auto run(const Matrix<Scalar> &sigma) const;
 
-            static auto runAll(const Matrix<Scalar> &sigma, const Param &param,
-                               ProgressBar *progressBar);
+            static auto run(const Matrix<Scalar> &sigma, const Param &param,
+                            ProgressBar *progressBar);
 
           private:
             const Param m_Param;
@@ -240,18 +240,28 @@ namespace sparsepc
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
         auto
-        BackwardGspcaModel<ScalarType, EigenSolverType,
-                           ProgressBarType>::runAll(const Matrix<Scalar> &sigma,
-                                                    const Param &param,
-                                                    ProgressBar *progressBar)
+        BackwardGspcaModel<ScalarType, EigenSolverType, ProgressBarType>::run(
+            const Matrix<Scalar> &sigma, const Param &param,
+            ProgressBar *progressBar)
         {
             using Component = Component<Scalar>;
             using ComponentsContainer = ComponentsContainer<Component>;
 
             const auto &eigenSolver = param.eigenSolver;
+            const auto k = param.k;
             const auto n = sigma.cols();
 
             ComponentsContainer components;
+
+            if (k > static_cast<Index>(0))
+            {
+                components.emplace(
+                    std::min(k, n),
+                    BackwardGspcaModel<Scalar, EigenSolver, ProgressBar>{param}
+                        .run(sigma));
+
+                return components;
+            }
 
             components.emplace(n, eigenSolver.maximumValueElement(sigma));
 
@@ -448,7 +458,7 @@ namespace sparsepc
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
         auto
-        ForwardGspcaModel<ScalarType, EigenSolverType, ProgressBarType>::runAll(
+        ForwardGspcaModel<ScalarType, EigenSolverType, ProgressBarType>::run(
             const Matrix<Scalar> &sigma, const Param &param,
             ProgressBar *progressBar)
         {
@@ -456,9 +466,20 @@ namespace sparsepc
             using ComponentsContainer = ComponentsContainer<Component>;
 
             const auto &eigenSolver = param.eigenSolver;
+            const auto k = param.k;
             const auto n = sigma.cols();
 
             ComponentsContainer components;
+
+            if (k > static_cast<Index>(0))
+            {
+                components.emplace(
+                    std::min(k, n),
+                    ForwardGspcaModel<Scalar, EigenSolver, ProgressBar>{param}
+                        .run(sigma));
+
+                return components;
+            }
 
             components.emplace(n, eigenSolver.maximumValueElement(sigma));
 
@@ -616,10 +637,9 @@ namespace sparsepc
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
         auto
-        ParallelGspcaModel<ScalarType, EigenSolverType,
-                           ProgressBarType>::runAll(const Matrix<Scalar> &sigma,
-                                                    const Param &param,
-                                                    ProgressBar *progressBar)
+        ParallelGspcaModel<ScalarType, EigenSolverType, ProgressBarType>::run(
+            const Matrix<Scalar> &sigma, const Param &param,
+            ProgressBar *progressBar)
         {
             using Component = Component<Scalar>;
             using ComponentsContainer = ComponentsContainer<Component>;
@@ -628,6 +648,19 @@ namespace sparsepc
             const auto &forwardSolver = param.eigenSolverForForward;
             const auto &backwardSolver = param.eigenSolverForBackward;
             const auto zero = param.zero;
+            const auto n = sigma.cols();
+
+            if (k > static_cast<Index>(0))
+            {
+                ComponentsContainer components;
+
+                components.emplace(
+                    std::min(k, n),
+                    ParallelGspcaModel<Scalar, EigenSolver, ProgressBar>{param}
+                        .run(sigma));
+
+                return components;
+            }
 
             const typename ForwardGspcaModel::Param forwardParam{
                 k, forwardSolver, zero};
@@ -635,16 +668,14 @@ namespace sparsepc
                 k, backwardSolver, zero};
 
             auto forwardSolutionFuture =
-                std::async(std::launch::async, &ForwardGspcaModel::runAll,
-                           sigma, forwardParam, nullptr);
+                std::async(std::launch::async, &ForwardGspcaModel::run, sigma,
+                           forwardParam, nullptr);
 
             ComponentsContainer backwardSolutionSparseEigenElement =
-                BackwardGspcaModel::runAll(sigma, backwardParam, progressBar);
+                BackwardGspcaModel::run(sigma, backwardParam, progressBar);
 
             ComponentsContainer forwardSolutionSparseEigenElement =
                 forwardSolutionFuture.get();
-
-            const auto n = sigma.cols();
 
             for (Index j = 1; j <= n; ++j)
             {
