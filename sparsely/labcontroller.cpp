@@ -297,7 +297,7 @@ namespace sparsely
         auto &labWidget = m_LabWidget.get();
         auto &labModel = m_LabModel.get();
 
-        if (!labWidget.m_SparsePCRadioButton->isChecked())
+        if (labWidget.m_StandardPCRadioButton->isChecked())
         {
             if (!labModel.removeLastStandardPC())
             {
