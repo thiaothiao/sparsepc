@@ -28,7 +28,7 @@ namespace sparsely
 
       public slots:
         void onAddNewComponent();
-        void updatePlot(int value);
+        void onValueChanged(int value);
         void onRemoveLastComponent();
         void onSelectionChanged(int index);
 

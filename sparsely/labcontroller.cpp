@@ -59,14 +59,14 @@ namespace
         {
             QObject::disconnect(
                 &qSlider.get(), qOverload<int>(&QSlider::valueChanged),
-                &labController.get(), &sparsely::LabController::updatePlot);
+                &labController.get(), &sparsely::LabController::onValueChanged);
         }
 
         ~SliderDisconnectConnect()
         {
             QObject::connect(
                 &qSlider.get(), qOverload<int>(&QSlider::valueChanged),
-                &labController.get(), &sparsely::LabController::updatePlot);
+                &labController.get(), &sparsely::LabController::onValueChanged);
         }
 
         SliderDisconnectConnect(const SliderDisconnectConnect &) = delete;
@@ -124,7 +124,7 @@ namespace sparsely
                          &LabController::onSelectionChanged);
         QObject::connect(labWidget.m_Slider,
                          qOverload<int>(&QSlider::valueChanged), this,
-                         &LabController::updatePlot);
+                         &LabController::onValueChanged);
         QObject::connect(labWidget.m_AddNewComponentButton,
                          &QPushButton::clicked, this,
                          &LabController::onAddNewComponent);
@@ -315,7 +315,7 @@ namespace sparsely
         labWidget.removeLastSparsePCGraph(labModel.getiWinner());
     }
 
-    void LabController::updatePlot(int value)
+    void LabController::onValueChanged(int value)
     {
         auto &labWidget = m_LabWidget.get();
         auto &labModel = m_LabModel.get();
