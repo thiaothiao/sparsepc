@@ -14,26 +14,27 @@
 namespace
 {
     using BackwardGSPA = sparsepc::linearmodel::SparsePC<
-        sparsepc::linearmodel::BackwardGspcaModel<
+        sparsepc::linearmodel::BackwardGspcaSolver<
             double, sparsepc::SpectraLibEigenSolver<double>,
             sparsely::ProgressDialog>>;
 
     using ForwardGSPCA = sparsepc::linearmodel::SparsePC<
-        sparsepc::linearmodel::ForwardGspcaModel<
+        sparsepc::linearmodel::ForwardGspcaSolver<
             double, sparsepc::SpectraLibEigenSolver<double>,
             sparsely::ProgressDialog>>;
 
-    using DCA = sparsepc::linearmodel::SparsePC<sparsepc::linearmodel::DcaModel<
-        double, sparsepc::SpectraLibEigenSolver<double>,
-        sparsely::ProgressDialog>>;
-
-    using CustomSolver = sparsepc::linearmodel::SparsePC<
-        sparsepc::linearmodel::CustomSolverModel<
+    using DCA =
+        sparsepc::linearmodel::SparsePC<sparsepc::linearmodel::DcaSolver<
             double, sparsepc::SpectraLibEigenSolver<double>,
             sparsely::ProgressDialog>>;
 
-    using DynamicLibSolver = sparsepc::linearmodel::SparsePC<
-        sparsepc::linearmodel::DynamicLibSolverModel<
+    using CustomSolver =
+        sparsepc::linearmodel::SparsePC<sparsepc::linearmodel::CustomSolver<
+            double, sparsepc::SpectraLibEigenSolver<double>,
+            sparsely::ProgressDialog>>;
+
+    using DynamicLibSolver =
+        sparsepc::linearmodel::SparsePC<sparsepc::linearmodel::DynamicLibSolver<
             double, sparsepc::SpectraLibEigenSolver<double>,
             sparsely::ProgressDialog>>;
 
@@ -114,7 +115,8 @@ namespace sparsely
         auto &standardPC = m_StandardPCs.emplace_back();
         standardPC.iWinner = m_N;
         standardPC.candidates = DCA::computeNextComponentCandidates(
-            m_Sigma, DCA::ModelParam{static_cast<sparsepc::Index>(m_N)},
+            m_Sigma,
+            DCA::ImplementationParam{static_cast<sparsepc::Index>(m_N)},
             validatedStandardComponents, progressBar);
 
         for (auto &[k, candidate] : standardPC.candidates)
@@ -141,21 +143,21 @@ namespace sparsely
         {
         case Enums::Method::DCA:
             sparsePC.candidates = DCA::computeNextComponentCandidates(
-                m_Sigma, DCA::ModelParam{}, m_ValidatedComponents, progressBar);
+                m_Sigma, DCA::ImplementationParam{}, m_ValidatedComponents, progressBar);
             break;
         case Enums::Method::BGSPCA:
             sparsePC.candidates = BackwardGSPA::computeNextComponentCandidates(
-                m_Sigma, BackwardGSPA::ModelParam{}, m_ValidatedComponents,
+                m_Sigma, BackwardGSPA::ImplementationParam{}, m_ValidatedComponents,
                 progressBar);
             break;
         case Enums::Method::FGSPCA:
             sparsePC.candidates = ForwardGSPCA::computeNextComponentCandidates(
-                m_Sigma, ForwardGSPCA::ModelParam{}, m_ValidatedComponents,
+                m_Sigma, ForwardGSPCA::ImplementationParam{}, m_ValidatedComponents,
                 progressBar);
             break;
         case Enums::Method::CUSTOM:
             sparsePC.candidates = CustomSolver::computeNextComponentCandidates(
-                m_Sigma, CustomSolver::ModelParam{}, m_ValidatedComponents,
+                m_Sigma, CustomSolver::ImplementationParam{}, m_ValidatedComponents,
                 progressBar);
             break;
         case Enums::Method::USERDYNAMICLIB: {
@@ -170,7 +172,7 @@ namespace sparsely
                     sparsePC.candidates =
                         DynamicLibSolver::computeNextComponentCandidates(
                             m_Sigma,
-                            DynamicLibSolver::ModelParam{
+                            DynamicLibSolver::ImplementationParam{
                                 computeSparseEigenVector},
                             m_ValidatedComponents, progressBar);
                 }
@@ -179,7 +181,7 @@ namespace sparsely
         }
         default:
             sparsePC.candidates = DCA::computeNextComponentCandidates(
-                m_Sigma, DCA::ModelParam{}, m_ValidatedComponents, progressBar);
+                m_Sigma, DCA::ImplementationParam{}, m_ValidatedComponents, progressBar);
             break;
         }
 
