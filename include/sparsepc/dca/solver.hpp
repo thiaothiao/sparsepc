@@ -24,7 +24,7 @@ namespace sparsepc
 
             struct Param final
             {
-                Param(Index kInput = static_cast<Index>(1),
+                Param(Index kInput = static_cast<Index>(-1),
                       const EigenSolver &eigenSolverInput = {},
                       Scalar tInput = static_cast<Scalar>(1000000),
                       Scalar toleranceInput = static_cast<Scalar>(1e-4),
@@ -236,9 +236,20 @@ namespace sparsepc
             using ComponentsContainer = ComponentsContainer<Component>;
 
             const auto &eigenSolver = param.eigenSolver;
+            const auto k = param.k;
             const auto n = sigma.cols();
 
             ComponentsContainer components;
+
+            if (k > static_cast<Index>(0))
+            {
+                components.emplace(
+                    std::min(k, n),
+                    DcaModel<Scalar, EigenSolver, ProgressBar>{param}.run(
+                        sigma));
+
+                return components;
+            }
 
             const auto &component =
                 components.emplace(n, eigenSolver.maximumValueElement(sigma))

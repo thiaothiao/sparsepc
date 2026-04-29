@@ -25,7 +25,7 @@ namespace sparsepc
             {
                 Param(ComputeSparseEigenVector computeSparseEigenVectorInput =
                           nullptr,
-                      Index kInput = static_cast<Index>(1),
+                      Index kInput = static_cast<Index>(-1),
                       const EigenSolver &eigenSolverInput = {},
                       Scalar zeroInput = static_cast<Scalar>(1e-6))
                     : computeSparseEigenVector{computeSparseEigenVectorInput},
@@ -111,9 +111,21 @@ namespace sparsepc
             using ComponentsContainer = ComponentsContainer<Component>;
 
             const auto &eigenSolver = param.eigenSolver;
+            const auto k = param.k;
             const auto n = sigma.cols();
 
             ComponentsContainer components;
+
+            if (k > static_cast<Index>(0))
+            {
+                components.emplace(
+                    std::min(k, n),
+                    DynamicLibSolverModel<Scalar, EigenSolver, ProgressBar>{
+                        param}
+                        .run(sigma));
+
+                return components;
+            }
 
             components.emplace(n, eigenSolver.maximumValueElement(sigma));
 
