@@ -18,20 +18,38 @@ CPMAddPackage("gh:TheLartians/PackageProject.cmake@1.8.0")
 add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 add_compile_definitions(_SILENCE_ALL_CXX23_DEPRECATION_WARNINGS)
 
+if(NOT TARGET Eigen3::Eigen)
+	CPMAddPackage(
+	  NAME Eigen3
+	  GITLAB_REPOSITORY libeigen/eigen
+	  GIT_TAG 5.0.1
+	  # Eigen's CMakelists are not intended for library use
+      DOWNLOAD_ONLY YES
+	  #OPTIONS "EIGEN_BUILD_DOC OFF" "BUILD_TESTING OFF"
+	)
+
+    if(Eigen3_ADDED)
+        add_library(Eigen3::Eigen INTERFACE IMPORTED)
+        target_include_directories(Eigen3::Eigen INTERFACE ${Eigen3_SOURCE_DIR})
+    endif()
+endif()
+
 # Note: for header-only libraries change all PUBLIC flags to INTERFACE and create an interface
 add_library(${PROJECT_NAME} INTERFACE)
+target_include_directories(
+  ${PROJECT_NAME} 
+  INTERFACE 
+	$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include/${PROJECT_NAME}-${PROJECT_VERSION}>
+)
 
 # being a cross-platform target, we enforce standards conformance on MSVC
 target_compile_options(${PROJECT_NAME} INTERFACE "$<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/permissive->")
 target_compile_definitions(${PROJECT_NAME} INTERFACE _CRT_SECURE_NO_WARNINGS)
 target_compile_definitions(${PROJECT_NAME} INTERFACE _SILENCE_ALL_CXX23_DEPRECATION_WARNINGS)
 
-target_link_libraries(${PROJECT_NAME} INTERFACE $<BUILD_INTERFACE:Eigen3::Eigen>)
-
-target_include_directories(
-  ${PROJECT_NAME} INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-                         $<INSTALL_INTERFACE:include/${PROJECT_NAME}-${PROJECT_VERSION}>
-)
+target_link_libraries(${PROJECT_NAME} INTERFACE Eigen3::Eigen)
+target_link_libraries(${PROJECT_NAME} INTERFACE Spectra::Spectra)
 
 # ---- Create an installable target ----
 # this allows users to install and find the library via `find_package()`.
@@ -49,5 +67,5 @@ packageProject(
   INCLUDE_DESTINATION include/${PROJECT_NAME}-${PROJECT_VERSION}
   VERSION_HEADER "${VERSION_HEADER_LOCATION}"
   COMPATIBILITY SameMajorVersion
-  DEPENDENCIES "eigen"
+  DEPENDENCIES "Eigen3" "Spectra"
 )
