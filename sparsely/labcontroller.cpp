@@ -224,7 +224,8 @@ namespace sparsely
             qProgressDialog.setWindowModality(Qt::WindowModal);
             qProgressDialog.setMinimumDuration(0);
 
-            const auto &component = labModel.computeStandardPC(&progressDialog);
+            const auto &standardPC =
+                labModel.computeStandardPC(&progressDialog);
 
             progressDialog.setValue(100);
             if (progressDialog.wasCanceled())
@@ -233,6 +234,8 @@ namespace sparsely
                 return;
             }
 
+            const auto &component =
+                standardPC.candidates.at(standardPC.iWinner);
             const auto cumulativeVariancePercentage =
                 labModel.computeVarianceRatio(
                     labModel.computeStandardCumulativeVariance()) *
