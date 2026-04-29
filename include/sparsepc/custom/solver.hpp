@@ -46,6 +46,15 @@ namespace sparsepc
 {
     namespace linearmodel
     {
+        /**
+         * @brief A wrapper class that allows to add custom C++ implementations.
+         * @details Replace the current implementation with your own sparse
+         * principal component implementation.
+         * @tparam ScalarType The considered scalar type.
+         * @tparam EigenSolverType The eigen solver to be used for eigen
+         * elements computation.
+         * @tparam ProgressBarType The progress reporter.
+         */
         template <std::floating_point ScalarType,
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType = DummyProgressBar>
@@ -56,6 +65,10 @@ namespace sparsepc
             using EigenSolver = EigenSolverType;
             using ProgressBar = ProgressBarType;
 
+            /**
+             * @brief CustomSolver parameter set.
+             * @details Store the parameters needed for the computations.
+             */
             struct Param final
             {
                 Param(Index kInput = static_cast<Index>(-1),
@@ -76,10 +89,28 @@ namespace sparsepc
                 const Scalar zero;
             };
 
+            /**
+             * @brief Constructs a new CustomSolver object with specified
+             * parameters.
+             * @param param The parameters used by the solver object.
+             */
             CustomSolver(const Param &param = {}) : m_Param{param} {}
 
+            /**
+             * @brief Computes the principal component associated with the
+             * parameters.
+             * @param sigma The covariance matrix.
+             * @return The computed principal component.
+             */
             auto run(const Matrix<Scalar> &sigma) const;
 
+            /**
+             * @brief Computes a set of principal component candidates.
+             * @param sigma The covariance matrix.
+             * @param param The parameters to be used.
+             * @param progressBar The computation progress reporter.
+             * @return The computed candidates.
+             */
             static auto run(const Matrix<Scalar> &sigma, const Param &param,
                             ProgressBar *progressBar);
 

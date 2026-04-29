@@ -13,13 +13,25 @@
 
 namespace sparsepc
 {
+    /**
+     * @brief A virtual state for each component.
+     * @details It is used essentially during sparse components selection.
+     */
     enum class ComponentState : std::uint8_t
     {
-        Validated = 0U,
-        Unvalidated,
-        Unknown
+        Validated = 0U, ///< selected component for a given round.
+        Unvalidated,    ///< nonselected candidates for a given round.
+        Unknown         ///< not determined.
     };
 
+    /**
+     * @brief A struct that represents a typical solution of a sparse principal
+     * component solver.
+     *
+     * @details It contains the "eigen element" and its state.
+     *
+     * @tparam ScalarType The used scalar type.
+     */
     template <std::floating_point ScalarType> struct Component
     {
         using Scalar = ScalarType;
@@ -48,10 +60,10 @@ namespace sparsepc
         Component(Component &&) = default;
         Component &operator=(Component &&) = default;
 
-        ComponentState state;
-        Scalar value;
-        Vector<Scalar> vector;
-        Vector<Scalar> q;
+        ComponentState state;  ///< the component state.
+        Scalar value;          ///< the component explained variance.
+        Vector<Scalar> vector; ///< the component "eigen" vector.
+        Vector<Scalar> q;      ///< a deflated representation of the component.
     };
 
     template <class ComponentType>
@@ -82,6 +94,10 @@ namespace sparsepc
         } -> std::convertible_to<typename ImplementationType::Scalar>;
     };
 
+    /**
+     * @brief A class that uses the C++ library Spectra for eigen elements
+     * computations.
+     */
     template <std::floating_point ScalarType> class SpectraLibEigenSolver final
     {
       public:
@@ -172,6 +188,10 @@ namespace sparsepc
         return eigenElement;
     }
 
+    /**
+     * @brief A class that uses custom Power and Gram methods for eigen elements
+     * computations.
+     */
     template <std::floating_point ScalarType> class EigenSolver final
     {
       public:
@@ -309,6 +329,10 @@ namespace sparsepc
         return eigenElement;
     }
 
+    /**
+     * @brief A class that uses the C++ library Eigen for eigen elements
+     * computations.
+     */
     template <std::floating_point ScalarType> class EigenLibEigenSolver final
     {
       public:

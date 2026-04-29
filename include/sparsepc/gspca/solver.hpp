@@ -13,7 +13,15 @@ namespace sparsepc
 {
     namespace linearmodel
     {
-        // Greedy GSPCA implementation, see references
+        /**
+         * @brief Backward Gspca method class.
+         * @details It implements the backward version of the greedy Gspca
+         * method.
+         * @tparam ScalarType The considered scalar type.
+         * @tparam EigenSolverType The eigen solver to be used for eigen
+         * elements computation.
+         * @tparam ProgressBarType The progress reporter.
+         */
         template <std::floating_point ScalarType,
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType = DummyProgressBar>
@@ -24,6 +32,10 @@ namespace sparsepc
             using EigenSolver = EigenSolverType;
             using ProgressBar = ProgressBarType;
 
+            /**
+             * @brief BackwardGspcaSolver parameter set.
+             * @details Store parameters needed for the computations.
+             */
             struct Param final
             {
                 Param(Index kInput = static_cast<Index>(-1),
@@ -44,10 +56,28 @@ namespace sparsepc
                 const Scalar zero;
             };
 
+            /**
+             * @brief Constructs a new BackwardGspcaSolver object with the
+             * specified parameters.
+             * @param param The parameters used by the solver object.
+             */
             BackwardGspcaSolver(const Param &param = {}) : m_Param{param} {}
 
+            /**
+             * @brief Computes the principal component associated with the
+             * parameters.
+             * @param sigma The covariance matrix.
+             * @return The computed principal component.
+             */
             auto run(const Matrix<Scalar> &sigma) const;
 
+            /**
+             * @brief Computes a set of principal component candidates.
+             * @param sigma The covariance matrix.
+             * @param param The parameters to be used.
+             * @param progressBar The computation progress reporter.
+             * @return The computed candidates.
+             */
             static auto run(const Matrix<Scalar> &sigma, const Param &param,
                             ProgressBar *progressBar);
 
@@ -55,6 +85,15 @@ namespace sparsepc
             const Param m_Param;
         };
 
+        /**
+         * @brief Forward Gspca method class.
+         * @details It implements the forward version of the greedy Gspca
+         * method.
+         * @tparam ScalarType The considered scalar type.
+         * @tparam EigenSolverType The eigen solver to be used for eigen
+         * elements computation.
+         * @tparam ProgressBarType The progress reporter.
+         */
         template <std::floating_point ScalarType,
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType = DummyProgressBar>
@@ -65,6 +104,10 @@ namespace sparsepc
             using EigenSolver = EigenSolverType;
             using ProgressBar = ProgressBarType;
 
+            /**
+             * @brief ForwardGspcaSolver parameter set.
+             * @details Store parameters needed for the computations.
+             */
             struct Param final
             {
                 Param(Index kInput = static_cast<Index>(-1),
@@ -85,8 +128,28 @@ namespace sparsepc
                 const Scalar zero;
             };
 
+            /**
+             * @brief Constructs a new ForwardGspcaSolver object with the
+             * specified parameters.
+             * @param param The parameters used by the solver object.
+             */
+            ForwardGspcaSolver(const Param &param = {}) : m_Param{param} {}
+
+            /**
+             * @brief Computes the principal component associated with the
+             * parameters.
+             * @param sigma The covariance matrix.
+             * @return The computed principal component.
+             */
             auto run(const Matrix<Scalar> &sigma) const;
 
+            /**
+             * @brief Computes a set of principal component candidates.
+             * @param sigma The covariance matrix.
+             * @param param The parameters to be used.
+             * @param progressBar The computation progress reporter.
+             * @return The computed candidates.
+             */
             static auto run(const Matrix<Scalar> &sigma, const Param &param,
                             ProgressBar *progressBar);
 
@@ -94,6 +157,16 @@ namespace sparsepc
             const Param m_Param;
         };
 
+        /**
+         * @brief Parallel Gspca method class.
+         * @details It implements the forward and backward versions of the
+         * greedy Gspca method. Both methods run in parallel and the best
+         * component is then selected.
+         * @tparam ScalarType The considered scalar type.
+         * @tparam EigenSolverType The eigen solver to be used for eigen
+         * elements computation.
+         * @tparam ProgressBarType The progress reporter.
+         */
         template <std::floating_point ScalarType,
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType = DummyProgressBar>
@@ -110,6 +183,10 @@ namespace sparsepc
                 typename sparsepc::linearmodel::BackwardGspcaSolver<
                     Scalar, EigenSolver, ProgressBar>;
 
+            /**
+             * @brief ParallelGspcaSolver parameter set.
+             * @details Store parameters needed for the computations.
+             */
             struct Param final
             {
                 Param(Index kInput = static_cast<Index>(-1),
@@ -135,10 +212,28 @@ namespace sparsepc
                 const Scalar zero;
             };
 
+            /**
+             * @brief Constructs a new ParallelGspcaSolver object with the
+             * specified parameters.
+             * @param param The parameters used by the solver object.
+             */
             ParallelGspcaSolver(const Param &param = {}) : m_Param{param} {}
 
+            /**
+             * @brief Computes the principal component associated with the
+             * parameters.
+             * @param sigma The covariance matrix.
+             * @return The computed principal component.
+             */
             auto run(const Matrix<Scalar> &sigma) const;
 
+            /**
+             * @brief Computes a set of principal component candidates.
+             * @param sigma The covariance matrix.
+             * @param param The parameters to be used.
+             * @param progressBar The computation progress reporter.
+             * @return The computed candidates.
+             */
             static auto run(const Matrix<Scalar> &sigma, const Param &param,
                             ProgressBar *progressBar);
 

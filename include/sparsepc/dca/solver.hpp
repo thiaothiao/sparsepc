@@ -12,6 +12,15 @@ namespace sparsepc
 {
     namespace linearmodel
     {
+        /**
+         * @brief A Dca method class.
+         * @details It implements a Dca method applied to the constrained sparse
+         * principal component problem.
+         * @tparam ScalarType The considered scalar type.
+         * @tparam EigenSolverType The eigen solver to be used for eigen
+         * elements computation.
+         * @tparam ProgressBarType The progress reporter.
+         */
         template <std::floating_point ScalarType,
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType = DummyProgressBar>
@@ -22,6 +31,10 @@ namespace sparsepc
             using EigenSolver = EigenSolverType;
             using ProgressBar = ProgressBarType;
 
+            /**
+             * @brief DcaSolver parameter set.
+             * @details Store parameters needed for the computations.
+             */
             struct Param final
             {
                 Param(Index kInput = static_cast<Index>(-1),
@@ -51,11 +64,30 @@ namespace sparsepc
                 const Scalar zero;
             };
 
+            /**
+             * @brief Constructs a new DcaSolver object with the specified
+             * parameters.
+             * @param param The parameters used by the solver object.
+             */
             DcaSolver(const Param &param = {}) : m_Param{param} {}
 
+            /**
+             * @brief Computes the principal component associated with the
+             * parameters.
+             * @param sigma The covariance matrix.
+             * @param guess The starting point of Dca if nonempty.
+             * @return The computed principal component.
+             */
             auto run(const Matrix<Scalar> &sigma,
                      const Component<Scalar> &guess = {}) const;
 
+            /**
+             * @brief Computes a set of principal component candidates.
+             * @param sigma The covariance matrix.
+             * @param param The parameters to be used.
+             * @param progressBar The computation progress reporter.
+             * @return The computed candidates.
+             */
             static auto run(const Matrix<Scalar> &sigma, const Param &param,
                             ProgressBar *progressBar);
 

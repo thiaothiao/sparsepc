@@ -5,6 +5,16 @@
 
 namespace sparsepc
 {
+    /**
+     * @brief Concept for a type that can be used to report progresses.
+     * @details This concept ensures the type supports
+     * @param setRange a member function that sets the min and max values.
+     * @param setValue a member function that sets current progress value.
+     * @param wasCanceled a const member function that returns true if cancelled
+     * and false otherwise.
+     * @param processEvents a const member function that allows to process
+     * events as needed.
+     */
     template <class ImplementationType>
     concept ProgressBarLike = requires(ImplementationType impl) {
         { impl.setValue(int{}) };
@@ -13,6 +23,10 @@ namespace sparsepc
         { std::as_const(impl).processEvents() };
     };
 
+    /**
+     * @brief A dummy progress bar class to be used by default.
+     * @details It does almost nothing.
+     */
     class DummyProgressBar final
     {
       public:
