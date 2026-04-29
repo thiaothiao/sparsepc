@@ -48,8 +48,8 @@ namespace sparsepc
 
             auto run(const Matrix<Scalar> &sigma) const;
 
-            static auto runAll(const Matrix<Scalar> &sigma, const Param &param,
-                               ProgressBar *progressBar);
+            static auto run(const Matrix<Scalar> &sigma, const Param &param,
+                            ProgressBar *progressBar);
 
           private:
             const Param m_Param;
@@ -89,8 +89,8 @@ namespace sparsepc
 
             auto run(const Matrix<Scalar> &sigma) const;
 
-            static auto runAll(const Matrix<Scalar> &sigma, const Param &param,
-                               ProgressBar *progressBar);
+            static auto run(const Matrix<Scalar> &sigma, const Param &param,
+                            ProgressBar *progressBar);
 
           private:
             const Param m_Param;
@@ -141,8 +141,8 @@ namespace sparsepc
 
             auto run(const Matrix<Scalar> &sigma) const;
 
-            static auto runAll(const Matrix<Scalar> &sigma, const Param &param,
-                               ProgressBar *progressBar);
+            static auto run(const Matrix<Scalar> &sigma, const Param &param,
+                            ProgressBar *progressBar);
 
           private:
             const Param m_Param;
@@ -240,10 +240,9 @@ namespace sparsepc
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
         auto
-        BackwardGspcaModel<ScalarType, EigenSolverType,
-                           ProgressBarType>::runAll(const Matrix<Scalar> &sigma,
-                                                    const Param &param,
-                                                    ProgressBar *progressBar)
+        BackwardGspcaModel<ScalarType, EigenSolverType, ProgressBarType>::run(
+            const Matrix<Scalar> &sigma, const Param &param,
+            ProgressBar *progressBar)
         {
             using Component = Component<Scalar>;
             using ComponentsContainer = ComponentsContainer<Component>;
@@ -638,10 +637,9 @@ namespace sparsepc
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
         auto
-        ParallelGspcaModel<ScalarType, EigenSolverType,
-                           ProgressBarType>::runAll(const Matrix<Scalar> &sigma,
-                                                    const Param &param,
-                                                    ProgressBar *progressBar)
+        ParallelGspcaModel<ScalarType, EigenSolverType, ProgressBarType>::run(
+            const Matrix<Scalar> &sigma, const Param &param,
+            ProgressBar *progressBar)
         {
             using Component = Component<Scalar>;
             using ComponentsContainer = ComponentsContainer<Component>;
@@ -670,11 +668,11 @@ namespace sparsepc
                 k, backwardSolver, zero};
 
             auto forwardSolutionFuture =
-                std::async(std::launch::async, &ForwardGspcaModel::runAll,
-                           sigma, forwardParam, nullptr);
+                std::async(std::launch::async, &ForwardGspcaModel::run, sigma,
+                           forwardParam, nullptr);
 
             ComponentsContainer backwardSolutionSparseEigenElement =
-                BackwardGspcaModel::runAll(sigma, backwardParam, progressBar);
+                BackwardGspcaModel::run(sigma, backwardParam, progressBar);
 
             ComponentsContainer forwardSolutionSparseEigenElement =
                 forwardSolutionFuture.get();

@@ -80,8 +80,8 @@ namespace sparsepc
 
             auto run(const Matrix<Scalar> &sigma) const;
 
-            static auto runAll(const Matrix<Scalar> &sigma, const Param &param,
-                               ProgressBar *progressBar);
+            static auto run(const Matrix<Scalar> &sigma, const Param &param,
+                            ProgressBar *progressBar);
 
           private:
             const Param m_Param;
@@ -130,7 +130,7 @@ namespace sparsepc
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
         auto
-        CustomSolverModel<ScalarType, EigenSolverType, ProgressBarType>::runAll(
+        CustomSolverModel<ScalarType, EigenSolverType, ProgressBarType>::run(
             const Matrix<Scalar> &sigma, const Param &param,
             ProgressBar *progressBar)
         {

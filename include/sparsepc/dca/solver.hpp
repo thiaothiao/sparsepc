@@ -56,8 +56,8 @@ namespace sparsepc
             auto run(const Matrix<Scalar> &sigma,
                      const Component<Scalar> &guess = {}) const;
 
-            static auto runAll(const Matrix<Scalar> &sigma, const Param &param,
-                               ProgressBar *progressBar);
+            static auto run(const Matrix<Scalar> &sigma, const Param &param,
+                            ProgressBar *progressBar);
 
             struct PrimalSolution
             {
@@ -228,7 +228,7 @@ namespace sparsepc
         template <std::floating_point ScalarType,
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
-        auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::runAll(
+        auto DcaModel<ScalarType, EigenSolverType, ProgressBarType>::run(
             const Matrix<Scalar> &sigma, const Param &param,
             ProgressBar *progressBar)
         {
