@@ -49,7 +49,7 @@ namespace sparsepc
         template <std::floating_point ScalarType,
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType = DummyProgressBar>
-        class CustomSolverModel final
+        class CustomSolver final
         {
           public:
             using Scalar = ScalarType;
@@ -76,7 +76,7 @@ namespace sparsepc
                 const Scalar zero;
             };
 
-            CustomSolverModel(const Param &param = {}) : m_Param{param} {}
+            CustomSolver(const Param &param = {}) : m_Param{param} {}
 
             auto run(const Matrix<Scalar> &sigma) const;
 
@@ -91,7 +91,7 @@ namespace sparsepc
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
         auto
-        CustomSolverModel<ScalarType, EigenSolverType, ProgressBarType>::run(
+        CustomSolver<ScalarType, EigenSolverType, ProgressBarType>::run(
             const Matrix<Scalar> &sigma) const
         {
             using Component = Component<Scalar>;
@@ -130,7 +130,7 @@ namespace sparsepc
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
         auto
-        CustomSolverModel<ScalarType, EigenSolverType, ProgressBarType>::run(
+        CustomSolver<ScalarType, EigenSolverType, ProgressBarType>::run(
             const Matrix<Scalar> &sigma, const Param &param,
             ProgressBar *progressBar)
         {
@@ -159,7 +159,7 @@ namespace sparsepc
 
                 components.emplace(
                     std::min(k, n),
-                    CustomSolverModel<Scalar, EigenSolver, ProgressBar>{param}
+                    CustomSolver<Scalar, EigenSolver, ProgressBar>{param}
                         .run(sigma));
 
                 if (progressBar)
@@ -222,7 +222,7 @@ namespace sparsepc
             return components;
         }
         // template<std::floating_point ScalarType>
-        // using Custom = SparsePC<CustomSolverModel<ScalarType,
+        // using Custom = SparsePC<CustomSolver<ScalarType,
         // EigenSolver<ScalarType>>>;
     } // namespace linearmodel
 } // namespace sparsepc

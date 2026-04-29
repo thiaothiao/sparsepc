@@ -14,7 +14,7 @@ namespace sparsepc
         template <std::floating_point ScalarType,
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType = DummyProgressBar>
-        class DynamicLibSolverModel final
+        class DynamicLibSolver final
         {
           public:
             using Scalar = ScalarType;
@@ -45,7 +45,7 @@ namespace sparsepc
                 const ComputeSparseEigenVector computeSparseEigenVector;
             };
 
-            DynamicLibSolverModel(const Param &param = {}) : m_Param{param} {}
+            DynamicLibSolver(const Param &param = {}) : m_Param{param} {}
 
             auto run(const Matrix<Scalar> &sigma) const;
 
@@ -59,7 +59,7 @@ namespace sparsepc
         template <std::floating_point ScalarType,
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
-        auto DynamicLibSolverModel<ScalarType, EigenSolverType,
+        auto DynamicLibSolver<ScalarType, EigenSolverType,
                                    ProgressBarType>::run(const Matrix<Scalar>
                                                              &sigma) const
         {
@@ -103,7 +103,7 @@ namespace sparsepc
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
         auto
-        DynamicLibSolverModel<ScalarType, EigenSolverType,
+        DynamicLibSolver<ScalarType, EigenSolverType,
                               ProgressBarType>::run(const Matrix<Scalar> &sigma,
                                                     const Param &param,
                                                     ProgressBar *progressBar)
@@ -133,7 +133,7 @@ namespace sparsepc
 
                 components.emplace(
                     std::min(k, n),
-                    DynamicLibSolverModel<Scalar, EigenSolver, ProgressBar>{
+                    DynamicLibSolver<Scalar, EigenSolver, ProgressBar>{
                         param}
                         .run(sigma));
 
@@ -201,7 +201,7 @@ namespace sparsepc
         }
 
         // template<std::floating_point ScalarType>
-        // using User = SparsePC<DynamicLibSolverModel<ScalarType,
+        // using User = SparsePC<DynamicLibSolver<ScalarType,
         // EigenSolver<ScalarType>>>;
     } // namespace linearmodel
 } // namespace sparsepc
