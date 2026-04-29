@@ -6,6 +6,8 @@
 #include <utility>
 
 #include <Eigen/Dense>
+#include <Spectra/MatOp/DenseSymMatProd.h>
+#include <Spectra/SymEigsSolver.h>
 
 #include <sparsepc/utils/matrix.hpp>
 
@@ -79,6 +81,96 @@ namespace sparsepc
                 Matrix<typename ImplementationType::Scalar>{})
         } -> std::convertible_to<typename ImplementationType::Scalar>;
     };
+
+    template <std::floating_point ScalarType> class SpectraLibEigenSolver final
+    {
+      public:
+        using Scalar = ScalarType;
+
+        struct Param final
+        {
+            Param(Index ncvInput = static_cast<Index>(2)) : ncv{ncvInput} {}
+
+            Param(const Param &) = default;
+            Param &operator=(const Param &) = default;
+
+            Param(Param &&) = default;
+            Param &operator=(Param &&) = default;
+
+            const Index ncv;
+        };
+
+        SpectraLibEigenSolver(const Param &param = {}) : m_Param{param} {}
+
+        auto maximumValue(const Matrix<Scalar> &sigma) const;
+
+        auto maximumValueElement(const Matrix<Scalar> &sigma) const;
+
+      private:
+        const Param m_Param;
+    };
+
+    template <std::floating_point ScalarType>
+    inline auto SpectraLibEigenSolver<ScalarType>::maximumValue(
+        const Matrix<Scalar> &sigma) const
+    {
+        const auto n = sigma.cols();
+
+        if (n == static_cast<Index>(1))
+        {
+            return sigma.value();
+        }
+
+        Spectra::DenseSymMatProd<Scalar> op(sigma);
+
+        Spectra::SymEigsSolver<Spectra::DenseSymMatProd<Scalar>> symEigsSolver(
+            op, 1, m_Param.ncv);
+
+        symEigsSolver.init();
+        [[maybe_unused]] auto nconv =
+            symEigsSolver.compute(Spectra::SortRule::LargestAlge);
+
+        if (symEigsSolver.info() == Spectra::CompInfo::Successful)
+        {
+            return symEigsSolver.eigenvalues()[0];
+        }
+
+        return static_cast<Scalar>(-1);
+    }
+
+    template <std::floating_point ScalarType>
+    auto SpectraLibEigenSolver<ScalarType>::maximumValueElement(
+        const Matrix<Scalar> &sigma) const
+    {
+        const auto n = sigma.cols();
+
+        Component<Scalar> eigenElement(n);
+
+        if (n == static_cast<Index>(1))
+        {
+            eigenElement.value = sigma.value();
+            eigenElement.vector.setOnes();
+            return eigenElement;
+        }
+
+        Spectra::DenseSymMatProd<Scalar> op(sigma);
+
+        Spectra::SymEigsSolver<Spectra::DenseSymMatProd<Scalar>> symEigsSolver(
+            op, 1, m_Param.ncv);
+
+        symEigsSolver.init();
+        [[maybe_unused]] auto nconv =
+            symEigsSolver.compute(Spectra::SortRule::LargestAlge);
+
+        if (symEigsSolver.info() == Spectra::CompInfo::Successful)
+        {
+            eigenElement.value = symEigsSolver.eigenvalues()[0];
+            eigenElement.vector =
+                symEigsSolver.eigenvectors(1).col(0); // TODO use move
+        }
+
+        return eigenElement;
+    }
 
     template <std::floating_point ScalarType> class EigenSolver final
     {
