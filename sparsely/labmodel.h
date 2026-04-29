@@ -39,8 +39,7 @@ namespace sparsely
         bool init(const QString &fileName, bool newProject = true);
         bool saveProject(const QString &fileName) const;
         bool loadProject(const QString &fileName);
-        sparsepc::Component<double> &
-        computeStandardPC(ProgressDialog *progressBar);
+        Nominees &computeStandardPC(ProgressDialog *progressBar);
         Nominees &computeSparsePC(const Enums::Method &method,
                                   ProgressDialog *progressBar);
         bool removeLastStandardPC();
@@ -55,6 +54,8 @@ namespace sparsely
         QString getAddonName() const;
         void loadAddon(const QString &path);
         double computeVarianceRatio(double variance) const;
+
+        auto getValidatedStandardComponents() const;
 
         std::vector<std::reference_wrapper<sparsepc::Component<double>>>
             m_ValidatedComponents;

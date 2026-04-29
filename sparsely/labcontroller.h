@@ -27,9 +27,9 @@ namespace sparsely
         bool projectIsEmpty() const { return m_N == 0; }
 
       public slots:
-        void onAddNewSparseComponent();
-        void updatePlot(int value);
-        void onRemoveLastSparseComponentButton();
+        void onAddNewComponent();
+        void onValueChanged(int value);
+        void onRemoveLastComponent();
         void onSelectionChanged(int index);
 
       private:

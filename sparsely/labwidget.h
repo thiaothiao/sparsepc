@@ -79,8 +79,8 @@ namespace sparsely
         QStackedLayout *m_ProcessingsGoupboxStackedLayout;
         QComboBox *m_MethodComboBox;
         QComboBox *m_PlotTypeComboBox;
-        QPushButton *m_AddNewSparseComponentButton;
-        QPushButton *m_RemoveLastSparseComponentButton;
+        QPushButton *m_AddNewComponentButton;
+        QPushButton *m_RemoveLastComponentButton;
         QRadioButton *m_SparsePCRadioButton;
         QRadioButton *m_StandardPCRadioButton;
         QWidget *m_ButtonsWidget;

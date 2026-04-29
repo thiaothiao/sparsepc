@@ -59,14 +59,14 @@ namespace
         {
             QObject::disconnect(
                 &qSlider.get(), qOverload<int>(&QSlider::valueChanged),
-                &labController.get(), &sparsely::LabController::updatePlot);
+                &labController.get(), &sparsely::LabController::onValueChanged);
         }
 
         ~SliderDisconnectConnect()
         {
             QObject::connect(
                 &qSlider.get(), qOverload<int>(&QSlider::valueChanged),
-                &labController.get(), &sparsely::LabController::updatePlot);
+                &labController.get(), &sparsely::LabController::onValueChanged);
         }
 
         SliderDisconnectConnect(const SliderDisconnectConnect &) = delete;
@@ -124,13 +124,13 @@ namespace sparsely
                          &LabController::onSelectionChanged);
         QObject::connect(labWidget.m_Slider,
                          qOverload<int>(&QSlider::valueChanged), this,
-                         &LabController::updatePlot);
-        QObject::connect(labWidget.m_AddNewSparseComponentButton,
+                         &LabController::onValueChanged);
+        QObject::connect(labWidget.m_AddNewComponentButton,
                          &QPushButton::clicked, this,
-                         &LabController::onAddNewSparseComponent);
-        QObject::connect(labWidget.m_RemoveLastSparseComponentButton,
+                         &LabController::onAddNewComponent);
+        QObject::connect(labWidget.m_RemoveLastComponentButton,
                          &QPushButton::clicked, this,
-                         &LabController::onRemoveLastSparseComponentButton);
+                         &LabController::onRemoveLastComponent);
     }
 
     void LabController::welcome()
@@ -203,18 +203,17 @@ namespace sparsely
         }
     }
 
-    void LabController::onAddNewSparseComponent()
+    void LabController::onAddNewComponent()
     {
         auto &labWidget = m_LabWidget.get();
         auto &labModel = m_LabModel.get();
-
-        if (!labWidget.m_SparsePCRadioButton->isChecked())
+        const DeferredUpdateForPlots deferredUpdateForPlots(labWidget);
+        if (labWidget.m_StandardPCRadioButton->isChecked())
         {
-            const DeferredUpdateForPlots deferredUpdateForPlots(labWidget);
             const auto newStandardPCColor =
                 labWidget.m_Colors[labModel.m_StandardPCs.size()];
             NoEscapeQProgressDialog qProgressDialog(
-                "Computing standard pcs...", "Abort", 0, 100, &labWidget);
+                "Computing standard pcs...", "Abort", 0, m_N, &labWidget);
             ProgressDialog progressDialog(qProgressDialog);
 
             qProgressDialog.setStyleSheet(
@@ -225,15 +224,18 @@ namespace sparsely
             qProgressDialog.setWindowModality(Qt::WindowModal);
             qProgressDialog.setMinimumDuration(0);
 
-            const auto &component = labModel.computeStandardPC(&progressDialog);
+            const auto &standardPC =
+                labModel.computeStandardPC(&progressDialog);
 
-            progressDialog.setValue(100);
+            progressDialog.setValue(m_N);
             if (progressDialog.wasCanceled())
             {
                 labModel.removeLastStandardPC();
                 return;
             }
 
+            const auto &component =
+                standardPC.candidates.at(standardPC.iWinner);
             const auto cumulativeVariancePercentage =
                 labModel.computeVarianceRatio(
                     labModel.computeStandardCumulativeVariance()) *
@@ -290,7 +292,7 @@ namespace sparsely
             generateGraphName(componentRank, cumulativeVariancePercentage));
     }
 
-    void LabController::onRemoveLastSparseComponentButton()
+    void LabController::onRemoveLastComponent()
     {
         auto &labWidget = m_LabWidget.get();
         auto &labModel = m_LabModel.get();
@@ -315,7 +317,7 @@ namespace sparsely
         labWidget.removeLastSparsePCGraph(labModel.getiWinner());
     }
 
-    void LabController::updatePlot(int value)
+    void LabController::onValueChanged(int value)
     {
         auto &labWidget = m_LabWidget.get();
         auto &labModel = m_LabModel.get();
@@ -323,7 +325,7 @@ namespace sparsely
         {
             return;
         }
-
+        const DeferredUpdateForPlots deferredUpdateForPlots(labWidget);
         auto &sparsePC = labModel.m_SparsePCs.back();
         sparsePC.iWinner = value;
         const auto &component = sparsePC.candidates.at(sparsePC.iWinner);

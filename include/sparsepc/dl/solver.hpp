@@ -119,11 +119,30 @@ namespace sparsepc
 
             if (k > static_cast<Index>(0))
             {
+                if (progressBar)
+                {
+                    progressBar->setValue(n / 2);
+
+                    progressBar->processEvents();
+
+                    if (progressBar->wasCanceled())
+                    {
+                        return components;
+                    }
+                }
+
                 components.emplace(
                     std::min(k, n),
                     DynamicLibSolverModel<Scalar, EigenSolver, ProgressBar>{
                         param}
                         .run(sigma));
+
+                if (progressBar)
+                {
+                    progressBar->setValue(n);
+
+                    progressBar->processEvents();
+                }
 
                 return components;
             }

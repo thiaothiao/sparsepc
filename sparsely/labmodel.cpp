@@ -93,19 +93,43 @@ namespace sparsely
         return true;
     }
 
-    sparsepc::Component<double> &
-    LabModel::computeStandardPC(ProgressDialog *progressBar)
-    { // TODO really update the progress during computations
-        using Index = sparsepc::Index;
-        const DCA::Param param{std::vector<DCA::ModelParam>(
-            m_StandardPCs.size() + 1, {static_cast<Index>(m_N)})};
-        auto components = DCA{param}.run(m_Sigma);
-        m_StandardPCs.emplace_back();
-        auto &standardPC = m_StandardPCs.back();
+    auto LabModel::getValidatedStandardComponents() const
+    {
+        std::vector<std::reference_wrapper<const sparsepc::Component<double>>>
+            validatedStandardComponents;
+        validatedStandardComponents.reserve(m_StandardPCs.size());
+        for (const auto &standardPC : m_StandardPCs)
+        {
+            validatedStandardComponents.push_back(
+                standardPC.candidates.at(standardPC.iWinner));
+        }
+
+        return validatedStandardComponents;
+    }
+
+    Nominees &LabModel::computeStandardPC(ProgressDialog *progressBar)
+    {
+        const auto validatedStandardComponents =
+            getValidatedStandardComponents();
+        auto &standardPC = m_StandardPCs.emplace_back();
         standardPC.iWinner = m_N;
-        components.back().state = sparsepc::ComponentState::Validated;
-        return standardPC.candidates.emplace(m_N, std::move(components.back()))
-            .first->second;
+        standardPC.candidates = DCA::computeNextComponentCandidates(
+            m_Sigma, DCA::ModelParam{static_cast<sparsepc::Index>(m_N)},
+            validatedStandardComponents, progressBar);
+
+        for (auto &[k, candidate] : standardPC.candidates)
+        {
+            candidate.state = sparsepc::ComponentState::Unvalidated;
+        }
+
+        auto iter = standardPC.candidates.begin();
+        if (iter != standardPC.candidates.end())
+        {
+            standardPC.iWinner = iter->first;
+            iter->second.state = sparsepc::ComponentState::Validated;
+        }
+
+        return standardPC;
     }
 
     Nominees &LabModel::computeSparsePC(const Enums::Method &method,
@@ -162,6 +186,12 @@ namespace sparsely
         for (auto &[k, candidate] : sparsePC.candidates)
         {
             candidate.state = sparsepc::ComponentState::Unvalidated;
+        }
+
+        auto iter = sparsePC.candidates.cbegin();
+        if (iter != sparsePC.candidates.cend())
+        {
+            sparsePC.iWinner = iter->first;
         }
 
         return sparsePC;

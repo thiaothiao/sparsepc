@@ -255,10 +255,29 @@ namespace sparsepc
 
             if (k > static_cast<Index>(0))
             {
+                if (progressBar)
+                {
+                    progressBar->setValue(n / 2);
+
+                    progressBar->processEvents();
+
+                    if (progressBar->wasCanceled())
+                    {
+                        return components;
+                    }
+                }
+
                 components.emplace(
                     std::min(k, n),
                     BackwardGspcaModel<Scalar, EigenSolver, ProgressBar>{param}
                         .run(sigma));
+
+                if (progressBar)
+                {
+                    progressBar->setValue(n);
+
+                    progressBar->processEvents();
+                }
 
                 return components;
             }
@@ -473,10 +492,29 @@ namespace sparsepc
 
             if (k > static_cast<Index>(0))
             {
+                if (progressBar)
+                {
+                    progressBar->setValue(n / 2);
+
+                    progressBar->processEvents();
+
+                    if (progressBar->wasCanceled())
+                    {
+                        return components;
+                    }
+                }
+
                 components.emplace(
                     std::min(k, n),
                     ForwardGspcaModel<Scalar, EigenSolver, ProgressBar>{param}
                         .run(sigma));
+
+                if (progressBar)
+                {
+                    progressBar->setValue(n);
+
+                    progressBar->processEvents();
+                }
 
                 return components;
             }
@@ -654,10 +692,29 @@ namespace sparsepc
             {
                 ComponentsContainer components;
 
+                if (progressBar)
+                {
+                    progressBar->setValue(n / 2);
+
+                    progressBar->processEvents();
+
+                    if (progressBar->wasCanceled())
+                    {
+                        return components;
+                    }
+                }
+
                 components.emplace(
                     std::min(k, n),
                     ParallelGspcaModel<Scalar, EigenSolver, ProgressBar>{param}
                         .run(sigma));
+
+                if (progressBar)
+                {
+                    progressBar->setValue(n);
+
+                    progressBar->processEvents();
+                }
 
                 return components;
             }
