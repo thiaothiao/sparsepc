@@ -213,7 +213,7 @@ namespace sparsely
             const auto newStandardPCColor =
                 labWidget.m_Colors[labModel.m_StandardPCs.size()];
             NoEscapeQProgressDialog qProgressDialog(
-                "Computing standard pcs...", "Abort", 0, 100, &labWidget);
+                "Computing standard pcs...", "Abort", 0, m_N, &labWidget);
             ProgressDialog progressDialog(qProgressDialog);
 
             qProgressDialog.setStyleSheet(
@@ -227,7 +227,7 @@ namespace sparsely
             const auto &standardPC =
                 labModel.computeStandardPC(&progressDialog);
 
-            progressDialog.setValue(100);
+            progressDialog.setValue(m_N);
             if (progressDialog.wasCanceled())
             {
                 labModel.removeLastStandardPC();
