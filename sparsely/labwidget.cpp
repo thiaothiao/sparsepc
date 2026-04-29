@@ -375,11 +375,10 @@ namespace sparsely
         m_StandardPCRadioButton->setChecked(true);
         actionGroupBoxLayout->addWidget(m_StandardPCRadioButton);
         actionGroupBoxLayout->addWidget(m_SparsePCRadioButton);
-        m_AddNewSparseComponentButton = new QPushButton(tr("Add new"), this);
-        actionGroupBoxLayout->addWidget(m_AddNewSparseComponentButton);
-        m_RemoveLastSparseComponentButton =
-            new QPushButton(tr("Remove last"), this);
-        actionGroupBoxLayout->addWidget(m_RemoveLastSparseComponentButton);
+        m_AddNewComponentButton = new QPushButton(tr("Add new"), this);
+        actionGroupBoxLayout->addWidget(m_AddNewComponentButton);
+        m_RemoveLastComponentButton = new QPushButton(tr("Remove last"), this);
+        actionGroupBoxLayout->addWidget(m_RemoveLastComponentButton);
         // QObject::connect(m_Slider, qOverload<int>(&QSlider::valueChanged),
         //                  this, &LabWidget::updateSliderTitle);
         buttonsWidgetLayout->addStretch(1);

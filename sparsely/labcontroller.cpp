@@ -125,12 +125,12 @@ namespace sparsely
         QObject::connect(labWidget.m_Slider,
                          qOverload<int>(&QSlider::valueChanged), this,
                          &LabController::updatePlot);
-        QObject::connect(labWidget.m_AddNewSparseComponentButton,
+        QObject::connect(labWidget.m_AddNewComponentButton,
                          &QPushButton::clicked, this,
-                         &LabController::onAddNewSparseComponent);
-        QObject::connect(labWidget.m_RemoveLastSparseComponentButton,
+                         &LabController::onAddNewComponent);
+        QObject::connect(labWidget.m_RemoveLastComponentButton,
                          &QPushButton::clicked, this,
-                         &LabController::onRemoveLastSparseComponentButton);
+                         &LabController::onRemoveLastComponent);
     }
 
     void LabController::welcome()
@@ -203,7 +203,7 @@ namespace sparsely
         }
     }
 
-    void LabController::onAddNewSparseComponent()
+    void LabController::onAddNewComponent()
     {
         auto &labWidget = m_LabWidget.get();
         auto &labModel = m_LabModel.get();
@@ -290,7 +290,7 @@ namespace sparsely
             generateGraphName(componentRank, cumulativeVariancePercentage));
     }
 
-    void LabController::onRemoveLastSparseComponentButton()
+    void LabController::onRemoveLastComponent()
     {
         auto &labWidget = m_LabWidget.get();
         auto &labModel = m_LabModel.get();
