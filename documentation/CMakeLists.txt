@@ -10,7 +10,7 @@ if (Doxygen_FOUND)
     set(DOXYGEN_EXCLUDE_PATTERNS "*/test/*" "*/build/*")
 
     doxygen_add_docs(docs
-        ${PROJECT_SOURCE_DIR}/../sparsely
+        #${PROJECT_SOURCE_DIR}/../sparsely
         ${PROJECT_SOURCE_DIR}/../include
         COMMENT "Generating API documentation with Doxygen"
     )
