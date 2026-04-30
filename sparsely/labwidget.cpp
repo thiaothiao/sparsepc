@@ -283,7 +283,6 @@ namespace sparsely
         m_Plotter->zoomToFit();
         m_Plotter->resize(400, 300);
         plotGroupboxLayout->addWidget(m_Plotter);
-        // m_Plotter->redrawPlot();
 
         auto *sliderOrProgressWidget = new QWidget(this);
         layout->addWidget(sliderOrProgressWidget, 1, 0);
@@ -404,7 +403,6 @@ namespace sparsely
         m_Plotter->setPlotUpdateEnabled(false);
         clear(*m_Plotter);
         m_Plotter->setPlotUpdateEnabled(true);
-        // m_Plotter->redrawPlot();
         auto *datastore = m_Plotter->getDatastore();
         m_ColumnX = datastore->addLinearColumn(m_N, 0, m_N - 1);
         m_Slider->setRange(1, m_N);

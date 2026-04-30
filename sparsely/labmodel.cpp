@@ -45,30 +45,30 @@ namespace sparsely
     {
     }
 
-    auto LabModel::getValidatedStandardComponents() const
+    auto LabModel::getStandardComponents() const
     {
         std::vector<std::reference_wrapper<const sparsepc::Component<double>>>
-            validatedStandardComponents;
-        validatedStandardComponents.reserve(m_StandardPCs.size());
+            standardComponents;
+        standardComponents.reserve(m_StandardPCs.size());
         for (const auto &standardPC : m_StandardPCs)
         {
-            validatedStandardComponents.push_back(
+            standardComponents.push_back(
                 standardPC.candidates.at(standardPC.iWinner));
         }
 
-        return validatedStandardComponents;
+        return standardComponents;
     }
 
-    Nominees &LabModel::computeStandardPC(ProgressDialog *progressBar)
+    Nominees &
+    LabModel::computeNextRoundStandardComponent(ProgressDialog *progressBar)
     {
-        const auto validatedStandardComponents =
-            getValidatedStandardComponents();
+        const auto standardComponents = getStandardComponents();
         auto &standardPC = m_StandardPCs.emplace_back();
         standardPC.iWinner = m_N;
         standardPC.candidates = DCA::computeNextComponentCandidates(
             m_Sigma,
             DCA::ImplementationParam{static_cast<sparsepc::Index>(m_N)},
-            validatedStandardComponents, progressBar);
+            standardComponents, progressBar);
 
         for (auto &[k, candidate] : standardPC.candidates)
         {
@@ -85,8 +85,8 @@ namespace sparsely
         return standardPC;
     }
 
-    Nominees &LabModel::computeSparsePC(const Enums::Method &method,
-                                        ProgressDialog *progressBar)
+    Nominees &LabModel::computeNextRoundSparseComponentCandidates(
+        const Enums::Method &method, ProgressDialog *progressBar)
     {
         auto &sparsePC = m_SparsePCs.emplace_back();
         sparsePC.iWinner = m_N / 2;
@@ -150,7 +150,7 @@ namespace sparsely
         return sparsePC;
     }
 
-    bool LabModel::removeLastStandardPC()
+    bool LabModel::removeLastStandardComponent()
     {
         if (m_StandardPCs.empty())
         {
@@ -180,7 +180,7 @@ namespace sparsely
         return true;
     }
 
-    void LabModel::validateCurrentSparsePC()
+    void LabModel::validateCurrentSparseComponent()
     {
         if (!m_SparsePCs.empty())
         { // validate current selected sparse component
@@ -193,7 +193,8 @@ namespace sparsely
         }
     }
 
-    double LabModel::computeValidatedCumulativeVariance() const
+    double
+    LabModel::computePreviousSparseComponentRoundsCumulativeVariance() const
     {
         return std::ranges::fold_left(
             m_ValidatedComponents, 0.0,
@@ -202,7 +203,7 @@ namespace sparsely
             });
     }
 
-    double LabModel::computeStandardCumulativeVariance() const
+    double LabModel::computeStandardComponentsCumulativeVariance() const
     {
         return std::ranges::fold_left(
             m_StandardPCs, 0.0, [](double done, const Nominees &c) {
@@ -210,22 +211,12 @@ namespace sparsely
             });
     }
 
-    double LabModel::computeCumulativeVariance() const
-    {
-        return m_SparsePCs.empty()
-                   ? computeValidatedCumulativeVariance()
-                   : (computeValidatedCumulativeVariance() +
-                      m_SparsePCs.back()
-                          .candidates.at(m_SparsePCs.back().iWinner)
-                          .value);
-    }
-
     int LabModel::getiWinner() const
     {
         return m_SparsePCs.empty() ? 1 : m_SparsePCs.back().iWinner;
     }
 
-    int LabModel::getCurrentRank() const
+    int LabModel::getCurrentSparseComponentRound() const
     {
         return m_ValidatedComponents.size();
     }

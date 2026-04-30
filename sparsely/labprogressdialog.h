@@ -7,7 +7,7 @@ class QProgressDialog;
 namespace sparsely
 {
     class ProgressDialog
-    { // progress dialog wrapper
+    { // progress dialog wrapper used during computations
       public:
         ProgressDialog(QProgressDialog &aQProgressDialog);
 
