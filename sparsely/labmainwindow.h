@@ -1,14 +1,15 @@
 #pragma once
 
-#include <QMainWindow>
+#include <memory>
 
-#include <labmodel.h>
+#include <QMainWindow>
 
 class QWidget;
 class QCloseEvent;
 
 namespace sparsely
 {
+    class LabModel;
     class LabWidget;
     class LabController;
 
@@ -28,10 +29,11 @@ namespace sparsely
 
       public:
         LabMainWindow(QWidget *parent = nullptr);
+        ~LabMainWindow();
 
       private:
         void closeEvent(QCloseEvent *event) override;
-        LabModel m_LabModel;
+        std::unique_ptr<LabModel> m_LabModel;
         LabWidget *m_LabWidget;
         LabController *m_LabController;
     };

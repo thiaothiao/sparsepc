@@ -17,6 +17,7 @@
 
 #include <infos.h>
 #include <labcontroller.h>
+#include <labmodel.h>
 #include <labpreferencesdialog.h>
 #include <labwidget.h>
 
@@ -50,6 +51,8 @@ namespace
 
 namespace sparsely
 {
+    LabMainWindow::~LabMainWindow() = default;
+
     LabMainWindow::LabMainWindow(QWidget *parent) : QMainWindow(parent)
     {
         this->setWindowTitle(
@@ -117,7 +120,9 @@ namespace sparsely
         m_LabWidget = new LabWidget(this);
         mainWidgetLayout->addWidget(m_LabWidget);
 
-        m_LabController = new LabController(m_LabModel, *m_LabWidget, this);
+        m_LabModel = std::make_unique<LabModel>();
+
+        m_LabController = new LabController(*m_LabModel, *m_LabWidget, this);
         m_LabController->welcome();
 
         setCentralWidget(mainWidget);
