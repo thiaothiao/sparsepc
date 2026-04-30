@@ -22,15 +22,7 @@ namespace sparsely
             IMPULSES
         };
 
-        enum class SaveStatus : std::uint8_t
-        {
-            OK = 0U,
-            NOK,
-            EMPTY
-        };
-
         Q_ENUM_NS(Method)
         Q_ENUM_NS(PlotType)
-        Q_ENUM_NS(SaveStatus)
     }; // namespace Enums
 } // namespace sparsely

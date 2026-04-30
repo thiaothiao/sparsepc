@@ -17,6 +17,7 @@
 
 #include <infos.h>
 #include <labcontroller.h>
+#include <labmodel.h>
 #include <labpreferencesdialog.h>
 #include <labwidget.h>
 
@@ -50,6 +51,8 @@ namespace
 
 namespace sparsely
 {
+    LabMainWindow::~LabMainWindow() = default;
+
     LabMainWindow::LabMainWindow(QWidget *parent) : QMainWindow(parent)
     {
         this->setWindowTitle(
@@ -117,7 +120,9 @@ namespace sparsely
         m_LabWidget = new LabWidget(this);
         mainWidgetLayout->addWidget(m_LabWidget);
 
-        m_LabController = new LabController(m_LabModel, *m_LabWidget, this);
+        m_LabModel = std::make_unique<LabModel>();
+
+        m_LabController = new LabController(*m_LabModel, *m_LabWidget, this);
         m_LabController->welcome();
 
         setCentralWidget(mainWidget);
@@ -176,12 +181,12 @@ namespace sparsely
         return true;
     }
 
-    Enums::SaveStatus LabMainWindow::save(bool checked)
+    bool LabMainWindow::save(bool checked)
     {
         if (m_LabController->projectIsEmpty())
         {
             lauchMessageBox(tr("Nothing to save. Empty project."), this);
-            return Enums::SaveStatus::EMPTY;
+            return false;
         }
         const auto lastDir = getLastFolder();
         const auto fileName = QFileDialog::getSaveFileName(
@@ -189,16 +194,16 @@ namespace sparsely
 
         if (fileName.isEmpty())
         {
-            return Enums::SaveStatus::NOK;
+            return false;
         }
 
         saveLastFolder(QFileInfo(fileName).dir().path());
         if (!m_LabController->saveProject(fileName))
         {
             lauchMessageBox(tr("Save project failed."), this);
-            return Enums::SaveStatus::NOK;
+            return false;
         }
-        return Enums::SaveStatus::OK;
+        return true;
     }
 
     void LabMainWindow::close(bool checked) const { QCoreApplication::quit(); }
@@ -236,7 +241,7 @@ namespace sparsely
                 // Don't save
                 break;
             case QMessageBox::Save:
-                if (save(true) == Enums::SaveStatus::OK)
+                if (save(true))
                 { // Save
                     break;
                 }

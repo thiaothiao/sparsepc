@@ -1,15 +1,15 @@
 #pragma once
 
-#include <QMainWindow>
+#include <memory>
 
-#include <labenums.h>
-#include <labmodel.h>
+#include <QMainWindow>
 
 class QWidget;
 class QCloseEvent;
 
 namespace sparsely
 {
+    class LabModel;
     class LabWidget;
     class LabController;
 
@@ -20,7 +20,7 @@ namespace sparsely
       public slots:
         bool newFile(bool checked);
         bool open(bool checked);
-        Enums::SaveStatus save(bool checked);
+        bool save(bool checked);
         void close(bool checked) const;
         void showPreferences();
         void about();
@@ -29,10 +29,11 @@ namespace sparsely
 
       public:
         LabMainWindow(QWidget *parent = nullptr);
+        ~LabMainWindow();
 
       private:
         void closeEvent(QCloseEvent *event) override;
-        LabModel m_LabModel;
+        std::unique_ptr<LabModel> m_LabModel;
         LabWidget *m_LabWidget;
         LabController *m_LabController;
     };
