@@ -3,10 +3,11 @@
 #include <functional>
 
 #include <QObject>
-#include <QString>
 
+#include <labmodelhandler.h>
 #include <labpreferences.h>
 
+class QString;
 namespace sparsely
 {
     class LabModel;
@@ -41,5 +42,6 @@ namespace sparsely
         Preferences m_Preferences;
         std::reference_wrapper<LabWidget> m_LabWidget;
         std::reference_wrapper<LabModel> m_LabModel;
+        ModelHandler m_ModelHandler;
     };
 } // namespace sparsely

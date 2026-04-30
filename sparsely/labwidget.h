@@ -8,9 +8,6 @@
 #include <QVector>
 #include <QWidget>
 
-#include <labpreferences.h>
-#include <sparsepc/core.hpp>
-
 class QGroupBox;
 class QSlider;
 class QStackedLayout;
@@ -21,8 +18,15 @@ class QRadioButton;
 class JKQTPPlotElement;
 class JKQTPlotter;
 
+namespace sparsepc
+{
+    template <std::floating_point ScalarType> struct Component;
+}
+
 namespace sparsely
 {
+    struct Preferences;
+
     struct GraphInfo final
     {
         GraphInfo() : xColumn{0}, pcColumn{0}, color{}, graph{nullptr} {}

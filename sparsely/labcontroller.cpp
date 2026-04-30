@@ -10,6 +10,7 @@
 #include <QSlider>
 #include <QString>
 
+#include <labenums.h>
 #include <labmodel.h>
 #include <labprogressdialog.h>
 #include <labwidget.h>
@@ -110,10 +111,11 @@ namespace sparsely
 {
     LabController::LabController(LabModel &labModel, LabWidget &labWidget,
                                  QObject *parent)
-        : QObject(parent), m_LabModel{labModel}, m_LabWidget{labWidget}, m_N{0}
+        : QObject(parent), m_LabModel{labModel}, m_LabWidget{labWidget},
+          m_ModelHandler{labModel}, m_N{0}
     {
         m_Preferences.load();
-        m_LabModel.get().loadAddon(m_Preferences.addonsPath);
+        m_ModelHandler.loadAddon(m_Preferences.addonsPath);
     }
 
     void LabController::connectWidget()
@@ -144,7 +146,7 @@ namespace sparsely
     {
         auto &labWidget = m_LabWidget.get();
         auto &labModel = m_LabModel.get();
-        if (!labModel.init(fileName, newProject))
+        if (!m_ModelHandler.init(fileName, newProject))
         {
             return false;
         }
@@ -351,11 +353,11 @@ namespace sparsely
 
     bool LabController::saveProject(const QString &fileName) const
     {
-        return m_LabModel.get().saveProject(fileName);
+        return m_ModelHandler.saveProject(fileName);
     }
 
     bool LabController::loadProject(const QString &fileName)
     {
-        return m_LabModel.get().loadProject(fileName);
+        return m_ModelHandler.loadProject(fileName);
     }
 } // namespace sparsely
