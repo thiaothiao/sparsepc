@@ -37,10 +37,10 @@ namespace sparsely
     class LabModel final
     {
       public:
+        friend class ModelHandler;
+
         LabModel();
-        bool init(const QString &fileName, bool newProject = true);
-        bool saveProject(const QString &fileName) const;
-        bool loadProject(const QString &fileName);
+
         Nominees &computeStandardPC(ProgressDialog *progressBar);
         Nominees &computeSparsePC(const Enums::Method &method,
                                   ProgressDialog *progressBar);
@@ -54,7 +54,6 @@ namespace sparsely
         int getCurrentRank() const;
         int getN() const;
         QString getAddonName() const;
-        void loadAddon(const QString &path);
         double computeVarianceRatio(double variance) const;
 
         auto getValidatedStandardComponents() const;

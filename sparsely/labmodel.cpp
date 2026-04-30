@@ -35,14 +35,6 @@ namespace
         sparsepc::linearmodel::SparsePC<sparsepc::linearmodel::DynamicLibSolver<
             double, sparsepc::SpectraLibEigenSolver<double>,
             sparsely::ProgressDialog>>;
-
-    auto getPluginList(const QString &path)
-    {
-        const QDir dir(path);
-        QStringList filters;
-        filters << "*.dll" << "*.so" << "*.dylib";
-        return dir.entryInfoList(filters, QDir::Files | QDir::NoDotAndDotDot);
-    }
 } // namespace
 
 namespace sparsely
@@ -51,45 +43,6 @@ namespace sparsely
         : m_Sigma{}, m_ValidatedComponents{}, m_SparsePCs{}, m_StandardPCs{},
           m_N{0}, m_Trace{0.0}
     {
-    }
-
-    bool LabModel::init(const QString &fileName, bool newProject)
-    {
-        if (newProject)
-        {
-            { // TODO improve covariance computations
-                const sparsepc::Matrix<double> X =
-                    sparsepc::openData<double>(fileName.toStdString(), ';');
-
-                if (X.rows() <= 1)
-                {
-                    // TODO should popup one sample matrix.
-                    return false;
-                }
-
-                const sparsepc::Matrix<double> centeredX =
-                    X.rowwise() - X.colwise().mean();
-
-                // sample covariance formula
-                m_Sigma = (centeredX.adjoint() * centeredX) /
-                          static_cast<double>(X.rows() - 1);
-            }
-
-            m_N = m_Sigma.cols();
-            m_Trace = m_Sigma.trace();
-            m_StandardPCs.clear();
-            m_StandardPCs.reserve(m_N);
-            m_SparsePCs.clear();
-            m_SparsePCs.reserve(m_N);
-            m_ValidatedComponents.clear();
-            m_ValidatedComponents.reserve(m_N);
-        }
-        else
-        {
-            loadProject(fileName);
-        }
-
-        return true;
     }
 
     auto LabModel::getValidatedStandardComponents() const
@@ -285,167 +238,8 @@ namespace sparsely
                                                : m_DynamicLibSolverNames.at(0);
     }
 
-    void LabModel::loadAddon(const QString &path)
-    {
-        if (!m_DynamicLibSolverLoaders.empty())
-        {
-            return;
-        }
-
-        const auto pluginList = getPluginList(path);
-        if (!pluginList.empty())
-        {
-            m_DynamicLibSolverLoaders.reserve(pluginList.size());
-            m_DynamicLibSolverNames.reserve(pluginList.size());
-            foreach (const auto &fileInfo, pluginList)
-            {
-                QString noExtensionAbsolutePath =
-                    QDir(fileInfo.absolutePath()).filePath(fileInfo.baseName());
-                m_DynamicLibSolverLoaders.push_back(
-                    std::make_unique<QLibrary>(noExtensionAbsolutePath));
-                if (m_DynamicLibSolverLoaders.back()->load())
-                {
-                    m_DynamicLibSolverNames.push_back(fileInfo.baseName());
-                }
-                else
-                {
-                    m_DynamicLibSolverLoaders.pop_back();
-                }
-            }
-        }
-    }
-
     double LabModel::computeVarianceRatio(double variance) const
     {
         return variance / m_Trace;
-    }
-
-    // write operator
-    QDataStream &operator<<(QDataStream &out, const Nominees &user)
-    {
-        out << static_cast<qint32>(user.iWinner);
-        out << static_cast<qint32>(user.candidates.size());
-        for (auto &[k, component] : user.candidates)
-        {
-            out << static_cast<qint32>(k);
-            out << static_cast<qint32>(std::to_underlying(component.state));
-            out << static_cast<double>(component.value);
-            out << static_cast<qint32>(component.vector.size());
-            out.writeRawData(
-                reinterpret_cast<const char *>(component.vector.data()),
-                component.vector.size() * sizeof(double));
-            out << static_cast<qint32>(component.q.size());
-            if (component.q.size() != 0)
-            {
-                out.writeRawData(
-                    reinterpret_cast<const char *>(component.q.data()),
-                    component.q.size() * sizeof(double));
-            }
-        }
-        return out;
-    }
-
-    // read operator
-    QDataStream &operator>>(QDataStream &in, Nominees &user)
-    {
-        in >> user.iWinner;
-        qint32 candidatesSize = -1;
-        in >> candidatesSize;
-        for (qint32 j = 0; j < candidatesSize; ++j)
-        {
-            qint32 valInt = -1;
-            in >> valInt;
-            auto &component = user.candidates[valInt];
-            in >> valInt;
-            component.state = static_cast<sparsepc::ComponentState>(valInt);
-            auto val = static_cast<double>(-1);
-            in >> val;
-            component.value = val;
-            in >> valInt;
-            component.vector = sparsepc::Vector<double>(valInt);
-            in.readRawData(reinterpret_cast<char *>(component.vector.data()),
-                           valInt * sizeof(double));
-
-            in >> valInt;
-            if (valInt != 0)
-            {
-                component.q = sparsepc::Vector<double>(valInt);
-                in.readRawData(reinterpret_cast<char *>(component.q.data()),
-                               valInt * sizeof(double));
-            }
-        }
-
-        return in;
-    }
-
-    bool LabModel::saveProject(const QString &filename) const
-    {
-        QFile file(filename);
-        if (!file.open(QIODevice::WriteOnly))
-        {
-            return false;
-        }
-
-        // Serialization
-        QDataStream out(&file);
-        out.setVersion(QDataStream::Qt_6_0); // version for forward/backward
-                                             // compatibility
-        out << static_cast<qint32>(m_N);
-        out.writeRawData(reinterpret_cast<const char *>(m_Sigma.data()),
-                         m_N * m_N * sizeof(double));
-        const auto standardPCsSize = static_cast<qint32>(m_StandardPCs.size());
-        out << standardPCsSize;
-        for (qint32 j = 0; j < standardPCsSize; ++j)
-        {
-            out << m_StandardPCs[j];
-        }
-        const auto sparsePCsSize = static_cast<qint32>(m_SparsePCs.size());
-        out << sparsePCsSize;
-        for (qint32 j = 0; j < sparsePCsSize; ++j)
-        {
-            out << m_SparsePCs[j];
-        }
-        file.close();
-        return true;
-    }
-
-    bool LabModel::loadProject(const QString &fileName)
-    {
-        QFile file(fileName);
-        if (!file.open(QIODevice::ReadOnly))
-        {
-            return false;
-        }
-
-        // Deserialization
-        QDataStream in(&file);
-        in.setVersion(QDataStream::Qt_6_0);
-        qint32 intVal = -1;
-        in >> intVal;
-        m_N = intVal;
-        m_Sigma.resize(m_N, m_N);
-        in.readRawData(reinterpret_cast<char *>(m_Sigma.data()),
-                       m_N * m_N * sizeof(double));
-        m_Trace = m_Sigma.trace();
-        m_StandardPCs.clear();
-        m_StandardPCs.reserve(m_N);
-        m_SparsePCs.clear();
-        m_SparsePCs.reserve(m_N);
-        in >> intVal;
-        for (qint32 j = 0; j < intVal; ++j)
-        {
-            Nominees Nominees;
-            in >> Nominees;
-            m_StandardPCs.push_back(std::move(Nominees));
-        }
-        in >> intVal;
-        for (qint32 j = 0; j < intVal; ++j)
-        {
-            Nominees Nominees;
-            in >> Nominees;
-            m_SparsePCs.push_back(std::move(Nominees));
-        }
-        file.close();
-        return true;
     }
 } // namespace sparsely
