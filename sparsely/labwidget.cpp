@@ -21,9 +21,14 @@
 #include <QVBoxLayout>
 #include <utility>
 
+#include <labenums.h>
+#include <labpreferences.h>
+
 #include <jkqtplotter/graphs/jkqtpfilledcurve.h>
 #include <jkqtplotter/graphs/jkqtpimpulses.h>
 #include <jkqtplotter/jkqtplotter.h>
+
+#include <sparsepc/core.hpp>
 
 namespace
 {

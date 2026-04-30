@@ -3,12 +3,10 @@
 #include <ranges>
 #include <utility>
 
-#include <QDataStream>
-#include <QDir>
-#include <QFile>
 #include <QLibrary>
 #include <QString>
 
+#include <labenums.h>
 #include <labprogressdialog.h>
 
 namespace

@@ -3,10 +3,10 @@
 #include <functional>
 
 #include <QObject>
-#include <QString>
 
 #include <labpreferences.h>
 
+class QString;
 namespace sparsely
 {
     class LabModel;

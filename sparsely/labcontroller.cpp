@@ -10,6 +10,7 @@
 #include <QSlider>
 #include <QString>
 
+#include <labenums.h>
 #include <labmodel.h>
 #include <labprogressdialog.h>
 #include <labwidget.h>

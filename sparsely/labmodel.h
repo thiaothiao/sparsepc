@@ -11,13 +11,15 @@
 
 #include <sparsepc/core.hpp>
 
-#include <labenums.h>
-
 class QLibrary;
 
 namespace sparsely
 {
     class ProgressDialog;
+    namespace Enums
+    {
+        enum class Method : uint8_t;
+    }
 
     struct Nominees final
     {

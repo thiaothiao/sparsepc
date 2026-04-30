@@ -4,11 +4,9 @@
 
 namespace sparsely
 {
-    class Enums : public QObject
+    namespace Enums
     {
-        Q_OBJECT
-
-      public:
+        Q_NAMESPACE
         enum class Method : std::uint8_t
         {
             DCA = 0U,
@@ -31,8 +29,8 @@ namespace sparsely
             EMPTY
         };
 
-        Q_ENUM(Method)
-        Q_ENUM(PlotType)
-        Q_ENUM(SaveStatus)
-    };
+        Q_ENUM_NS(Method)
+        Q_ENUM_NS(PlotType)
+        Q_ENUM_NS(SaveStatus)
+    }; // namespace Enums
 } // namespace sparsely
