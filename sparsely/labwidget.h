@@ -42,6 +42,7 @@ namespace sparsely
         JKQTPPlotElement *graph;
     };
 
+    // The view part of the MVC.
     class LabWidget : public QWidget
     {
         Q_OBJECT

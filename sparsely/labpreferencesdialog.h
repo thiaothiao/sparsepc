@@ -49,7 +49,6 @@ namespace sparsely
         QDoubleSpinBox *m_SparseComponentsFillingColorsAlphaDoubleSpinBox;
         QComboBox *m_PlotTypeComboBox;
         QComboBox *m_MethodComboBox;
-        // QPushButton *m_AddonsPathPushButton;
         QLineEdit *m_AddonsPathLineEdit;
         QPushButton *m_SavePushButton;
     };

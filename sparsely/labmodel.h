@@ -21,6 +21,8 @@ namespace sparsely
         enum class Method : uint8_t;
     }
 
+    // Represents a set of sparse candidates and a selected one on a given
+    // principal component round.
     struct Nominees final
     {
         Nominees() : iWinner{-1}, candidates{} {}
@@ -29,11 +31,13 @@ namespace sparsely
         Nominees(Nominees &&) = default;
         Nominees &operator=(Nominees &&) = default;
 
-        int iWinner;
+        int iWinner; // The selected candidate location.
         std::unordered_map<sparsepc::Index, sparsepc::Component<double>>
-            candidates;
+            candidates; // The candidates container.
     };
 
+    // The model part of the MVC.
+    // It encapsulates processings and data handles.
     class LabModel final
     {
       public:
@@ -41,22 +45,34 @@ namespace sparsely
 
         LabModel();
 
-        Nominees &computeStandardPC(ProgressDialog *progressBar);
-        Nominees &computeSparsePC(const Enums::Method &method,
-                                  ProgressDialog *progressBar);
-        bool removeLastStandardPC();
+        // launch next round standard component computations
+        Nominees &
+        computeNextRoundStandardComponent(ProgressDialog *progressBar);
+        // launch next round sparse component candidates computations
+        Nominees &
+        computeNextRoundSparseComponentCandidates(const Enums::Method &method,
+                                                  ProgressDialog *progressBar);
+        // remove last computed standard component
+        // current standard component round component
+        bool removeLastStandardComponent();
+        // remove last computed sparse components
+        // all candidates from current sparse component round
         bool removeLastSparsePC();
-        double computeValidatedCumulativeVariance() const;
-        double computeCumulativeVariance() const;
-        double computeStandardCumulativeVariance() const;
-        void validateCurrentSparsePC();
+        // return previous rounds sparse components cumulative explained
+        // variances
+        double computePreviousSparseComponentRoundsCumulativeVariance() const;
+        // return standard components cumulative explained variances
+        double computeStandardComponentsCumulativeVariance() const;
+        // Validate current sparse component as the winner among the nominees.
+        void validateCurrentSparseComponent();
+        // return the winning sparse component location among the nominees
         int getiWinner() const;
-        int getCurrentRank() const;
+        // return current sparse component round
+        int getCurrentSparseComponentRound() const;
+        // return the ratio with respect to covariance matrix total variance
+        double computeVarianceRatio(double variance) const;
         int getN() const;
         QString getAddonName() const;
-        double computeVarianceRatio(double variance) const;
-
-        auto getValidatedStandardComponents() const;
 
         std::vector<std::reference_wrapper<sparsepc::Component<double>>>
             m_ValidatedComponents;
@@ -64,6 +80,8 @@ namespace sparsely
         std::vector<Nominees> m_StandardPCs;
 
       private:
+        auto getStandardComponents() const;
+
         sparsepc::Matrix<double> m_Sigma;
         sparsepc::Index m_N;
         double m_Trace;

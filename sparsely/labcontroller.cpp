@@ -191,17 +191,20 @@ namespace sparsely
             auto &component = sparsePC.candidates.at(sparsePC.iWinner);
             const auto cumulativeVariancePercentage =
                 labModel.computeVarianceRatio(
-                    labModel.computeValidatedCumulativeVariance() +
+                    labModel
+                        .computePreviousSparseComponentRoundsCumulativeVariance() +
                     component.value) *
                 100.0;
-            const auto componentRank = labModel.getCurrentRank();
+            const auto currentSparseComponentRound =
+                labModel.getCurrentSparseComponentRound();
             if (component.state == sparsepc::ComponentState::Validated)
             {
                 labModel.m_ValidatedComponents.push_back(component);
             }
             labWidget.addSparsePCGraph(
                 m_Preferences, component,
-                generateGraphName(componentRank, cumulativeVariancePercentage));
+                generateGraphName(currentSparseComponentRound,
+                                  cumulativeVariancePercentage));
         }
     }
 
@@ -227,12 +230,12 @@ namespace sparsely
             qProgressDialog.setMinimumDuration(0);
 
             const auto &standardPC =
-                labModel.computeStandardPC(&progressDialog);
+                labModel.computeNextRoundStandardComponent(&progressDialog);
 
             progressDialog.setValue(m_N);
             if (progressDialog.wasCanceled())
             {
-                labModel.removeLastStandardPC();
+                labModel.removeLastStandardComponent();
                 return;
             }
 
@@ -240,7 +243,7 @@ namespace sparsely
                 standardPC.candidates.at(standardPC.iWinner);
             const auto cumulativeVariancePercentage =
                 labModel.computeVarianceRatio(
-                    labModel.computeStandardCumulativeVariance()) *
+                    labModel.computeStandardComponentsCumulativeVariance()) *
                 100.0;
             labWidget.addStandardPCGraph(
                 m_Preferences, component,
@@ -252,7 +255,7 @@ namespace sparsely
         const SliderDisconnectConnect sliderDisconnectConnect(
             *labWidget.m_Slider, *this);
 
-        labModel.validateCurrentSparsePC();
+        labModel.validateCurrentSparseComponent();
 
         const auto newSparsePCColor =
             labWidget.m_Colors[labModel.m_SparsePCs.size()];
@@ -271,7 +274,8 @@ namespace sparsely
 
         const auto method =
             labWidget.m_MethodComboBox->currentData().value<Enums::Method>();
-        auto &sparsePC = labModel.computeSparsePC(method, &progressDialog);
+        auto &sparsePC = labModel.computeNextRoundSparseComponentCandidates(
+            method, &progressDialog);
 
         if (progressDialog.wasCanceled())
         {
@@ -284,14 +288,17 @@ namespace sparsely
         const auto &component = sparsePC.candidates.at(sparsePC.iWinner);
         const auto cumulativeVariancePercentage =
             labModel.computeVarianceRatio(
-                labModel.computeValidatedCumulativeVariance() +
+                labModel
+                    .computePreviousSparseComponentRoundsCumulativeVariance() +
                 component.value) *
             100.0;
-        const auto componentRank = labModel.getCurrentRank();
+        const auto currentSparseComponentRound =
+            labModel.getCurrentSparseComponentRound();
         labWidget.setSliderColor(newSparsePCColor);
         labWidget.addSparsePCGraph(
             m_Preferences, component,
-            generateGraphName(componentRank, cumulativeVariancePercentage));
+            generateGraphName(currentSparseComponentRound,
+                              cumulativeVariancePercentage));
     }
 
     void LabController::onRemoveLastComponent()
@@ -301,7 +308,7 @@ namespace sparsely
 
         if (labWidget.m_StandardPCRadioButton->isChecked())
         {
-            if (!labModel.removeLastStandardPC())
+            if (!labModel.removeLastStandardComponent())
             {
                 return;
             }
@@ -333,13 +340,15 @@ namespace sparsely
         const auto &component = sparsePC.candidates.at(sparsePC.iWinner);
         const auto cumulativeVariancePercentage =
             labModel.computeVarianceRatio(
-                labModel.computeValidatedCumulativeVariance() +
+                labModel
+                    .computePreviousSparseComponentRoundsCumulativeVariance() +
                 component.value) *
             100.0;
-        const auto componentRank = labModel.getCurrentRank();
+        const auto currentSparseComponentRound =
+            labModel.getCurrentSparseComponentRound();
         labWidget.updateLastSparsePCGraph(
-            component,
-            generateGraphName(componentRank, cumulativeVariancePercentage));
+            component, generateGraphName(currentSparseComponentRound,
+                                         cumulativeVariancePercentage));
     }
 
     void LabController::onSelectionChanged(int index)

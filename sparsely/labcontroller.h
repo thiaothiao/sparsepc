@@ -8,11 +8,13 @@
 #include <labpreferences.h>
 
 class QString;
+
 namespace sparsely
 {
     class LabModel;
     class LabWidget;
 
+    // The controller part of the MVC.
     class LabController final : public QObject
     {
         Q_OBJECT

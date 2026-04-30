@@ -7,19 +7,22 @@ namespace sparsely
     namespace Enums
     {
         Q_NAMESPACE
+
+        // Sparse principal component methods enumeration
         enum class Method : std::uint8_t
         {
-            DCA = 0U,
-            FGSPCA,
-            BGSPCA,
-            CUSTOM,
-            USERDYNAMICLIB
+            DCA = 0U,      // Dca based
+            FGSPCA,        // Gspca based, forward
+            BGSPCA,        // Gspca based, backward
+            CUSTOM,        // statically customizable user defined method
+            USERDYNAMICLIB // addon based user defined method
         };
 
+        // Graphs plot types enumeration
         enum class PlotType : std::uint8_t
         {
-            FILLED = 0U,
-            IMPULSES
+            FILLED = 0U, // filled plots
+            IMPULSES     // impulse plots
         };
 
         Q_ENUM_NS(Method)
