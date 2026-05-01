@@ -101,11 +101,14 @@ if(WIN32)
 	set_target_properties(${exeName} PROPERTIES WIN32_EXECUTABLE TRUE)
 elseif(APPLE)
 	set_target_properties(${exeName} PROPERTIES 
-		MACOSX_BUNDLE TRUE
-		MACOSX_BUNDLE_GUI_IDENTIFIER "com.inulo.sparsely"
-		MACOSX_BUNDLE_BUNDLE_NAME ${exeName}
-		MACOSX_BUNDLE_SHORT_VERSION_STRING ${appVersion}
-		MACOSX_BUNDLE_LONG_VERSION_STRING ${appVersion}
+            MACOSX_BUNDLE TRUE
+            MACOSX_BUNDLE_GUI_IDENTIFIER "com.inulo.sparsely"
+            MACOSX_BUNDLE_BUNDLE_NAME ${exeName}
+            MACOSX_BUNDLE_SHORT_VERSION_STRING ${appVersion}
+            MACOSX_BUNDLE_LONG_VERSION_STRING ${appVersion}
+            MACOSX_RPATH TRUE
+            BUILD_WITH_INSTALL_RPATH FALSE
+            INSTALL_RPATH "@executable_path/../Frameworks"
 	)	
 endif()
 
@@ -151,7 +154,7 @@ elseif(APPLE)
                     $<TARGET_FILE:JKQTPlotter6::JKQTMath6>
                     $<TARGET_FILE:JKQTPlotter6::JKQTMathText6>
                     $<TARGET_FILE:Qt6::Xml>
-        DESTINATION .
+        DESTINATION "${exeName}.app/Contents/Frameworks"
         COMPONENT ${appName}
     )
 else()# assuming linux. grab icons
@@ -181,6 +184,7 @@ qt6_generate_deploy_app_script(
 if (APPLE)
     install(TARGETS ${exeName}
         BUNDLE DESTINATION .
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         COMPONENT ${appName}
     )
 else()
