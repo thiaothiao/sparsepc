@@ -181,7 +181,6 @@ qt6_generate_deploy_app_script(
 if (APPLE)
     install(TARGETS ${exeName}
         BUNDLE DESTINATION .
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         COMPONENT ${appName}
     )
 else()
