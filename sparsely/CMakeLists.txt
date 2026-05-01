@@ -106,9 +106,6 @@ elseif(APPLE)
             MACOSX_BUNDLE_BUNDLE_NAME ${exeName}
             MACOSX_BUNDLE_SHORT_VERSION_STRING ${appVersion}
             MACOSX_BUNDLE_LONG_VERSION_STRING ${appVersion}
-            MACOSX_RPATH TRUE
-            BUILD_WITH_INSTALL_RPATH FALSE
-            INSTALL_RPATH "@executable_path/../Frameworks"
 	)	
 endif()
 
