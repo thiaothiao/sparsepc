@@ -35,7 +35,8 @@ Component.prototype.createOperations = function()
     }
 	else if (systemInfo.kernelType === "darwin") 
 	{
-        component.addOperation("CreateDesktopShortcut",
-            installPath + "/" + baseName + ".app", baseName); // Alias Name
+	    const desktopDir = installer.value("DesktopDir");
+        component.addOperation("CreateShortcut",
+            installPath + "/" + baseName + ".app", desktopDir + "/" + baseName + ".app"); // Alias Name
 	}
 }

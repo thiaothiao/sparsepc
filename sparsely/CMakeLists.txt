@@ -101,11 +101,11 @@ if(WIN32)
 	set_target_properties(${exeName} PROPERTIES WIN32_EXECUTABLE TRUE)
 elseif(APPLE)
 	set_target_properties(${exeName} PROPERTIES 
-		MACOSX_BUNDLE TRUE
-		MACOSX_BUNDLE_GUI_IDENTIFIER "com.inulo.sparsely"
-		MACOSX_BUNDLE_BUNDLE_NAME ${exeName}
-		MACOSX_BUNDLE_SHORT_VERSION_STRING ${appVersion}
-		MACOSX_BUNDLE_LONG_VERSION_STRING ${appVersion}
+            MACOSX_BUNDLE TRUE
+            MACOSX_BUNDLE_GUI_IDENTIFIER "com.inulo.sparsely"
+            MACOSX_BUNDLE_BUNDLE_NAME ${exeName}
+            MACOSX_BUNDLE_SHORT_VERSION_STRING ${appVersion}
+            MACOSX_BUNDLE_LONG_VERSION_STRING ${appVersion}
 	)	
 endif()
 
@@ -145,7 +145,16 @@ if(WIN32)# grab some dependencies
         DESTINATION ${CMAKE_INSTALL_BINDIR}
         COMPONENT ${appName}
     )
-elseif(LINUX)# grab icons
+elseif(APPLE)
+    install(FILES   $<TARGET_FILE:JKQTPlotter6::JKQTPlotter6>
+                    $<TARGET_FILE:JKQTPlotter6::JKQTCommon6>
+                    $<TARGET_FILE:JKQTPlotter6::JKQTMath6>
+                    $<TARGET_FILE:JKQTPlotter6::JKQTMathText6>
+                    $<TARGET_FILE:Qt6::Xml>
+        DESTINATION "${exeName}.app/Contents/Frameworks"
+        COMPONENT ${appName}
+    )
+else()# assuming linux. grab icons
     install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/images/icon.svg"
         DESTINATION "${CMAKE_INSTALL_DATADIR}/icons"
         COMPONENT "${appName}"
