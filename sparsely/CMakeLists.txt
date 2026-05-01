@@ -145,7 +145,16 @@ if(WIN32)# grab some dependencies
         DESTINATION ${CMAKE_INSTALL_BINDIR}
         COMPONENT ${appName}
     )
-elseif(LINUX)# grab icons
+elseif(APPLE)
+    install(FILES   $<TARGET_FILE:JKQTPlotter6::JKQTPlotter6>
+                    $<TARGET_FILE:JKQTPlotter6::JKQTCommon6>
+                    $<TARGET_FILE:JKQTPlotter6::JKQTMath6>
+                    $<TARGET_FILE:JKQTPlotter6::JKQTMathText6>
+                    $<TARGET_FILE:Qt6::Xml>
+        DESTINATION .
+        COMPONENT ${appName}
+    )
+else()# assuming linux. grab icons
     install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/images/icon.svg"
         DESTINATION "${CMAKE_INSTALL_DATADIR}/icons"
         COMPONENT "${appName}"
