@@ -150,7 +150,6 @@ elseif(APPLE)
                     $<TARGET_FILE:JKQTPlotter6::JKQTCommon6>
                     $<TARGET_FILE:JKQTPlotter6::JKQTMath6>
                     $<TARGET_FILE:JKQTPlotter6::JKQTMathText6>
-                    $<TARGET_FILE:Qt6::Xml>
         DESTINATION "${exeName}.app/Contents/Frameworks"
         COMPONENT ${appName}
     )
