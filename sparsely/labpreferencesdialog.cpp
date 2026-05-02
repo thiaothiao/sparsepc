@@ -39,8 +39,8 @@ namespace
             QString::fromStdString(std::string(sparsely::metadata::appVendor)),
             QString::fromStdString(std::string(sparsely::metadata::appName)));
 
-        const auto defaultPath =
-            QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+        const auto defaultPath = QStandardPaths::writableLocation(
+            QStandardPaths::AppLocalDataLocation);
         return settings.value("lastAddonFolder", defaultPath).toString();
     }
 } // namespace
