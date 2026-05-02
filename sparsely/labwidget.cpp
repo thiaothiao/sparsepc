@@ -19,6 +19,8 @@
 #include <QStackedLayout>
 #include <QString>
 #include <QVBoxLayout>
+#include <QtLogging>
+
 #include <utility>
 
 #include <labenums.h>
@@ -272,6 +274,7 @@ namespace sparsely
     }
     void LabWidget::welcome(const QString &addonName)
     {
+        qDebug() << "Welcoming ...";
         auto *layout = new QGridLayout(this);
         auto *plotGroupbox = new QGroupBox(this);
         layout->addWidget(plotGroupbox, 0, 0);
@@ -388,6 +391,8 @@ namespace sparsely
 
         m_ProcessingsGoupboxStackedLayout->setCurrentWidget(
             buttonsWelcomeWidget);
+
+        qDebug() << "... welcomed";
     }
 
     void LabWidget::updateWidget(const Preferences &preferences,

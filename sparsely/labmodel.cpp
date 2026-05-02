@@ -5,6 +5,7 @@
 
 #include <QLibrary>
 #include <QString>
+#include <QtLogging>
 
 #include <labenums.h>
 #include <labprogressdialog.h>
@@ -62,6 +63,7 @@ namespace sparsely
     Nominees &
     LabModel::computeNextRoundStandardComponent(ProgressDialog *progressBar)
     {
+        qDebug() << "Computing next round standard component ...";
         const auto standardComponents = getStandardComponents();
         auto &standardPC = m_StandardPCs.emplace_back();
         standardPC.iWinner = m_N;
@@ -82,12 +84,15 @@ namespace sparsely
             iter->second.state = sparsepc::ComponentState::Validated;
         }
 
+        qDebug() << "... next round standard component computed";
+
         return standardPC;
     }
 
     Nominees &LabModel::computeNextRoundSparseComponentCandidates(
         const Enums::Method &method, ProgressDialog *progressBar)
     {
+        qDebug() << "Computing next round sparse component candidates ...";
         auto &sparsePC = m_SparsePCs.emplace_back();
         sparsePC.iWinner = m_N / 2;
         switch (method)
@@ -147,6 +152,8 @@ namespace sparsely
             sparsePC.iWinner = iter->first;
         }
 
+        qDebug() << "... next round sparse component candidates computed";
+
         return sparsePC;
     }
 
@@ -190,6 +197,7 @@ namespace sparsely
             m_ValidatedComponents.push_back(candidates.at(iWinner));
             m_ValidatedComponents.back().get().state =
                 sparsepc::ComponentState::Validated;
+            qDebug() << " Sparse component candidate validated";
         }
     }
 
