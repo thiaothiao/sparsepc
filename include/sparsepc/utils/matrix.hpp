@@ -1,11 +1,5 @@
 #pragma once
 
-#include <concepts>
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <vector>
-
 #include <Eigen/Dense>
 
 namespace sparsepc
