@@ -6,9 +6,11 @@
 #include <QLibrary>
 #include <QString>
 
+#include <array>
 #include <concepts>
 #include <fstream>
 #include <iostream>
+#include <ranges>
 #include <string>
 #include <vector>
 
@@ -26,29 +28,58 @@ namespace
         return dir.entryInfoList(filters, QDir::Files | QDir::NoDotAndDotDot);
     }
 
-    char delimiteridentifier(const std::string &line)
+    char findSeparator(const std::string &line)
     {
-        constexpr std::array<char, 4> delimiters{',', ';', '|', '\t'};
-        for (auto delimiter : delimiters)
+        static constexpr std::array<char, 4> separators{',', ';', '|', '\t'};
+        for (auto separator : separators)
         {
-            if (line.find(delimiter) != std::string::npos)
+            if (line.find(separator) != std::string::npos)
             {
-                return delimiter;
+                return separator;
             }
         }
         return '\0';
     }
 
-    char delimiteridentifier(std::ifstream &file)
+    char findSeparator(std::ifstream &file, int &numberOfColumns)
     {
         std::string line;
         if (std::getline(file, line))
         {
-            const auto delimiter = delimiteridentifier(line);
-            file.clear();
-            if (file.seekg(0, std::ios::beg))
+            const auto separator = findSeparator(line);
+            if (separator)
             {
-                return delimiter;
+                file.clear();
+                auto candidateHeader =
+                    line | std::views::split(separator) |
+                    std::ranges::to<std::vector<std::string>>();
+                numberOfColumns = static_cast<int>(candidateHeader.size());
+                bool hasHeader = false;
+                for (const auto &word : candidateHeader)
+                { // assuming at least one non-empty element is not a number
+                    if (word.empty())
+                    {
+                        return '\0';
+                    }
+
+                    try
+                    {
+                        [[maybe_unused]] const auto scalarValue =
+                            std::stod(word);
+                    }
+                    catch (...)
+                    {
+                        hasHeader = true;
+                        break;
+                    }
+                }
+
+                if (!hasHeader && !file.seekg(0, std::ios::beg))
+                { // cannot fallback to the beginning of the file. Leave!
+                    return '\0';
+                }
+
+                return separator;
             }
         }
 
@@ -62,8 +93,10 @@ namespace
         std::ifstream matrixDataFile(fileToOpen);
         if (matrixDataFile.is_open() && !matrixDataFile.eof())
         { // TODO optimize memory usage
-            const auto sep = delimiteridentifier(matrixDataFile);
-            if (!sep)
+            int matrixColumnNumber = 0;
+            const auto separator =
+                findSeparator(matrixDataFile, matrixColumnNumber);
+            if (!separator)
             {
                 std::cout << "Fatal error: Cannot identify separator."
                           << std::endl;
@@ -75,33 +108,25 @@ namespace
             std::string matrixRowString;
             std::string matrixEntry;
             int matrixRowNumber = 0;
-            int matrixColumnNumber = 0;
-            bool columnNumberInitialized = false;
 
             while (std::getline(matrixDataFile, matrixRowString))
             {
                 std::stringstream matrixRowStringStream(matrixRowString);
                 int currentColumnNumber = 0;
-                while (std::getline(matrixRowStringStream, matrixEntry, sep))
+                while (
+                    std::getline(matrixRowStringStream, matrixEntry, separator))
                 {
                     matrixEntries.push_back(
                         static_cast<Scalar>(std::stod(matrixEntry)));
                     ++currentColumnNumber;
                 }
 
-                if (columnNumberInitialized)
+                if (matrixColumnNumber != currentColumnNumber)
                 {
-                    if (matrixColumnNumber != currentColumnNumber)
-                    {
-                        std::cout << "Fatal error: Non constant column number."
-                                  << std::endl;
-                        return {};
-                    }
-                }
-                else
-                {
-                    matrixColumnNumber = currentColumnNumber;
-                    columnNumberInitialized = true;
+                    std::cout << "Fatal error: Non constant column number."
+                              << matrixColumnNumber << " vs "
+                              << currentColumnNumber << std::endl;
+                    return {};
                 }
 
                 if (matrixRowStringStream.bad())
