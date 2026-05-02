@@ -114,9 +114,6 @@ namespace
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    qInstallMessageHandler(messageHandler);
-    qInfo() << "Sparsely start";
-
     QApplication::setStyle("fusion"); // force fusion style
     app.setApplicationName(
         QString::fromStdString(std::string(sparsely::metadata::appName)));
@@ -126,12 +123,16 @@ int main(int argc, char *argv[])
         QString::fromStdString(std::string(sparsely::metadata::appDomain)));
     app.setApplicationVersion(
         QString::fromStdString(std::string(sparsely::metadata::appVersion)));
-
     app.setWindowIcon(QIcon(":/icons/window.png"));
+
+    qInstallMessageHandler(messageHandler);
+    qInfo() << "Sparsely start";
+
     QPixmap pixmap(":/images/welcome.png");
     QSplashScreen splash(pixmap);
     splash.setMask(pixmap.mask());
     splash.show();
+
     app.processEvents();
     {
         using namespace std::chrono_literals;

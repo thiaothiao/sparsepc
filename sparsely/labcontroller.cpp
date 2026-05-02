@@ -9,6 +9,7 @@
 #include <QRadioButton>
 #include <QSlider>
 #include <QString>
+#include <QtLogging>
 
 #include <labenums.h>
 #include <labmodel.h>
@@ -144,10 +145,12 @@ namespace sparsely
 
     bool LabController::init(const QString &fileName, bool newProject)
     {
+        qDebug() << "Initializing controller ...";
         auto &labWidget = m_LabWidget.get();
         auto &labModel = m_LabModel.get();
         if (!m_ModelHandler.init(fileName, newProject))
         {
+            qCritical() << "Cannot initialize Model Handler";
             return false;
         }
         m_N = labModel.getN();
@@ -158,11 +161,13 @@ namespace sparsely
         addSparsePCGraphs();
         labWidget.reInitSlider(labModel.getiWinner());
         connectWidget();
+        qDebug() << "... controller initialized";
         return true;
     }
 
     void LabController::addStandardPCGraphs()
     {
+        qDebug() << "Adding bulk standard component graphs ...";
         auto &labWidget = m_LabWidget.get();
         auto &labModel = m_LabModel.get();
         auto cummulativeVarianceStandardPCs = static_cast<double>(0);
@@ -178,10 +183,12 @@ namespace sparsely
                 m_Preferences, component,
                 generateGraphName(j, cumulativeVariancePercentage));
         }
+        qDebug() << "... bulk standard component graphs added";
     }
 
     void LabController::addSparsePCGraphs()
     {
+        qDebug() << "Adding bulk sparse component graphs ...";
         auto &labWidget = m_LabWidget.get();
         auto &labModel = m_LabModel.get();
         labModel.m_ValidatedComponents.clear();
@@ -206,10 +213,12 @@ namespace sparsely
                 generateGraphName(currentSparseComponentRound,
                                   cumulativeVariancePercentage));
         }
+        qDebug() << "... bulk sparse component graphs added";
     }
 
     void LabController::onAddNewComponent()
     {
+        qDebug() << "Adding new component ...";
         auto &labWidget = m_LabWidget.get();
         auto &labModel = m_LabModel.get();
         const DeferredUpdateForPlots deferredUpdateForPlots(labWidget);
@@ -236,6 +245,7 @@ namespace sparsely
             if (progressDialog.wasCanceled())
             {
                 labModel.removeLastStandardComponent();
+                qDebug() << "Progress cancelled";
                 return;
             }
 
@@ -249,6 +259,7 @@ namespace sparsely
                 m_Preferences, component,
                 generateGraphName(labModel.m_StandardPCs.size() - 1,
                                   cumulativeVariancePercentage));
+            qDebug() << "... standard component added";
             return;
         }
 
@@ -280,6 +291,7 @@ namespace sparsely
         if (progressDialog.wasCanceled())
         {
             labModel.removeLastSparsePC();
+            qDebug() << "Progress cancelled";
             return;
         }
 
@@ -299,10 +311,12 @@ namespace sparsely
             m_Preferences, component,
             generateGraphName(currentSparseComponentRound,
                               cumulativeVariancePercentage));
+        qDebug() << "... sparse candidates added";
     }
 
     void LabController::onRemoveLastComponent()
     {
+        qDebug() << "Removing last component ...";
         auto &labWidget = m_LabWidget.get();
         auto &labModel = m_LabModel.get();
 
@@ -310,20 +324,23 @@ namespace sparsely
         {
             if (!labModel.removeLastStandardComponent())
             {
+                qDebug() << "... no standard component removed";
                 return;
             }
 
             labWidget.removeLastStandardPCGraph();
-
+            qDebug() << "... last standard component removed";
             return;
         }
 
         if (!labModel.removeLastSparsePC())
         {
+            qDebug() << "... no sparse component removed";
             return;
         }
 
         labWidget.removeLastSparsePCGraph(labModel.getiWinner());
+        qDebug() << "... last sparse component removed";
     }
 
     void LabController::onValueChanged(int value)

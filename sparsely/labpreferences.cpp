@@ -9,6 +9,7 @@
 #include <QStandardPaths>
 #include <QString>
 #include <QVariantList>
+#include <QtLogging>
 
 namespace
 {
@@ -193,6 +194,7 @@ namespace sparsely
         }
 
         fromJson(loadJson(dir.absoluteFilePath("sparsely.json")));
+        qDebug() << "Preferences loaded";
     }
 
     void Preferences::save() const
@@ -220,5 +222,6 @@ namespace sparsely
         }
 
         saveJson(toJson(), dir.absoluteFilePath("sparsely.json"));
+        qDebug() << "Preferences saved";
     }
 } // namespace sparsely

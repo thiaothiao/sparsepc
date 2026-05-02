@@ -5,6 +5,7 @@
 #include <QFile>
 #include <QLibrary>
 #include <QString>
+#include <QtLogging>
 
 #include <array>
 #include <concepts>
@@ -35,9 +36,11 @@ namespace
         {
             if (line.find(separator) != std::string::npos)
             {
+                qDebug() << "Separator found:" << separator;
                 return separator;
             }
         }
+        qDebug() << "Separator not found";
         return '\0';
     }
 
@@ -59,6 +62,8 @@ namespace
                 { // assuming at least one non-empty element is not a number
                     if (word.empty())
                     {
+                        qDebug() << "Empty element somewhere on the first "
+                                    "line of the file";
                         return '\0';
                     }
 
@@ -70,12 +75,14 @@ namespace
                     catch (...)
                     {
                         hasHeader = true;
+                        qDebug() << "Data has header";
                         break;
                     }
                 }
 
                 if (!hasHeader && !file.seekg(0, std::ios::beg))
                 { // cannot fallback to the beginning of the file. Leave!
+                    qDebug() << "Cannot seek at the beginning of the file";
                     return '\0';
                 }
 
@@ -83,6 +90,7 @@ namespace
             }
         }
 
+        qDebug() << "Cannot seek at the beginning of the file";
         return '\0';
     }
 
@@ -98,8 +106,7 @@ namespace
                 findSeparator(matrixDataFile, matrixColumnNumber);
             if (!separator)
             {
-                std::cout << "Fatal error: Cannot identify separator."
-                          << std::endl;
+                // qCritical() << "Cannot find a separator:" << fileToOpen;
                 return {};
             }
 
@@ -123,17 +130,16 @@ namespace
 
                 if (matrixColumnNumber != currentColumnNumber)
                 {
-                    std::cout << "Fatal error: Non constant column number."
-                              << matrixColumnNumber << " vs "
-                              << currentColumnNumber << std::endl;
+                    qCritical()
+                        << "Non constant column number:" << matrixColumnNumber
+                        << "vs" << currentColumnNumber << ":" << fileToOpen;
                     return {};
                 }
 
                 if (matrixRowStringStream.bad())
                 {
-                    std::cout << "Fatal error: Stream corrupted or "
-                                 "hardware failure."
-                              << std::endl;
+                    qCritical() << "Stream corrupted or hardware failure:"
+                                << fileToOpen;
                     return {};
                 }
 
@@ -142,9 +148,8 @@ namespace
 
             if (matrixDataFile.bad())
             {
-                std::cout << "Fatal error: file data corrupted or "
-                             "hardware failure."
-                          << std::endl;
+                qCritical()
+                    << "File data corrupted or hardware failure:" << fileToOpen;
                 return {};
             }
 
@@ -155,15 +160,18 @@ namespace
                     Eigen::Map<sparsepc::RMMatrix<Scalar>>(matrixEntries.data(),
                                                            matrixRowNumber,
                                                            matrixColumnNumber);
+                qDebug() << "Matrix size:" << matrixRowNumber << "x"
+                         << matrixColumnNumber;
                 return matrix;
             }
         }
 
+        qCritical() << "Cannot load data:" << fileToOpen;
         return {};
     }
     catch (...)
     {
-        std::cout << "An exception pops up!!!" << std::endl;
+        qCritical() << "An exception pops up:" << fileToOpen;
         return {};
     }
 
@@ -235,6 +243,7 @@ namespace sparsely
 
     bool ModelHandler::init(const QString &fileName, bool newProject)
     {
+        qDebug() << "Initializing model handler...";
         auto &n = m_Model.get().m_N;
         auto &sigma = m_Model.get().m_Sigma;
         auto &trace = m_Model.get().m_Trace;
@@ -250,7 +259,7 @@ namespace sparsely
 
                 if (X.rows() <= 1)
                 {
-                    // TODO should popup one sample matrix.
+                    qCritical() << "Load data as matrix failed:" << fileName;
                     return false;
                 }
 
@@ -276,14 +285,17 @@ namespace sparsely
             loadProject(fileName);
         }
 
+        qDebug() << "...model handler initialized";
         return true;
     }
 
     bool ModelHandler::saveProject(const QString &fileName) const
     {
+        qDebug() << "Saving project...";
         QFile file(fileName);
         if (!file.open(QIODevice::WriteOnly))
         {
+            qCritical() << "Cannot open file for write only:" << fileName;
             return false;
         }
 
@@ -312,14 +324,17 @@ namespace sparsely
             out << sparsePCs[j];
         }
         file.close();
+        qDebug() << "... project saved";
         return true;
     }
 
     bool ModelHandler::loadProject(const QString &fileName)
     {
+        qDebug() << "Loading project...";
         QFile file(fileName);
         if (!file.open(QIODevice::ReadOnly))
         {
+            qCritical() << "Cannot open file for read only:" << fileName;
             return false;
         }
 
@@ -358,6 +373,7 @@ namespace sparsely
             sparsePCs.push_back(std::move(Nominees));
         }
         file.close();
+        qDebug() << "... project loaded";
         return true;
     }
 
@@ -365,9 +381,10 @@ namespace sparsely
     {
         auto &dynamicLibSolverLoaders = m_Model.get().m_DynamicLibSolverLoaders;
         auto &dynamicLibSolverNames = m_Model.get().m_DynamicLibSolverNames;
-
+        qDebug() << "Loading addon ...";
         if (!dynamicLibSolverLoaders.empty())
         {
+            qDebug() << "Addon already loaded";
             return;
         }
 
@@ -391,6 +408,12 @@ namespace sparsely
                     dynamicLibSolverLoaders.pop_back();
                 }
             }
+
+            qDebug() << "... addon loaded";
+        }
+        else
+        {
+            qDebug() << "No plugin";
         }
     }
 } // namespace sparsely
