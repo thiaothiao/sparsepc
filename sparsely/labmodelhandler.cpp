@@ -6,7 +6,17 @@
 #include <QLibrary>
 #include <QString>
 
+#include <array>
+#include <concepts>
+#include <fstream>
+#include <iostream>
+#include <ranges>
+#include <string>
+#include <vector>
+
 #include <labmodel.h>
+
+#include <sparsepc/core.hpp>
 
 namespace
 {
@@ -17,12 +27,148 @@ namespace
         filters << "*.dll" << "*.so" << "*.dylib";
         return dir.entryInfoList(filters, QDir::Files | QDir::NoDotAndDotDot);
     }
-} // namespace
 
-namespace sparsely
-{
+    char findSeparator(const std::string &line)
+    {
+        static constexpr std::array<char, 4> separators{',', ';', '|', '\t'};
+        for (auto separator : separators)
+        {
+            if (line.find(separator) != std::string::npos)
+            {
+                return separator;
+            }
+        }
+        return '\0';
+    }
+
+    char findSeparator(std::ifstream &file, int &numberOfColumns)
+    {
+        std::string line;
+        if (std::getline(file, line))
+        {
+            const auto separator = findSeparator(line);
+            if (separator)
+            {
+                file.clear();
+                auto candidateHeader =
+                    line | std::views::split(separator) |
+                    std::ranges::to<std::vector<std::string>>();
+                numberOfColumns = static_cast<int>(candidateHeader.size());
+                bool hasHeader = false;
+                for (const auto &word : candidateHeader)
+                { // assuming at least one non-empty element is not a number
+                    if (word.empty())
+                    {
+                        return '\0';
+                    }
+
+                    try
+                    {
+                        [[maybe_unused]] const auto scalarValue =
+                            std::stod(word);
+                    }
+                    catch (...)
+                    {
+                        hasHeader = true;
+                        break;
+                    }
+                }
+
+                if (!hasHeader && !file.seekg(0, std::ios::beg))
+                { // cannot fallback to the beginning of the file. Leave!
+                    return '\0';
+                }
+
+                return separator;
+            }
+        }
+
+        return '\0';
+    }
+
+    template <std::floating_point ScalarType>
+    sparsepc::Matrix<ScalarType> openData(std::string fileToOpen)
+    try
+    {
+        std::ifstream matrixDataFile(fileToOpen);
+        if (matrixDataFile.is_open() && !matrixDataFile.eof())
+        { // TODO optimize memory usage
+            int matrixColumnNumber = 0;
+            const auto separator =
+                findSeparator(matrixDataFile, matrixColumnNumber);
+            if (!separator)
+            {
+                std::cout << "Fatal error: Cannot identify separator."
+                          << std::endl;
+                return {};
+            }
+
+            using Scalar = ScalarType;
+            std::vector<Scalar> matrixEntries;
+            std::string matrixRowString;
+            std::string matrixEntry;
+            int matrixRowNumber = 0;
+
+            while (std::getline(matrixDataFile, matrixRowString))
+            {
+                std::stringstream matrixRowStringStream(matrixRowString);
+                int currentColumnNumber = 0;
+                while (
+                    std::getline(matrixRowStringStream, matrixEntry, separator))
+                {
+                    matrixEntries.push_back(
+                        static_cast<Scalar>(std::stod(matrixEntry)));
+                    ++currentColumnNumber;
+                }
+
+                if (matrixColumnNumber != currentColumnNumber)
+                {
+                    std::cout << "Fatal error: Non constant column number."
+                              << matrixColumnNumber << " vs "
+                              << currentColumnNumber << std::endl;
+                    return {};
+                }
+
+                if (matrixRowStringStream.bad())
+                {
+                    std::cout << "Fatal error: Stream corrupted or "
+                                 "hardware failure."
+                              << std::endl;
+                    return {};
+                }
+
+                ++matrixRowNumber;
+            }
+
+            if (matrixDataFile.bad())
+            {
+                std::cout << "Fatal error: file data corrupted or "
+                             "hardware failure."
+                          << std::endl;
+                return {};
+            }
+
+            if (matrixRowNumber > 0 && matrixColumnNumber > 0 &&
+                !matrixEntries.empty())
+            {
+                const sparsepc::RMMatrix<ScalarType> matrix =
+                    Eigen::Map<sparsepc::RMMatrix<Scalar>>(matrixEntries.data(),
+                                                           matrixRowNumber,
+                                                           matrixColumnNumber);
+                return matrix;
+            }
+        }
+
+        return {};
+    }
+    catch (...)
+    {
+        std::cout << "An exception pops up!!!" << std::endl;
+        return {};
+    }
+
     // write operator
-    QDataStream &operator<<(QDataStream &out, const Nominees &user)
+    QDataStream &operator<<(QDataStream &out, const sparsely::Nominees &user)
     {
         out << static_cast<qint32>(user.iWinner);
         out << static_cast<qint32>(user.candidates.size());
@@ -47,7 +193,7 @@ namespace sparsely
     }
 
     // read operator
-    QDataStream &operator>>(QDataStream &in, Nominees &user)
+    QDataStream &operator>>(QDataStream &in, sparsely::Nominees &user)
     {
         in >> user.iWinner;
         qint32 candidatesSize = -1;
@@ -79,6 +225,10 @@ namespace sparsely
         return in;
     }
 
+} // namespace
+
+namespace sparsely
+{
     ModelHandler::ModelHandler(LabModel &modelToBuild) : m_Model{modelToBuild}
     {
     }
@@ -96,7 +246,7 @@ namespace sparsely
         {
             { // TODO improve covariance computations
                 const sparsepc::Matrix<double> X =
-                    sparsepc::openData<double>(fileName.toStdString(), ';');
+                    openData<double>(fileName.toStdString());
 
                 if (X.rows() <= 1)
                 {
