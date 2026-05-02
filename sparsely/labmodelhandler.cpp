@@ -6,7 +6,11 @@
 #include <QLibrary>
 #include <QString>
 
+#include <string>
+
 #include <labmodel.h>
+
+#include <sparsepc/core.hpp>
 
 namespace
 {
@@ -17,12 +21,125 @@ namespace
         filters << "*.dll" << "*.so" << "*.dylib";
         return dir.entryInfoList(filters, QDir::Files | QDir::NoDotAndDotDot);
     }
-} // namespace
 
-namespace sparsely
-{
+    char delimiteridentifier(const std::string &line)
+    {
+        constexpr std::array<char, 4> delimiters{',', ';', '|', '\t'};
+        for (auto delimiter : delimiters)
+        {
+            if (line.find(delimiter) != std::string::npos)
+            {
+                return delimiter;
+            }
+        }
+        return '\0';
+    }
+
+    char delimiteridentifier(std::ifstream &file)
+    {
+        std::string line;
+        if (std::getline(file, line))
+        {
+            const auto delimiter = delimiteridentifier(line);
+            file.clear();
+            if (file.seekg(0, std::ios::beg))
+            {
+                return delimiter;
+            }
+        }
+
+        return '\0';
+    }
+
+    template <std::floating_point ScalarType>
+    sparsepc::Matrix<ScalarType> openData(std::string fileToOpen)
+    try
+    {
+        std::ifstream matrixDataFile(fileToOpen);
+        if (matrixDataFile.is_open() && !matrixDataFile.eof())
+        { // TODO optimize memory usage
+            const auto sep = delimiteridentifier(matrixDataFile);
+            if (!sep)
+            {
+                std::cout << "Fatal error: Cannot identify separator."
+                          << std::endl;
+                return {};
+            }
+
+            using Scalar = ScalarType;
+            std::vector<Scalar> matrixEntries;
+            std::string matrixRowString;
+            std::string matrixEntry;
+            int matrixRowNumber = 0;
+            int matrixColumnNumber = 0;
+            bool columnNumberInitialized = false;
+
+            while (std::getline(matrixDataFile, matrixRowString))
+            {
+                std::stringstream matrixRowStringStream(matrixRowString);
+                int currentColumnNumber = 0;
+                while (std::getline(matrixRowStringStream, matrixEntry, sep))
+                {
+                    matrixEntries.push_back(
+                        static_cast<Scalar>(std::stod(matrixEntry)));
+                    ++currentColumnNumber;
+                }
+
+                if (columnNumberInitialized)
+                {
+                    if (matrixColumnNumber != currentColumnNumber)
+                    {
+                        std::cout << "Fatal error: Non constant column number."
+                                  << std::endl;
+                        return {};
+                    }
+                }
+                else
+                {
+                    matrixColumnNumber = currentColumnNumber;
+                    columnNumberInitialized = true;
+                }
+
+                if (matrixRowStringStream.bad())
+                {
+                    std::cout << "Fatal error: Stream corrupted or "
+                                 "hardware failure."
+                              << std::endl;
+                    return {};
+                }
+
+                ++matrixRowNumber;
+            }
+
+            if (matrixDataFile.bad())
+            {
+                std::cout << "Fatal error: file data corrupted or "
+                             "hardware failure."
+                          << std::endl;
+                return {};
+            }
+
+            if (matrixRowNumber > 0 && matrixColumnNumber > 0 &&
+                !matrixEntries.empty())
+            {
+                const sparsepc::RMMatrix<ScalarType> matrix =
+                    Eigen::Map<sparsepc::RMMatrix<Scalar>>(matrixEntries.data(),
+                                                           matrixRowNumber,
+                                                           matrixColumnNumber);
+                return matrix;
+            }
+        }
+
+        return {};
+    }
+    catch (...)
+    {
+        std::cout << "An exception pops up!!!" << std::endl;
+        return {};
+    }
+
     // write operator
-    QDataStream &operator<<(QDataStream &out, const Nominees &user)
+    QDataStream &operator<<(QDataStream &out, const sparsely::Nominees &user)
     {
         out << static_cast<qint32>(user.iWinner);
         out << static_cast<qint32>(user.candidates.size());
@@ -47,7 +164,7 @@ namespace sparsely
     }
 
     // read operator
-    QDataStream &operator>>(QDataStream &in, Nominees &user)
+    QDataStream &operator>>(QDataStream &in, sparsely::Nominees &user)
     {
         in >> user.iWinner;
         qint32 candidatesSize = -1;
@@ -79,6 +196,10 @@ namespace sparsely
         return in;
     }
 
+} // namespace
+
+namespace sparsely
+{
     ModelHandler::ModelHandler(LabModel &modelToBuild) : m_Model{modelToBuild}
     {
     }
@@ -96,7 +217,7 @@ namespace sparsely
         {
             { // TODO improve covariance computations
                 const sparsepc::Matrix<double> X =
-                    sparsepc::openData<double>(fileName.toStdString(), ';');
+                    openData<double>(fileName.toStdString());
 
                 if (X.rows() <= 1)
                 {
