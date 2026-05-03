@@ -438,9 +438,9 @@ namespace sparsepc
                     for (Index i = j0 + 1;
                          i < static_cast<Index>(choosenIndices.size()); ++i)
                     {
-                        if (index == choosenIndices[j])
+                        if (index == choosenIndices[i])
                         {
-                            std::swap(choosenIndices[j0], choosenIndices[j]);
+                            std::swap(choosenIndices[j0], choosenIndices[i]);
                             break;
                         }
                     }
@@ -448,14 +448,15 @@ namespace sparsepc
 
                 ++j0;
 
-                const auto k = static_cast<Index>(choosenIndices.size()) - j0;
-                const auto kFoundIndices = choosenIndices.tail(k);
+                const auto kCurrent =
+                    static_cast<Index>(choosenIndices.size()) - j0;
+                const auto kFoundIndices = choosenIndices.tail(kCurrent);
 
                 auto subDimEigenElement = eigenSolver.maximumValueElement(
                     sigma(kFoundIndices, kFoundIndices));
 
                 auto &component =
-                    components.emplace(k, Component(n)).first->second;
+                    components.emplace(kCurrent, Component(n)).first->second;
                 component.value = subDimEigenElement.value;
                 component.vector(kFoundIndices) = subDimEigenElement.vector;
 
@@ -471,7 +472,7 @@ namespace sparsepc
                     }
                 }
 
-                if (k == 1)
+                if (kCurrent == 1)
                 {
                     break;
                 }
@@ -686,13 +687,13 @@ namespace sparsepc
 
                 ++j0;
 
-                const auto k = j0;
-                const auto kFoundIndices = reserveIndices.head(k);
+                const auto kCurrent = j0;
+                const auto kFoundIndices = reserveIndices.head(kCurrent);
                 auto subDimEigenElement = eigenSolver.maximumValueElement(
                     sigma(kFoundIndices, kFoundIndices));
 
                 auto &component =
-                    components.emplace(k, Component(n)).first->second;
+                    components.emplace(kCurrent, Component(n)).first->second;
                 component.value = subDimEigenElement.value;
                 component.vector(kFoundIndices) = subDimEigenElement.vector;
 
@@ -708,7 +709,7 @@ namespace sparsepc
                     }
                 }
 
-                if (k == n - 1)
+                if (kCurrent == n - 1)
                 {
                     break;
                 }
