@@ -9,9 +9,9 @@ set(appDomain "?.com")
 string(TIMESTAMP buildTime "%Y-%m-%d %H:%M:%S")
 
 project(${exeName}
-        VERSION ${appVersion}
-        DESCRIPTION ${appTitle}
-        LANGUAGES CXX
+	VERSION ${appVersion}
+	DESCRIPTION ${appTitle}
+	LANGUAGES CXX
 )
 		
 set(CMAKE_CXX_STANDARD 23)
@@ -32,14 +32,14 @@ configure_file(
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 if(NOT TARGET Eigen3::Eigen)
-        CPMAddPackage(
-          NAME Eigen3
-          GITLAB_REPOSITORY libeigen/eigen
-          GIT_TAG 5.0.1
-          # Eigen's CMakelists are not intended for library use
-          DOWNLOAD_ONLY YES
-          #OPTIONS "EIGEN_BUILD_DOC OFF" "BUILD_TESTING OFF"
-        )
+	CPMAddPackage(
+		NAME Eigen3
+		GITLAB_REPOSITORY libeigen/eigen
+		GIT_TAG 5.0.1
+		# Eigen's CMakelists are not intended for library use
+		DOWNLOAD_ONLY YES
+		#OPTIONS "EIGEN_BUILD_DOC OFF" "BUILD_TESTING OFF"
+	)
 
     if(Eigen3_ADDED)
         add_library(Eigen3::Eigen INTERFACE IMPORTED)
@@ -49,10 +49,10 @@ endif()
 
 if(NOT TARGET Spectra::Spectra)
     CPMAddPackage(
-      NAME Spectra
-      GITHUB_REPOSITORY yixuan/spectra
-      GIT_TAG v1.2.0
-      DOWNLOAD_ONLY YES
+		NAME Spectra
+		GITHUB_REPOSITORY yixuan/spectra
+		GIT_TAG v1.2.0
+		DOWNLOAD_ONLY YES
     )
 
     if(Spectra_ADDED)
@@ -61,10 +61,18 @@ if(NOT TARGET Spectra::Spectra)
     endif()
 endif()
 
-CPMAddPackage(
-	NAME sparsepc
-	SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/..
-)
+if(NOT TARGET sparsepc::sparsepc)
+    CPMAddPackage(
+		NAME sparsepc
+		SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/..
+		DOWNLOAD_ONLY YES
+    )
+
+    if(sparsepc_ADDED)
+        add_library(sparsepc::sparsepc INTERFACE IMPORTED)
+        target_include_directories(sparsepc::sparsepc INTERFACE ${sparsepc_SOURCE_DIR}/include)
+    endif()
+endif()
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui Xml Svg REQUIRED)
 
@@ -100,7 +108,8 @@ qt_add_executable(${exeName} ${sources} ${appiconrcs} ${headers})
 if(WIN32)
 	set_target_properties(${exeName} PROPERTIES WIN32_EXECUTABLE TRUE)
 elseif(APPLE)
-	set_target_properties(${exeName} PROPERTIES 
+	set_target_properties(${exeName} 
+		PROPERTIES 
             MACOSX_BUNDLE TRUE
             MACOSX_BUNDLE_GUI_IDENTIFIER "com.inulo.sparsely"
             MACOSX_BUNDLE_BUNDLE_NAME ${exeName}
