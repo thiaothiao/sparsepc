@@ -6,9 +6,6 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-option(ENABLE_TEST_COVERAGE "Enable test coverage" OFF)
-option(TEST_INSTALLED_VERSION "Test the version found by find_package" OFF)
-
 include(../cmake/tools.cmake)
 include(../cmake/CPM.cmake)
 
@@ -47,34 +44,23 @@ endif()
 
 enable_testing()
 
-if(TEST_INSTALLED_VERSION)
-  find_package(sparsepc REQUIRED)
-else()
-	if(NOT TARGET sparsepc::sparsepc)
-		CPMAddPackage(
-			NAME sparsepc
-			SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/..
-			DOWNLOAD_ONLY YES
-		)
+if(NOT TARGET sparsepc::sparsepc)
+        CPMAddPackage(
+	        NAME sparsepc
+		SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/..
+		DOWNLOAD_ONLY YES
+	)
 
-		if(sparsepc_ADDED)
-			add_library(sparsepc::sparsepc INTERFACE IMPORTED)
-			target_include_directories(sparsepc::sparsepc INTERFACE ${sparsepc_SOURCE_DIR}/include)
-			if(NOT TEST_INSTALLED_VERSION)
-			  target_compile_options(sparsepc::sparsepc INTERFACE
-			      # MSVC warnings
-			      $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
-			      # GCC/Clang warnings
-			      $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -Werror>
-			  )
-		        endif()
-
-			if(ENABLE_TEST_COVERAGE)
-			  target_compile_options(sparsepc::sparsepc INTERFACE -O0 -g -fprofile-arcs -ftest-coverage)
-			  target_link_options(sparsepc::sparsepc INTERFACE -fprofile-arcs -ftest-coverage)
-		        endif()
-		endif()
-	endif()
+        if(sparsepc_ADDED)
+	    add_library(sparsepc::sparsepc INTERFACE IMPORTED)
+	    target_include_directories(sparsepc::sparsepc INTERFACE ${sparsepc_SOURCE_DIR}/include)
+	    target_compile_options(sparsepc::sparsepc INTERFACE
+		# MSVC warnings
+		$<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
+		# GCC/Clang warnings
+		$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -Werror>
+	    )
+        endif()
 endif()
 
 file(GLOB sources CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp)
@@ -83,11 +69,8 @@ target_link_libraries(${PROJECT_NAME} doctest::doctest Eigen3::Eigen Spectra::Sp
 target_compile_definitions(${PROJECT_NAME} PUBLIC _CRT_SECURE_NO_WARNINGS)
 target_compile_definitions(${PROJECT_NAME} PUBLIC _SILENCE_ALL_CXX23_DEPRECATION_WARNINGS)
 
-# enable compiler warnings
-if(NOT TEST_INSTALLED_VERSION)
-  if(MSVC)
+if(MSVC)
     target_compile_definitions(${PROJECT_NAME} PUBLIC DOCTEST_CONFIG_USE_STD_HEADERS)
-  endif()
 endif()
 
 include(${doctest_SOURCE_DIR}/scripts/cmake/doctest.cmake)
