@@ -1,0 +1,67 @@
+name: Sparsely MacOS Build
+
+on:
+  push:
+    branches:
+      - master
+      - main
+#      - develop
+#      - build_ubuntu
+#  pull_request:
+#    branches:
+      - master
+      - main
+#      - develop
+      
+env:
+  CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm_modules
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:          
+      - name: Checkout Code
+        uses: actions/checkout@v5
+        
+      - name: Setup CMake 4.1
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          # Use '4.1.x' to automatically get the latest 4.1.z release
+          cmake-version: '4.1.x'
+
+      - name: Verify Version
+        run: cmake --version
+
+      - uses: actions/cache@v5
+        with:
+          path: "**/cpm_modules"
+          key: ${{ github.workflow }}-cpm-modules-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+
+      - name: Install Qt6
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.11.0'
+          host: 'linux'
+          target: 'desktop'
+          tools: 'tools_ifw tools_qtcreator,qt.tools.qtcreator'
+          add-tools-to-path: true
+          # Installs required Qt modules
+          modules: 'qtpdf qtwebengine' 
+          # Ensures build dependencies are installed
+          install-deps: true 
+          
+      - name: Build & Install
+        run: |
+          cmake -S sparsely -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install -DCPACK_GENERATOR=IFW
+          cmake --build build --target install --config Release
+          
+      - name: Package with CPack
+        run: |
+          cd build
+          cpack -G IFW
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sparsely-dist-linux
+          path: build/*.run

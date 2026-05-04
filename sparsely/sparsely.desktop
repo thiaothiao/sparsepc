@@ -3,9 +3,9 @@ Type=Application
 Name=Sparsely
 Comment=SPARSELY Software - SPARSE principal component LaboratorY
 GenericName=SPARSELY Software - SPARSE principal component LaboratorY.
-Exec="tmp/bin/sparsely"
-Path="tmp/bin"
-Icon=sparselyIcon.svg
+Exec=tmp/bin/sparsely
+Path=tmp/bin
+Icon=sparselyIcon.png
 Terminal=false
 Categories=Utility;
 
