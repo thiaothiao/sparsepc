@@ -6,7 +6,7 @@ on:
       - master
       - main
 #      - develop
-      - build_ubuntu
+#      - build_ubuntu
 #  pull_request:
 #    branches:
       - master
