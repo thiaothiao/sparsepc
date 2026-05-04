@@ -117,6 +117,12 @@ elseif(APPLE)
 	)	
 endif()
 
+set_target_properties(${exeName}
+    PROPERTIES
+        INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}"
+        BUILD_WITH_INSTALL_RPATH TRUE
+)
+
 target_compile_definitions(${exeName} PRIVATE _CRT_SECURE_NO_WARNINGS)
 target_compile_definitions(${exeName} PRIVATE _SILENCE_ALL_CXX23_DEPRECATION_WARNINGS)
 
