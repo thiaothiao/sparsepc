@@ -176,14 +176,15 @@ endif()
 if(APPLE)
     set(SIGNING_IDENTITY "-")#"Developer ID Application: Your Company (ID)") # Define your signing identity
     set(DEPLOY_OPTIONS "-codesign=${SIGNING_IDENTITY}" "-hardened-runtime" "-timestamp")
-else()
-    set(DEPLOY_OPTIONS "--no-translations")
+#lse()
+#    set(DEPLOY_OPTIONS "--no-translations")
 endif()
 
 qt6_generate_deploy_app_script(
     TARGET ${exeName}
     OUTPUT_SCRIPT deploy_script
     DEPLOY_TOOL_OPTIONS ${DEPLOY_OPTIONS}
+    NO_TRANSLATIONS
 )
 
 if (APPLE)
