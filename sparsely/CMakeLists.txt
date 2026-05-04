@@ -36,7 +36,6 @@ if(NOT TARGET Eigen3::Eigen)
 		NAME Eigen3
 		GITLAB_REPOSITORY libeigen/eigen
 		GIT_TAG 5.0.1
-		# Eigen's CMakelists are not intended for library use
 		DOWNLOAD_ONLY YES
 		#OPTIONS "EIGEN_BUILD_DOC OFF" "BUILD_TESTING OFF"
 	)
@@ -176,8 +175,6 @@ endif()
 if(APPLE)
     set(SIGNING_IDENTITY "-")#"Developer ID Application: Your Company (ID)") # Define your signing identity
     set(DEPLOY_OPTIONS "-codesign=${SIGNING_IDENTITY}" "-hardened-runtime" "-timestamp")
-#lse()
-#    set(DEPLOY_OPTIONS "--no-translations")
 endif()
 
 qt6_generate_deploy_app_script(
@@ -212,12 +209,6 @@ set(CPACK_PACKAGE_VENDOR "${appVendor}")
 set(CPACK_PACKAGE_CONTACT "mamadou.thiao@gmail.com")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${appTitle}")
 set(CPACK_PACKAGE_VERSION "${appVersion}")
-#set(CPACK_COMPONENTS_ALL ${appName})#Application Runtime Documentation)
-#set(CPACK_PACKAGE_INSTALL_DIRECTORY ${CPACK_PACKAGE_NAME})
-#set(CPACK_PACKAGE_VERSION_MAJOR ${CMAKE_PROJECT_VERSION_MAJOR})
-#set(CPACK_PACKAGE_VERSION_MINOR ${CMAKE_PROJECT_VERSION_MINOR})
-#set(CPACK_PACKAGE_VERSION_PATCH ${CMAKE_PROJECT_VERSION_PATCH})
-#set(CPACK_VERBATIM_VARIABLES YES)
 
 # if we not call the line below, groups won't show properlly in the GUI installer
 set(CPACK_COMPONENTS_GROUPING IGNORE)
@@ -241,26 +232,17 @@ set(CPACK_IFW_PACKAGE_TITLE "${appTitle}")
 set(CPACK_IFW_PACKAGE_PUBLISHER "${appVendor}")
 set(CPACK_IFW_PRODUCT_URL "${appDomain}")
 
-#set(CPACK_IFW_TARGET_DIRECTORY "@ApplicationsDir@/MonApplication")
-
 #set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENCE.txt")
 
-#set(CPACK_IFW_CONFIG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/installer/configuration")
-#set(CPACK_IFW_PACKAGE_REPOSITORIES_DEFAULT "remote")
-
-# create a more memorable name for the maintenance tool (used for uninstalling the package)
 set(CPACK_IFW_PACKAGE_MAINTENANCE_TOOL_NAME "${appName}_MaintenanceTool")
-#set(CPACK_IFW_PACKAGE_MAINTENANCE_TOOL_INI_FILE ${CMAKE_CURRENT_SOURCE_DIR}/configurations/maintenance_tool.ini)
 
-set(CPACK_IFW_PACKAGE_WIZARD_STYLE "Modern") # customise the theme if required
+set(CPACK_IFW_PACKAGE_WIZARD_STYLE "Modern")
 
-# adjust the default size
 set(CPACK_IFW_PACKAGE_WIZARD_DEFAULT_HEIGHT 400)
 #set(CPACK_IFW_PACKAGE_WIZARD_DEFAULT_WIDTH ?)
 
 #set(CPACK_IFW_PACKAGE_WATERMARK ${CMAKE_CURRENT_SOURCE_DIR}/images/watermark.png)
 
-# 3. Set the main installer executable icon
 if(WIN32)
     set(CPACK_IFW_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/images/app.ico")
     set(CPACK_RESOURCE_FILE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/images/uninstall.ico")
@@ -268,15 +250,11 @@ elseif(APPLE)
     set(CPACK_IFW_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/images/app.icns")
 endif()
 
-#set(CPACK_IFW_CONFIG_FILE ${CMAKE_CURRENT_SOURCE_DIR}/installer/configuration/config.xml)
-
-# Link a custom control script to handle the installation logic
 set(CPACK_IFW_PACKAGE_CONTROL_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/controlscript.qs")
 
 include(CPack)
 include(CPackIFW)
 
-# Optional: Add IFW specific information
 cpack_ifw_configure_component(${appName}
     NAME "com.${appVendor}.${appName}"
     DISPLAY_NAME "${appName}"
