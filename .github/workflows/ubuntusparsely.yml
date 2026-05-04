@@ -1,4 +1,4 @@
-name: Sparsely MacOS Build
+name: Sparsely Ubuntu Build
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - master
       - main
 #      - develop
-#      - build_ubuntu
+#      - build_ubuntu_action
 #  pull_request:
 #    branches:
       - master

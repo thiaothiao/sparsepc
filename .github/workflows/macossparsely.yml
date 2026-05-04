@@ -6,7 +6,7 @@ on:
       - master
       - main
 #      - develop
-      - on_macos_delivery
+#      - build_macos_action
 #  pull_request:
 #    branches:
       - master
