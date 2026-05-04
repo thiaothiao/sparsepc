@@ -232,7 +232,7 @@ set(CPACK_IFW_PACKAGE_TITLE "${appTitle}")
 set(CPACK_IFW_PACKAGE_PUBLISHER "${appVendor}")
 set(CPACK_IFW_PRODUCT_URL "${appDomain}")
 
-#set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENCE.txt")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE.txt")
 
 set(CPACK_IFW_PACKAGE_MAINTENANCE_TOOL_NAME "${appName}_MaintenanceTool")
 
@@ -259,6 +259,7 @@ cpack_ifw_configure_component(${appName}
     NAME "com.${appVendor}.${appName}"
     DISPLAY_NAME "${appName}"
     DESCRIPTION "${appTitle}"
+    LICENSES "License Agreement" "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE.txt"
     VERSION "${appVersion}"
     RELEASE_DATE "${buildTime}"
     SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/installscript.qs"
