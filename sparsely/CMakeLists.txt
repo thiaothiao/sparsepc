@@ -270,7 +270,7 @@ endif()
 #set(CPACK_IFW_CONFIG_FILE ${CMAKE_CURRENT_SOURCE_DIR}/installer/configuration/config.xml)
 
 # Link a custom control script to handle the installation logic
-#set(CPACK_IFW_PACKAGE_CONTROL_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/installscript.qs")
+set(CPACK_IFW_PACKAGE_CONTROL_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/controlscript.qs")
 
 include(CPack)
 include(CPackIFW)
