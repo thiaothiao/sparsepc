@@ -53,9 +53,17 @@ namespace
             if (separator)
             {
                 file.clear();
-                auto candidateHeader =
-                    line | std::views::split(separator) |
-                    std::ranges::to<std::vector<std::string>>();
+                // const auto candidateHeader =
+                //     line | std::views::split(separator) |
+                //     std::ranges::to<std::vector<std::string>>(); waiting for
+                //     c++23 on gcc 14.1+
+
+                auto split_view = line | std::views::split(separator);
+                std::vector<std::string> candidateHeader;
+                for (auto &&part : split_view)
+                {
+                    candidateHeader.emplace_back(std::string_view(part));
+                }
                 numberOfColumns = static_cast<int>(candidateHeader.size());
                 bool hasHeader = false;
                 for (const auto &word : candidateHeader)

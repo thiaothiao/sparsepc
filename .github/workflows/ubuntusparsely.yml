@@ -45,7 +45,7 @@ jobs:
           host: 'linux'
           target: 'desktop'
           tools: 'tools_ifw tools_qtcreator,qt.tools.qtcreator'
-          add-tools-to-path: 'true'
+          add-tools-to-path: true
           # Installs required Qt modules
           modules: 'qtpdf qtwebengine' 
           # Ensures build dependencies are installed
