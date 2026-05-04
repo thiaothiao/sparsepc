@@ -163,7 +163,7 @@ elseif(APPLE)
         COMPONENT ${appName}
     )
 else()# assuming linux. grab icons
-    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/images/icon.svg"
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/images/icon.png"
         DESTINATION "${CMAKE_INSTALL_DATADIR}/icons"
         COMPONENT "${appName}"
     )
