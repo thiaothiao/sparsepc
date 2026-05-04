@@ -6,7 +6,7 @@ on:
 #      - master
       - main
 #      - develop
-#      - windows_action
+      - build_windows_action
 #  pull_request:
 #    branches:
 #      - master
@@ -15,7 +15,6 @@ on:
       
 env:
   CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm_modules
-  MY_INSTALL_DIR: ${{ github.workspace }}/install
 
 jobs:
   build:
@@ -32,7 +31,6 @@ jobs:
       - name: Setup CMake 4.1
         uses: jwlawson/actions-setup-cmake@v2
         with:
-          # Use '4.1.x' to automatically get the latest 4.1.z release
           cmake-version: '4.1.x'
 
       - name: Verify Version
@@ -47,10 +45,10 @@ jobs:
         uses: jurplel/install-qt-action@v4
         with:
           version: '6.10.0'
-          setup-python: 'false' # Add this line
-          # For Linux, it automatically installs required system dependencies
-          install-deps: 'true' 
-          # Specify additional modules if needed (e.g., qtcharts, qtwebengine)
+          setup-python: false
+          tools: 'tools_ifw tools_qtcreator,qt.tools.qtcreator'
+          add-tools-to-path: true
+          install-deps: true
           modules: 'qtpdf qtwebengine'
           host: 'windows'
           target: 'desktop'
@@ -61,10 +59,16 @@ jobs:
           
       - name: Build & Install
         run: |
-          cmake -S sparsely -B build -DCMAKE_BUILD_TYPE=Release
+          cmake -S sparsely -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install -DCPACK_GENERATOR=IFW
           cmake --build build --target install --config Release
+          
+      - name: Package with CPack
+        run: |
+          cd build
+          cpack -G IFW
+          
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: sparsely-dist
-          path: ${{ env.MY_INSTALL_DIR }}/
+          name: sparsely-dist-windows
+          path: build/*.exe
