@@ -5,13 +5,13 @@ set(exeName "sparsely")
 set(appVersion "0.1.0")
 set(appTitle "SPARSELY Software - SPARSE principal component LaboratorY")
 set(appVendor "Inulo")
-set(appDomain "?.com")
+set(appDomain "https://github.com/thiaothiao/sparsepc")
 string(TIMESTAMP buildTime "%Y-%m-%d %H:%M:%S")
 
 project(${exeName}
-	VERSION ${appVersion}
-	DESCRIPTION ${appTitle}
-	LANGUAGES CXX
+    VERSION ${appVersion}
+    DESCRIPTION ${appTitle}
+    LANGUAGES CXX
 )
 		
 set(CMAKE_CXX_STANDARD 23)
@@ -31,13 +31,13 @@ configure_file(
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 if(NOT TARGET Eigen3::Eigen)
-	CPMAddPackage(
-		NAME Eigen3
-		GITLAB_REPOSITORY libeigen/eigen
-		GIT_TAG 5.0.1
-		DOWNLOAD_ONLY YES
-		#OPTIONS "EIGEN_BUILD_DOC OFF" "BUILD_TESTING OFF"
-	)
+    CPMAddPackage(
+        NAME Eigen3
+        GITLAB_REPOSITORY libeigen/eigen
+        GIT_TAG 5.0.1
+        DOWNLOAD_ONLY YES
+        #OPTIONS "EIGEN_BUILD_DOC OFF" "BUILD_TESTING OFF"
+    )
 
     if(Eigen3_ADDED)
         add_library(Eigen3::Eigen INTERFACE IMPORTED)
@@ -47,10 +47,10 @@ endif()
 
 if(NOT TARGET Spectra::Spectra)
     CPMAddPackage(
-		NAME Spectra
-		GITHUB_REPOSITORY yixuan/spectra
-		GIT_TAG v1.2.0
-		DOWNLOAD_ONLY YES
+        NAME Spectra
+        GITHUB_REPOSITORY yixuan/spectra
+        GIT_TAG v1.2.0
+        DOWNLOAD_ONLY YES
     )
 
     if(Spectra_ADDED)
@@ -61,9 +61,9 @@ endif()
 
 if(NOT TARGET sparsepc::sparsepc)
     CPMAddPackage(
-		NAME sparsepc
-		SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/..
-		DOWNLOAD_ONLY YES
+        NAME sparsepc
+        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/..
+        DOWNLOAD_ONLY YES
     )
 
     if(sparsepc_ADDED)
@@ -81,9 +81,9 @@ CPMAddPackage(
 	COMPONENTS JKQTPlotter6 JKQTCommon6 JKQTMath6 JKQTMathText6
 	FIND_PACKAGE_ARGUMENTS REQUIRED
 	OPTIONS 
-		"JKQtPlotter_BUILD_FORCE_NO_PRINTER_SUPPORT ON" 
-		"JKQtPlotter_BUILD_TESTS OFF" "JKQtPlotter_BUILD_EXAMPLES OFF" 
-		"JKQtPlotter_BUILD_LIB_JKQTFASTPLOTTER OFF"
+            "JKQtPlotter_BUILD_FORCE_NO_PRINTER_SUPPORT ON"
+            "JKQtPlotter_BUILD_TESTS OFF" "JKQtPlotter_BUILD_EXAMPLES OFF"
+            "JKQtPlotter_BUILD_LIB_JKQTFASTPLOTTER OFF"
 )
 
 file(GLOB sources CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
@@ -91,12 +91,12 @@ file(GLOB headers CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 file(GLOB apprccs CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/*.qrc)
 
 if(WIN32)
-	file(GLOB appiconrcs CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/images/*.rc)
+    file(GLOB appiconrcs CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/images/*.rc)
     enable_language(RC)
 elseif(APPLE)
-	set(appiconrcs "${CMAKE_CURRENT_SOURCE_DIR}/images/app.icns")
-	set(MACOSX_BUNDLE_ICON_FILE "app.icns")
-	set_source_files_properties(${appiconrcs} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+    set(appiconrcs "${CMAKE_CURRENT_SOURCE_DIR}/images/app.icns")
+    set(MACOSX_BUNDLE_ICON_FILE "app.icns")
+    set_source_files_properties(${appiconrcs} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 endif()
 
 qt_standard_project_setup()
@@ -106,35 +106,45 @@ qt_add_executable(${exeName} ${sources} ${appiconrcs} ${headers})
 if(WIN32)
 	set_target_properties(${exeName} PROPERTIES WIN32_EXECUTABLE TRUE)
 elseif(APPLE)
-	set_target_properties(${exeName} 
-		PROPERTIES 
+    set_target_properties(${exeName}
+        PROPERTIES
             MACOSX_BUNDLE TRUE
             MACOSX_BUNDLE_GUI_IDENTIFIER "com.inulo.sparsely"
             MACOSX_BUNDLE_BUNDLE_NAME ${exeName}
             MACOSX_BUNDLE_SHORT_VERSION_STRING ${appVersion}
             MACOSX_BUNDLE_LONG_VERSION_STRING ${appVersion}
-	)	
+            #MACOSX_RPATH TRUE
+            #INSTALL_RPATH "@loader_path/../lib"
+    )
+else()
+    set_target_properties(${exeName}
+        PROPERTIES
+            INSTALL_RPATH "\$ORIGIN/../lib"
+            BUILD_WITH_INSTALL_RPATH TRUE
+    )
 endif()
 
-target_compile_definitions(${exeName} PRIVATE _CRT_SECURE_NO_WARNINGS)
-target_compile_definitions(${exeName} PRIVATE _SILENCE_ALL_CXX23_DEPRECATION_WARNINGS)
+target_compile_definitions(${exeName}
+    PRIVATE
+        _CRT_SECURE_NO_WARNINGS
+        _SILENCE_ALL_CXX23_DEPRECATION_WARNINGS
+)
 
-target_link_libraries(${exeName} PRIVATE Eigen3::Eigen)
-
-target_link_libraries(${exeName} PRIVATE Spectra::Spectra)
-
-target_link_libraries(${exeName} PRIVATE sparsepc::sparsepc)
-
-target_link_libraries(${exeName} PRIVATE JKQTPlotter6::JKQTPlotter6)
-target_link_libraries(${exeName} PRIVATE JKQTPlotter6::JKQTCommon6)
-target_link_libraries(${exeName} PRIVATE JKQTPlotter6::JKQTMath6)
-target_link_libraries(${exeName} PRIVATE JKQTPlotter6::JKQTMathText6)
-
-target_link_libraries(${exeName} PRIVATE Qt6::Core)
-target_link_libraries(${exeName} PRIVATE Qt6::Widgets)
-target_link_libraries(${exeName} PRIVATE Qt6::Gui)
-target_link_libraries(${exeName} PRIVATE Qt6::Xml)
-target_link_libraries(${exeName} PRIVATE Qt6::Svg)
+target_link_libraries(${exeName}
+    PRIVATE
+        sparsepc::sparsepc
+        Spectra::Spectra
+        Eigen3::Eigen
+        JKQTPlotter6::JKQTPlotter6
+        JKQTPlotter6::JKQTCommon6
+        JKQTPlotter6::JKQTMath6
+        JKQTPlotter6::JKQTMathText6
+        Qt6::Core
+        Qt6::Widgets
+        Qt6::Gui
+        Qt6::Xml
+        Qt6::Svg
+)
 
 include(CPackComponent)
 cpack_add_component(${appName}
@@ -192,9 +202,9 @@ if (APPLE)
     )
 else()
     install(TARGETS ${exeName}
-        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"    # 'bin'
-        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"    # 'lib' or 'lib64'
-        ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"    # static libs
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
         COMPONENT "${appName}"
     )
 endif()

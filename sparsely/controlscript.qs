@@ -10,7 +10,7 @@ Controller.prototype.TargetDirectoryPageCallback = function()
     if (widget) 
 	{
         widget.TargetDirectoryLineEdit.setEnabled(false);
-        widget.TargetDirectoryChooser.setEnabled(false);
+        //widget.TargetDirectoryChooser.setEnabled(false);
     }
 }
 
