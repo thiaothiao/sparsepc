@@ -6,7 +6,7 @@ on:
       - master
       - main
 #      - develop
-#      - build_macos_action
+      - build_ubuntu_action
 #  pull_request:
 #    branches:
       - master
