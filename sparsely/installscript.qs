@@ -24,10 +24,6 @@ Component.prototype.createOperations = function()
 
         const installedIconPath = installPath + "/share/icons/icon.png";
         component.addOperation("Copy",	installedIconPath, iconsFolderPath + "/" + baseName + "Icon.png");
-		
-		const installedQtConfFile = installPath + "/bin/qt.conf";
-		const textToAdd = "\nLibraries = lib\n";
-		component.addOperation("AppendFile", installedQtConfFile, textToAdd);
     }
     else if (systemInfo.kernelType === "winnt") 
     {
