@@ -3,7 +3,7 @@
 #include <QApplication>
 #include <QProgressDialog>
 
-namespace sparsely
+namespace Sparsely
 {
     ProgressDialog::ProgressDialog(QProgressDialog &aQProgressDialog)
         : qProgressDialog{aQProgressDialog}
@@ -29,4 +29,4 @@ namespace sparsely
     {
         // QCoreApplication::processEvents();
     }
-} // namespace sparsely
+} // namespace Sparsely

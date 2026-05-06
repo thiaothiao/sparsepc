@@ -13,7 +13,7 @@
 
 class QLibrary;
 
-namespace sparsely
+namespace Sparsely
 {
     class ProgressDialog;
     namespace Enums
@@ -88,4 +88,4 @@ namespace sparsely
         std::vector<std::unique_ptr<QLibrary>> m_DynamicLibSolverLoaders;
         QVector<QString> m_DynamicLibSolverNames;
     };
-} // namespace sparsely
+} // namespace Sparsely

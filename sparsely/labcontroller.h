@@ -9,7 +9,7 @@
 
 class QString;
 
-namespace sparsely
+namespace Sparsely
 {
     class LabModel;
     class LabWidget;
@@ -46,4 +46,4 @@ namespace sparsely
         std::reference_wrapper<LabModel> m_LabModel;
         ModelHandler m_ModelHandler;
     };
-} // namespace sparsely
+} // namespace Sparsely

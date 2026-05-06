@@ -8,7 +8,7 @@
 
 #include <labenums.h>
 
-namespace sparsely
+namespace Sparsely
 {
     struct Preferences
     {
@@ -54,4 +54,4 @@ namespace sparsely
 
         Q_DECLARE_TR_FUNCTIONS(Preferences)
     };
-} // namespace sparsely
+} // namespace Sparsely

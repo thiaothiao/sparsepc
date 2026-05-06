@@ -107,7 +107,7 @@ namespace
     }
 } // namespace
 
-namespace sparsely
+namespace Sparsely
 {
     LabWidget::LabWidget(QWidget *parent)
         : QWidget(parent), m_Plotter{nullptr}, m_SliderGroupBox{nullptr},
@@ -494,4 +494,4 @@ namespace sparsely
             ";"
             "}");
     }
-} // namespace sparsely
+} // namespace Sparsely

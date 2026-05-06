@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 4.1)
 
 set(appName "Sparsely")
-set(exeName "sparsely")
+set(exeName "Sparsely")
 set(appVersion "0.1.0")
 set(appTitle "SPARSELY Software - SPARSE principal component LaboratorY")
 set(appVendor "Inulo")
@@ -109,7 +109,7 @@ elseif(APPLE)
     set_target_properties(${exeName}
         PROPERTIES
             MACOSX_BUNDLE TRUE
-            MACOSX_BUNDLE_GUI_IDENTIFIER "com.inulo.sparsely"
+            MACOSX_BUNDLE_GUI_IDENTIFIER "com.Inulo.Sparsely"
             MACOSX_BUNDLE_BUNDLE_NAME ${exeName}
             MACOSX_BUNDLE_SHORT_VERSION_STRING ${appVersion}
             MACOSX_BUNDLE_LONG_VERSION_STRING ${appVersion}
@@ -180,7 +180,7 @@ if(LINUX)
         DESTINATION "${CMAKE_INSTALL_DATADIR}/icons"
         COMPONENT "${appName}"
     )
-    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/sparsely.desktop"
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/Sparsely.desktop"
         DESTINATION "${CMAKE_INSTALL_DATADIR}/applications"
         COMPONENT "${appName}"
     )

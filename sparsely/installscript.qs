@@ -5,7 +5,7 @@ Component.prototype.createOperations = function()
     component.createOperations(); 
     
     const installPath = installer.value("TargetDir");
-    const baseName = "sparsely";
+    const baseName = "Sparsely";
     
     if (systemInfo.kernelType === "linux") 
     { 

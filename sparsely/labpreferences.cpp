@@ -48,7 +48,7 @@ namespace
     }
 } // namespace
 
-namespace sparsely
+namespace Sparsely
 {
     Preferences::Preferences()
         : maximumNumberOfComponents{6},
@@ -188,12 +188,12 @@ namespace sparsely
             return;
         }
 
-        if (!dir.exists("sparsely.json"))
+        if (!dir.exists("Sparsely.json"))
         { // use default preferences
             return;
         }
 
-        fromJson(loadJson(dir.absoluteFilePath("sparsely.json")));
+        fromJson(loadJson(dir.absoluteFilePath("Sparsely.json")));
         qDebug() << "Preferences loaded";
     }
 
@@ -221,7 +221,7 @@ namespace sparsely
             return;
         }
 
-        saveJson(toJson(), dir.absoluteFilePath("sparsely.json"));
+        saveJson(toJson(), dir.absoluteFilePath("Sparsely.json"));
         qDebug() << "Preferences saved";
     }
-} // namespace sparsely
+} // namespace Sparsely

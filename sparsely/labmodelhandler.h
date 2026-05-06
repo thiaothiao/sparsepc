@@ -4,7 +4,7 @@
 
 class QString;
 
-namespace sparsely
+namespace Sparsely
 {
     class LabModel;
 
@@ -22,4 +22,4 @@ namespace sparsely
       private:
         std::reference_wrapper<LabModel> m_Model;
     };
-} // namespace sparsely
+} // namespace Sparsely

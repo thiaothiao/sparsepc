@@ -28,16 +28,16 @@ namespace
     void saveLastFolder(const QString &path)
     {
         QSettings settings(
-            QString::fromStdString(std::string(sparsely::metadata::appVendor)),
-            QString::fromStdString(std::string(sparsely::metadata::appName)));
+            QString::fromStdString(std::string(Sparsely::metadata::appVendor)),
+            QString::fromStdString(std::string(Sparsely::metadata::appName)));
         settings.setValue("lastAddonFolder", path);
     }
 
     QString getLastFolder()
     {
         const QSettings settings(
-            QString::fromStdString(std::string(sparsely::metadata::appVendor)),
-            QString::fromStdString(std::string(sparsely::metadata::appName)));
+            QString::fromStdString(std::string(Sparsely::metadata::appVendor)),
+            QString::fromStdString(std::string(Sparsely::metadata::appName)));
 
         const auto defaultPath = QStandardPaths::writableLocation(
             QStandardPaths::AppLocalDataLocation);
@@ -45,7 +45,7 @@ namespace
     }
 } // namespace
 
-namespace sparsely
+namespace Sparsely
 {
     PreferencesDialog::PreferencesDialog(QWidget *parent) : QDialog(parent)
     {
@@ -425,4 +425,4 @@ namespace sparsely
         prefs.save();
         QDialog::accept();
     }
-} // namespace sparsely
+} // namespace Sparsely

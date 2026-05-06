@@ -23,7 +23,7 @@ namespace sparsepc
     template <std::floating_point ScalarType> struct Component;
 }
 
-namespace sparsely
+namespace Sparsely
 {
     struct Preferences;
 
@@ -103,4 +103,4 @@ namespace sparsely
         std::size_t m_ColumnX;
         JKQTPlotter *m_Plotter;
     };
-} // namespace sparsely
+} // namespace Sparsely

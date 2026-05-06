@@ -10,7 +10,7 @@ class QComboBox;
 class QPushButton;
 class QLineEdit;
 
-namespace sparsely
+namespace Sparsely
 {
     class PreferencesDialog : public QDialog
     {
@@ -52,4 +52,4 @@ namespace sparsely
         QLineEdit *m_AddonsPathLineEdit;
         QPushButton *m_SavePushButton;
     };
-} // namespace sparsely
+} // namespace Sparsely

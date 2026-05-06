@@ -184,7 +184,7 @@ namespace
     }
 
     // write operator
-    QDataStream &operator<<(QDataStream &out, const sparsely::Nominees &user)
+    QDataStream &operator<<(QDataStream &out, const Sparsely::Nominees &user)
     {
         out << static_cast<qint32>(user.iWinner);
         out << static_cast<qint32>(user.candidates.size());
@@ -209,7 +209,7 @@ namespace
     }
 
     // read operator
-    QDataStream &operator>>(QDataStream &in, sparsely::Nominees &user)
+    QDataStream &operator>>(QDataStream &in, Sparsely::Nominees &user)
     {
         in >> user.iWinner;
         qint32 candidatesSize = -1;
@@ -243,7 +243,7 @@ namespace
 
 } // namespace
 
-namespace sparsely
+namespace Sparsely
 {
     ModelHandler::ModelHandler(LabModel &modelToBuild) : m_Model{modelToBuild}
     {
@@ -424,4 +424,4 @@ namespace sparsely
             qDebug() << "No plugin";
         }
     }
-} // namespace sparsely
+} // namespace Sparsely

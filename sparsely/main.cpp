@@ -21,7 +21,7 @@ namespace
 {
     QString retrieveLogFilePath()
     {
-        const QString baseName("sparsely.log");
+        const QString baseName("Sparsely.log");
         const auto dataPath = QStandardPaths::writableLocation(
             QStandardPaths::AppLocalDataLocation);
         if (!QDir().mkpath(dataPath))
@@ -116,13 +116,13 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     QApplication::setStyle("fusion"); // force fusion style
     app.setApplicationName(
-        QString::fromStdString(std::string(sparsely::metadata::appName)));
+        QString::fromStdString(std::string(Sparsely::metadata::appName)));
     app.setOrganizationName(
-        QString::fromStdString(std::string(sparsely::metadata::appVendor)));
+        QString::fromStdString(std::string(Sparsely::metadata::appVendor)));
     app.setOrganizationDomain(
-        QString::fromStdString(std::string(sparsely::metadata::appDomain)));
+        QString::fromStdString(std::string(Sparsely::metadata::appDomain)));
     app.setApplicationVersion(
-        QString::fromStdString(std::string(sparsely::metadata::appVersion)));
+        QString::fromStdString(std::string(Sparsely::metadata::appVersion)));
     app.setWindowIcon(QIcon(":/icons/window.png"));
 
     qInstallMessageHandler(messageHandler);
@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
         using namespace std::chrono_literals;
         std::this_thread::sleep_for(1000ms);
     }
-    sparsely::LabMainWindow w;
+    Sparsely::LabMainWindow w;
     w.show();
     splash.finish(&w);
     return app.exec();

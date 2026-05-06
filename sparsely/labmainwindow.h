@@ -7,7 +7,7 @@
 class QWidget;
 class QCloseEvent;
 
-namespace sparsely
+namespace Sparsely
 {
     class LabModel;
     class LabWidget;
@@ -37,4 +37,4 @@ namespace sparsely
         LabWidget *m_LabWidget;
         LabController *m_LabController;
     };
-} // namespace sparsely
+} // namespace Sparsely

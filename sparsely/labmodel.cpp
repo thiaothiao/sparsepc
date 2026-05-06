@@ -15,30 +15,30 @@ namespace
     using BackwardGSPA = sparsepc::linearmodel::SparsePC<
         sparsepc::linearmodel::BackwardGspcaSolver<
             double, sparsepc::SpectraLibEigenSolver<double>,
-            sparsely::ProgressDialog>>;
+            Sparsely::ProgressDialog>>;
 
     using ForwardGSPCA = sparsepc::linearmodel::SparsePC<
         sparsepc::linearmodel::ForwardGspcaSolver<
             double, sparsepc::SpectraLibEigenSolver<double>,
-            sparsely::ProgressDialog>>;
+            Sparsely::ProgressDialog>>;
 
     using DCA =
         sparsepc::linearmodel::SparsePC<sparsepc::linearmodel::DcaSolver<
             double, sparsepc::SpectraLibEigenSolver<double>,
-            sparsely::ProgressDialog>>;
+            Sparsely::ProgressDialog>>;
 
     using CustomSolver =
         sparsepc::linearmodel::SparsePC<sparsepc::linearmodel::CustomSolver<
             double, sparsepc::SpectraLibEigenSolver<double>,
-            sparsely::ProgressDialog>>;
+            Sparsely::ProgressDialog>>;
 
     using DynamicLibSolver =
         sparsepc::linearmodel::SparsePC<sparsepc::linearmodel::DynamicLibSolver<
             double, sparsepc::SpectraLibEigenSolver<double>,
-            sparsely::ProgressDialog>>;
+            Sparsely::ProgressDialog>>;
 } // namespace
 
-namespace sparsely
+namespace Sparsely
 {
     LabModel::LabModel()
         : m_Sigma{}, m_ValidatedComponents{}, m_SparsePCs{}, m_StandardPCs{},
@@ -241,4 +241,4 @@ namespace sparsely
     {
         return variance / m_Trace;
     }
-} // namespace sparsely
+} // namespace Sparsely

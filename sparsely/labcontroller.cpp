@@ -28,7 +28,7 @@ namespace
     class DeferredUpdateForPlots final
     { // RAII
       public:
-        DeferredUpdateForPlots(sparsely::LabWidget &aLabWidget)
+        DeferredUpdateForPlots(Sparsely::LabWidget &aLabWidget)
             : labWidget{aLabWidget}
         {
             labWidget.get().setPlotUpdateEnabled(false);
@@ -49,26 +49,26 @@ namespace
         DeferredUpdateForPlots &operator=(DeferredUpdateForPlots &&) = delete;
 
       private:
-        const std::reference_wrapper<sparsely::LabWidget> labWidget;
+        const std::reference_wrapper<Sparsely::LabWidget> labWidget;
     };
 
     class SliderDisconnectConnect final
     { // RAII
       public:
         SliderDisconnectConnect(QSlider &aSlider,
-                                sparsely::LabController &aController)
+                                Sparsely::LabController &aController)
             : qSlider{aSlider}, labController{aController}
         {
             QObject::disconnect(
                 &qSlider.get(), qOverload<int>(&QSlider::valueChanged),
-                &labController.get(), &sparsely::LabController::onValueChanged);
+                &labController.get(), &Sparsely::LabController::onValueChanged);
         }
 
         ~SliderDisconnectConnect()
         {
             QObject::connect(
                 &qSlider.get(), qOverload<int>(&QSlider::valueChanged),
-                &labController.get(), &sparsely::LabController::onValueChanged);
+                &labController.get(), &Sparsely::LabController::onValueChanged);
         }
 
         SliderDisconnectConnect(const SliderDisconnectConnect &) = delete;
@@ -80,7 +80,7 @@ namespace
 
       private:
         const std::reference_wrapper<QSlider> qSlider;
-        const std::reference_wrapper<sparsely::LabController> labController;
+        const std::reference_wrapper<Sparsely::LabController> labController;
     };
 
     class NoEscapeQProgressDialog : public QProgressDialog
@@ -108,7 +108,7 @@ namespace
     };
 } // namespace
 
-namespace sparsely
+namespace Sparsely
 {
     LabController::LabController(LabModel &labModel, LabWidget &labWidget,
                                  QObject *parent)
@@ -386,4 +386,4 @@ namespace sparsely
     {
         return m_ModelHandler.loadProject(fileName);
     }
-} // namespace sparsely
+} // namespace Sparsely

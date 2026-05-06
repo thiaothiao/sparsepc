@@ -2,7 +2,7 @@
 
 #include <QMetaEnum>
 
-namespace sparsely
+namespace Sparsely
 {
     namespace Enums
     {
@@ -28,4 +28,4 @@ namespace sparsely
         Q_ENUM_NS(Method)
         Q_ENUM_NS(PlotType)
     }; // namespace Enums
-} // namespace sparsely
+} // namespace Sparsely

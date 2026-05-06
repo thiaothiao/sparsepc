@@ -4,7 +4,7 @@
 
 class QProgressDialog;
 
-namespace sparsely
+namespace Sparsely
 {
     class ProgressDialog
     { // progress dialog wrapper used during computations
@@ -19,4 +19,4 @@ namespace sparsely
       private:
         std::reference_wrapper<QProgressDialog> qProgressDialog;
     };
-} // namespace sparsely
+} // namespace Sparsely
