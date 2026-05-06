@@ -160,10 +160,7 @@ namespace Sparsely
             graph->setLineStyle(lineStyle);
             graph->setLineWidth(lineWidthImpulsesPlot);
             graph->setDrawSymbols(true);
-            graph->setSymbolType(
-                lineStyle == Qt::SolidLine
-                    ? JKQTPGraphSymbols::JKQTPFilledCircle
-                    : JKQTPGraphSymbols::JKQTPCircle); // allowed 2 symbol types
+            graph->setSymbolType(JKQTPGraphSymbols::JKQTPDot);
             auto col = QColor(pCGraph.color);
             graph->setColor(col);
             graph->setXColumn(pCGraph.xColumn);
