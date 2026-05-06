@@ -165,7 +165,7 @@ namespace Sparsely
 
         const auto lastDir = getLastFolder();
         const auto fileName = QFileDialog::getOpenFileName(
-            this, tr("Load Project"), lastDir, tr("Files (*.Sparsely)"));
+            this, tr("Load Project"), lastDir, tr("Files (*.sparsely)"));
 
         if (fileName.isEmpty())
         {
@@ -190,7 +190,7 @@ namespace Sparsely
         }
         const auto lastDir = getLastFolder();
         const auto fileName = QFileDialog::getSaveFileName(
-            this, tr("Save Project"), lastDir, tr("Files (*.Sparsely)"));
+            this, tr("Save Project"), lastDir, tr("Files (*.sparsely)"));
 
         if (fileName.isEmpty())
         {
