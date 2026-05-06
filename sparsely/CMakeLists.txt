@@ -58,16 +58,16 @@ if(NOT TARGET Spectra::Spectra)
     endif()
 endif()
 
-if(NOT TARGET sparsepc::sparsepc)
+if(NOT TARGET Sparsepc::Sparsepc)
     CPMAddPackage(
-        NAME sparsepc
+        NAME Sparsepc
         SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/..
         DOWNLOAD_ONLY YES
     )
 
-    if(sparsepc_ADDED)
-        add_library(sparsepc::sparsepc INTERFACE IMPORTED)
-        target_include_directories(sparsepc::sparsepc INTERFACE "${sparsepc_SOURCE_DIR}/include")
+    if(Sparsepc_ADDED)
+        add_library(Sparsepc::Sparsepc INTERFACE IMPORTED)
+        target_include_directories(Sparsepc::Sparsepc INTERFACE "${Sparsepc_SOURCE_DIR}/include")
     endif()
 endif()
 
@@ -134,7 +134,7 @@ target_include_directories(${exeName} PRIVATE "${JKQTPlotter6_SOURCE_DIR}/lib")
 
 target_link_libraries(${exeName}
     PRIVATE
-        sparsepc::sparsepc
+        Sparsepc::Sparsepc
         Spectra::Spectra
         Eigen3::Eigen
         JKQTPlotter6::JKQTPlotter6

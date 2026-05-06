@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 4.1)
 
-project(sparsepc
+project(Sparsepc
         VERSION 0.1.0
 		DESCRIPTION "A header-only C++ library for sparse principal components computations"
         LANGUAGES CXX)
@@ -56,7 +56,7 @@ target_link_libraries(${PROJECT_NAME} INTERFACE Spectra::Spectra)
 
 # the location where the project's version header will be placed should match the project's regular
 # header paths
-string(TOLOWER ${PROJECT_NAME}/version.hpp VERSION_HEADER_LOCATION)
+#set(VERSION_HEADER_LOCATION ${PROJECT_NAME}/version.hpp )
 
 packageProject(
   NAME ${PROJECT_NAME}
@@ -65,7 +65,7 @@ packageProject(
   BINARY_DIR ${PROJECT_BINARY_DIR}
   INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include
   INCLUDE_DESTINATION include/${PROJECT_NAME}-${PROJECT_VERSION}
-  VERSION_HEADER "${VERSION_HEADER_LOCATION}"
+  VERSION_HEADER ${PROJECT_NAME}/version.hpp
   COMPATIBILITY SameMajorVersion
   DEPENDENCIES "Eigen3" "Spectra"
 )

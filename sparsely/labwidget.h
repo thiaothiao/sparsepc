@@ -18,7 +18,7 @@ class QRadioButton;
 class JKQTPPlotElement;
 class JKQTPlotter;
 
-namespace sparsepc
+namespace Sparsepc
 {
     template <std::floating_point ScalarType> struct Component;
 }
@@ -61,13 +61,13 @@ namespace Sparsely
         void redrawPlot();
         void zoomToFit();
         void addStandardPCGraph(const Preferences &preferences,
-                                const sparsepc::Component<double> &component,
+                                const Sparsepc::Component<double> &component,
                                 const QString &legend);
         void addSparsePCGraph(const Preferences &preferences,
-                              const sparsepc::Component<double> &component,
+                              const Sparsepc::Component<double> &component,
                               const QString &legend);
         void
-        updateLastSparsePCGraph(const sparsepc::Component<double> &component,
+        updateLastSparsePCGraph(const Sparsepc::Component<double> &component,
                                 const QString &legend);
         void removeLastSparsePCGraph(int sliderValue);
         void removeLastStandardPCGraph();
@@ -93,7 +93,7 @@ namespace Sparsely
 
       private:
         void addPCGraph(std::vector<GraphInfo> &pcs,
-                        const sparsepc::Component<double> &component,
+                        const Sparsepc::Component<double> &component,
                         const QString &legend, const Qt::PenStyle &lineStyle,
                         double lineWidthFilledPlot,
                         double lineWidthImpulsesPlot,

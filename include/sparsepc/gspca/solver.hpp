@@ -4,12 +4,12 @@
 #include <concepts>
 #include <future>
 
-#include <sparsepc/eigen/solver.hpp>
-#include <sparsepc/generic/solver.hpp>
-#include <sparsepc/progress/bar.hpp>
-#include <sparsepc/utils/matrix.hpp>
+#include <Sparsepc/eigen/solver.hpp>
+#include <Sparsepc/generic/solver.hpp>
+#include <Sparsepc/progress/bar.hpp>
+#include <Sparsepc/utils/matrix.hpp>
 
-namespace sparsepc
+namespace Sparsepc
 {
     namespace linearmodel
     {
@@ -178,10 +178,10 @@ namespace sparsepc
             using EigenSolver = EigenSolverType;
             using ProgressBar = ProgressBarType;
             using ForwardGspcaSolver =
-                typename sparsepc::linearmodel::ForwardGspcaSolver<
+                typename Sparsepc::linearmodel::ForwardGspcaSolver<
                     Scalar, EigenSolver, ProgressBar>;
             using BackwardGspcaSolver =
-                typename sparsepc::linearmodel::BackwardGspcaSolver<
+                typename Sparsepc::linearmodel::BackwardGspcaSolver<
                     Scalar, EigenSolver, ProgressBar>;
 
             /**
@@ -863,4 +863,4 @@ namespace sparsepc
         using ParallelGspca =
             SparsePC<ParallelGspcaSolver<ScalarType, EigenSolver<ScalarType>>>;
     } // namespace linearmodel
-} // namespace sparsepc
+} // namespace Sparsepc

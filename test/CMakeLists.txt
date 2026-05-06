@@ -44,17 +44,17 @@ endif()
 
 enable_testing()
 
-if(NOT TARGET sparsepc::sparsepc)
+if(NOT TARGET Sparsepc::Sparsepc)
         CPMAddPackage(
-	        NAME sparsepc
+	        NAME Sparsepc
 		SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/..
 		DOWNLOAD_ONLY YES
 	)
 
-        if(sparsepc_ADDED)
-	    add_library(sparsepc::sparsepc INTERFACE IMPORTED)
-	    target_include_directories(sparsepc::sparsepc INTERFACE ${sparsepc_SOURCE_DIR}/include)
-	    target_compile_options(sparsepc::sparsepc INTERFACE
+        if(Sparsepc_ADDED)
+	    add_library(Sparsepc::Sparsepc INTERFACE IMPORTED)
+	    target_include_directories(Sparsepc::Sparsepc INTERFACE ${Sparsepc_SOURCE_DIR}/include)
+	    target_compile_options(Sparsepc::Sparsepc INTERFACE
 		# MSVC warnings
 		$<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
 		# GCC/Clang warnings
@@ -65,7 +65,7 @@ endif()
 
 file(GLOB sources CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp)
 add_executable(${PROJECT_NAME} ${sources})
-target_link_libraries(${PROJECT_NAME} doctest::doctest Eigen3::Eigen Spectra::Spectra sparsepc::sparsepc)
+target_link_libraries(${PROJECT_NAME} doctest::doctest Eigen3::Eigen Spectra::Spectra Sparsepc::Sparsepc)
 target_compile_definitions(${PROJECT_NAME} PUBLIC _CRT_SECURE_NO_WARNINGS)
 target_compile_definitions(${PROJECT_NAME} PUBLIC _SILENCE_ALL_CXX23_DEPRECATION_WARNINGS)
 

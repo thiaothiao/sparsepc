@@ -9,7 +9,7 @@
 #include <QString>
 #include <QVector>
 
-#include <sparsepc/core.hpp>
+#include <Sparsepc/core.hpp>
 
 class QLibrary;
 
@@ -32,7 +32,7 @@ namespace Sparsely
         Nominees &operator=(Nominees &&) = default;
 
         int iWinner; // The selected candidate location.
-        std::unordered_map<sparsepc::Index, sparsepc::Component<double>>
+        std::unordered_map<Sparsepc::Index, Sparsepc::Component<double>>
             candidates; // The candidates container.
     };
 
@@ -74,7 +74,7 @@ namespace Sparsely
         int getN() const;
         QString getAddonName() const;
 
-        std::vector<std::reference_wrapper<sparsepc::Component<double>>>
+        std::vector<std::reference_wrapper<Sparsepc::Component<double>>>
             m_ValidatedComponents;
         std::vector<Nominees> m_SparsePCs;
         std::vector<Nominees> m_StandardPCs;
@@ -82,8 +82,8 @@ namespace Sparsely
       private:
         auto getStandardComponents() const;
 
-        sparsepc::Matrix<double> m_Sigma;
-        sparsepc::Index m_N;
+        Sparsepc::Matrix<double> m_Sigma;
+        Sparsepc::Index m_N;
         double m_Trace;
         std::vector<std::unique_ptr<QLibrary>> m_DynamicLibSolverLoaders;
         QVector<QString> m_DynamicLibSolverNames;

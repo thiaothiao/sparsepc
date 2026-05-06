@@ -204,7 +204,7 @@ namespace Sparsely
                 100.0;
             const auto currentSparseComponentRound =
                 labModel.getCurrentSparseComponentRound();
-            if (component.state == sparsepc::ComponentState::Validated)
+            if (component.state == Sparsepc::ComponentState::Validated)
             {
                 labModel.m_ValidatedComponents.push_back(component);
             }

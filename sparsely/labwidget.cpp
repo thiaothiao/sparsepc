@@ -30,7 +30,7 @@
 #include <jkqtplotter/graphs/jkqtpimpulses.h>
 #include <jkqtplotter/jkqtplotter.h>
 
-#include <sparsepc/core.hpp>
+#include <Sparsepc/core.hpp>
 
 namespace
 {
@@ -39,14 +39,14 @@ namespace
         auto *datastore = plotter.getDatastore();
         const auto n = 11;
         const auto columnX = datastore->addLinearColumn(n, 0, n - 1);
-        sparsepc::Vector<double> redValues =
-            sparsepc::Vector<double>::Constant(n, 0.01);
+        Sparsepc::Vector<double> redValues =
+            Sparsepc::Vector<double>::Constant(n, 0.01);
         redValues[2] = 0.25;
         redValues[3] = 0.5;
         redValues[4] = 0.25;
         redValues.normalize();
-        sparsepc::Vector<double> greenValues =
-            sparsepc::Vector<double>::Constant(n, -0.01);
+        Sparsepc::Vector<double> greenValues =
+            Sparsepc::Vector<double>::Constant(n, -0.01);
         greenValues[6] = -0.25;
         greenValues[7] = -0.5;
         greenValues[8] = -0.25;
@@ -118,7 +118,7 @@ namespace Sparsely
     }
 
     void LabWidget::addPCGraph(std::vector<GraphInfo> &pcs,
-                               const sparsepc::Component<double> &component,
+                               const Sparsepc::Component<double> &component,
                                const QString &legend,
                                const Qt::PenStyle &lineStyle,
                                double lineWidthFilledPlot,
@@ -181,7 +181,7 @@ namespace Sparsely
 
     void
     LabWidget::addStandardPCGraph(const Preferences &preferences,
-                                  const sparsepc::Component<double> &component,
+                                  const Sparsepc::Component<double> &component,
                                   const QString &legend)
     {
         addPCGraph(m_StandardPCGraphs, component, legend,
@@ -193,7 +193,7 @@ namespace Sparsely
 
     void
     LabWidget::addSparsePCGraph(const Preferences &preferences,
-                                const sparsepc::Component<double> &component,
+                                const Sparsepc::Component<double> &component,
                                 const QString &legend)
     {
         addPCGraph(m_SparsePCGraphs, component, legend,
@@ -204,7 +204,7 @@ namespace Sparsely
     }
 
     void LabWidget::updateLastSparsePCGraph(
-        const sparsepc::Component<double> &component, const QString &legend)
+        const Sparsepc::Component<double> &component, const QString &legend)
     {
         if (m_SparsePCGraphs.empty())
         {

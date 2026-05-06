@@ -1,7 +1,7 @@
 #include <doctest/doctest.h>
 #include <source/simu.hpp>
-#include <sparsepc/core.hpp>
-#include <sparsepc/infos.hpp>
+#include <Sparsepc/core.hpp>
+#include <Sparsepc/infos.hpp>
 
 #include <cstdlib>
 #include <string>
@@ -19,19 +19,19 @@ namespace
 TEST_CASE("Sparsepc all")
 {
     using Scalar = double;
-    using Index = sparsepc::Index;
-    using Vector = sparsepc::Vector<Scalar>;
-    using Component = sparsepc::Component<Scalar>;
+    using Index = Sparsepc::Index;
+    using Vector = Sparsepc::Vector<Scalar>;
+    using Component = Sparsepc::Component<Scalar>;
 
-    const auto sigma = sparsepc::linearmodel::pitprops<Scalar>();
+    const auto sigma = Sparsepc::linearmodel::pitprops<Scalar>();
     const auto n = sigma.cols();
     CHECK(n == 13);
 
-    auto gram = sparsepc::EigenSolver<Scalar>{}.maximumValueElement(sigma);
+    auto gram = Sparsepc::EigenSolver<Scalar>{}.maximumValueElement(sigma);
     auto eigen =
-        sparsepc::EigenLibEigenSolver<Scalar>{}.maximumValueElement(sigma);
+        Sparsepc::EigenLibEigenSolver<Scalar>{}.maximumValueElement(sigma);
     auto spectra =
-        sparsepc::SpectraLibEigenSolver<Scalar>{}.maximumValueElement(sigma);
+        Sparsepc::SpectraLibEigenSolver<Scalar>{}.maximumValueElement(sigma);
 
     Index idxMaxCoeff = 0;
     gram.vector.cwiseAbs().maxCoeff(&idxMaxCoeff);
@@ -65,7 +65,7 @@ TEST_CASE("Sparsepc all")
     const Index k2 = 2;
 
     {
-        using BackwardGspca = sparsepc::linearmodel::BackwardGspca<Scalar>;
+        using BackwardGspca = Sparsepc::linearmodel::BackwardGspca<Scalar>;
         const BackwardGspca::Param param{{k0, k1, k2}};
         const auto sparseEigenElements = BackwardGspca{param}.run(sigma);
         {
@@ -90,7 +90,7 @@ TEST_CASE("Sparsepc all")
     }
 
     {
-        using ForwardGspca = sparsepc::linearmodel::ForwardGspca<Scalar>;
+        using ForwardGspca = Sparsepc::linearmodel::ForwardGspca<Scalar>;
         const ForwardGspca::Param param{{k0, k1, k2}};
         const auto sparseEigenElements = ForwardGspca{param}.run(sigma);
         {
@@ -115,7 +115,7 @@ TEST_CASE("Sparsepc all")
     }
 
     {
-        using ParallelGspca = sparsepc::linearmodel::ParallelGspca<Scalar>;
+        using ParallelGspca = Sparsepc::linearmodel::ParallelGspca<Scalar>;
         const ParallelGspca::Param param{{k0, k1, k2}};
         const auto sparseEigenElements = ParallelGspca{param}.run(sigma);
         {
@@ -140,7 +140,7 @@ TEST_CASE("Sparsepc all")
     }
 
     {
-        using Dca = sparsepc::linearmodel::Dca<Scalar>;
+        using Dca = Sparsepc::linearmodel::Dca<Scalar>;
         const Dca::Param param{{k0, k1, k2}};
         const auto sparseEigenElements = Dca{param}.run(sigma);
         {
@@ -165,7 +165,7 @@ TEST_CASE("Sparsepc all")
     }
 
     {
-        using BackwardGspca = sparsepc::linearmodel::BackwardGspca<Scalar>;
+        using BackwardGspca = Sparsepc::linearmodel::BackwardGspca<Scalar>;
         constexpr auto nbComponents = 3;
         const std::array<Index, nbComponents> choices{6, 2, 2};
         std::vector<Component> validatedComponents;
@@ -178,10 +178,10 @@ TEST_CASE("Sparsepc all")
             const auto iCandidate = choices[j];
             for (auto &[i, candidate] : candidates)
             {
-                candidate.state = sparsepc::ComponentState::Unvalidated;
+                candidate.state = Sparsepc::ComponentState::Unvalidated;
             }
             candidates.at(iCandidate).state =
-                sparsepc::ComponentState::Validated;
+                Sparsepc::ComponentState::Validated;
             validatedComponents.push_back(std::move(candidates.at(iCandidate)));
         }
         {
@@ -206,7 +206,7 @@ TEST_CASE("Sparsepc all")
     }
 
     {
-        using ForwardGspca = sparsepc::linearmodel::ForwardGspca<Scalar>;
+        using ForwardGspca = Sparsepc::linearmodel::ForwardGspca<Scalar>;
         constexpr auto nbComponents = 3;
         const std::array<Index, nbComponents> choices{6, 2, 2};
         std::vector<Component> validatedComponents;
@@ -219,10 +219,10 @@ TEST_CASE("Sparsepc all")
             const auto iCandidate = choices[j];
             for (auto &[i, candidate] : candidates)
             {
-                candidate.state = sparsepc::ComponentState::Unvalidated;
+                candidate.state = Sparsepc::ComponentState::Unvalidated;
             }
             candidates.at(iCandidate).state =
-                sparsepc::ComponentState::Validated;
+                Sparsepc::ComponentState::Validated;
             validatedComponents.push_back(std::move(candidates.at(iCandidate)));
         }
 
@@ -248,7 +248,7 @@ TEST_CASE("Sparsepc all")
     }
 
     {
-        using Dca = sparsepc::linearmodel::Dca<Scalar>;
+        using Dca = Sparsepc::linearmodel::Dca<Scalar>;
         constexpr auto nbComponents = 3;
         const std::array<Index, nbComponents> choices{6, 2, 2};
         std::vector<Component> validatedComponents;
@@ -261,10 +261,10 @@ TEST_CASE("Sparsepc all")
             const auto iCandidate = choices[j];
             for (auto &[i, candidate] : candidates)
             {
-                candidate.state = sparsepc::ComponentState::Unvalidated;
+                candidate.state = Sparsepc::ComponentState::Unvalidated;
             }
             candidates.at(iCandidate).state =
-                sparsepc::ComponentState::Validated;
+                Sparsepc::ComponentState::Validated;
             validatedComponents.push_back(std::move(candidates.at(iCandidate)));
         }
         {
@@ -291,6 +291,6 @@ TEST_CASE("Sparsepc all")
 
 TEST_CASE("Sparsepc version")
 {
-    static_assert(sparsepc::metadata::libVersion == std::string_view("0.2.0"));
-    CHECK(std::string(sparsepc::metadata::libVersion) == std::string("0.2.0"));
+    static_assert(Sparsepc::metadata::libVersion == std::string_view("0.2.0"));
+    CHECK(std::string(Sparsepc::metadata::libVersion) == std::string("0.2.0"));
 }

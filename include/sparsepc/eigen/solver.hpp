@@ -9,9 +9,9 @@
 #include <Spectra/MatOp/DenseSymMatProd.h>
 #include <Spectra/SymEigsSolver.h>
 
-#include <sparsepc/utils/matrix.hpp>
+#include <Sparsepc/utils/matrix.hpp>
 
-namespace sparsepc
+namespace Sparsepc
 {
     /**
      * @brief A virtual state for each component.
@@ -418,4 +418,4 @@ namespace sparsepc
 
         return indices;
     }
-} // namespace sparsepc
+} // namespace Sparsepc

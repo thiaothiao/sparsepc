@@ -1,13 +1,13 @@
 #pragma once
 
-#include <sparsepc/eigen/solver.hpp>
-#include <sparsepc/generic/solver.hpp>
-#include <sparsepc/progress/bar.hpp>
-#include <sparsepc/utils/matrix.hpp>
+#include <Sparsepc/eigen/solver.hpp>
+#include <Sparsepc/generic/solver.hpp>
+#include <Sparsepc/progress/bar.hpp>
+#include <Sparsepc/utils/matrix.hpp>
 
 using ComputeSparseEigenVector = void (*)(const double *, int, int, double *);
 
-namespace sparsepc
+namespace Sparsepc
 {
     namespace linearmodel
     {
@@ -238,4 +238,4 @@ namespace sparsepc
         // using User = SparsePC<DynamicLibSolver<ScalarType,
         // EigenSolver<ScalarType>>>;
     } // namespace linearmodel
-} // namespace sparsepc
+} // namespace Sparsepc

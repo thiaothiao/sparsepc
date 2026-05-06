@@ -4,10 +4,10 @@
 #include <utility>
 #include <vector>
 
-#include <sparsepc/eigen/solver.hpp>
-#include <sparsepc/utils/matrix.hpp>
+#include <Sparsepc/eigen/solver.hpp>
+#include <Sparsepc/utils/matrix.hpp>
 
-namespace sparsepc
+namespace Sparsepc
 {
     namespace linearmodel
     {
@@ -262,4 +262,4 @@ namespace sparsepc
                 sigma, param, inverse * B * sigma * B, B, progressBar);
         }
     } // namespace linearmodel
-} // namespace sparsepc
+} // namespace Sparsepc

@@ -12,29 +12,29 @@
 
 namespace
 {
-    using BackwardGSPA = sparsepc::linearmodel::SparsePC<
-        sparsepc::linearmodel::BackwardGspcaSolver<
-            double, sparsepc::SpectraLibEigenSolver<double>,
+    using BackwardGSPA = Sparsepc::linearmodel::SparsePC<
+        Sparsepc::linearmodel::BackwardGspcaSolver<
+            double, Sparsepc::SpectraLibEigenSolver<double>,
             Sparsely::ProgressDialog>>;
 
-    using ForwardGSPCA = sparsepc::linearmodel::SparsePC<
-        sparsepc::linearmodel::ForwardGspcaSolver<
-            double, sparsepc::SpectraLibEigenSolver<double>,
+    using ForwardGSPCA = Sparsepc::linearmodel::SparsePC<
+        Sparsepc::linearmodel::ForwardGspcaSolver<
+            double, Sparsepc::SpectraLibEigenSolver<double>,
             Sparsely::ProgressDialog>>;
 
     using DCA =
-        sparsepc::linearmodel::SparsePC<sparsepc::linearmodel::DcaSolver<
-            double, sparsepc::SpectraLibEigenSolver<double>,
+        Sparsepc::linearmodel::SparsePC<Sparsepc::linearmodel::DcaSolver<
+            double, Sparsepc::SpectraLibEigenSolver<double>,
             Sparsely::ProgressDialog>>;
 
     using CustomSolver =
-        sparsepc::linearmodel::SparsePC<sparsepc::linearmodel::CustomSolver<
-            double, sparsepc::SpectraLibEigenSolver<double>,
+        Sparsepc::linearmodel::SparsePC<Sparsepc::linearmodel::CustomSolver<
+            double, Sparsepc::SpectraLibEigenSolver<double>,
             Sparsely::ProgressDialog>>;
 
     using DynamicLibSolver =
-        sparsepc::linearmodel::SparsePC<sparsepc::linearmodel::DynamicLibSolver<
-            double, sparsepc::SpectraLibEigenSolver<double>,
+        Sparsepc::linearmodel::SparsePC<Sparsepc::linearmodel::DynamicLibSolver<
+            double, Sparsepc::SpectraLibEigenSolver<double>,
             Sparsely::ProgressDialog>>;
 } // namespace
 
@@ -48,7 +48,7 @@ namespace Sparsely
 
     auto LabModel::getStandardComponents() const
     {
-        std::vector<std::reference_wrapper<const sparsepc::Component<double>>>
+        std::vector<std::reference_wrapper<const Sparsepc::Component<double>>>
             standardComponents;
         standardComponents.reserve(m_StandardPCs.size());
         for (const auto &standardPC : m_StandardPCs)
@@ -69,19 +69,19 @@ namespace Sparsely
         standardPC.iWinner = m_N;
         standardPC.candidates = DCA::computeNextComponentCandidates(
             m_Sigma,
-            DCA::ImplementationParam{static_cast<sparsepc::Index>(m_N)},
+            DCA::ImplementationParam{static_cast<Sparsepc::Index>(m_N)},
             standardComponents, progressBar);
 
         for (auto &[k, candidate] : standardPC.candidates)
         {
-            candidate.state = sparsepc::ComponentState::Unvalidated;
+            candidate.state = Sparsepc::ComponentState::Unvalidated;
         }
 
         auto iter = standardPC.candidates.begin();
         if (iter != standardPC.candidates.end())
         {
             standardPC.iWinner = iter->first;
-            iter->second.state = sparsepc::ComponentState::Validated;
+            iter->second.state = Sparsepc::ComponentState::Validated;
         }
 
         qDebug() << "... next round standard component computed";
@@ -143,7 +143,7 @@ namespace Sparsely
 
         for (auto &[k, candidate] : sparsePC.candidates)
         {
-            candidate.state = sparsepc::ComponentState::Unvalidated;
+            candidate.state = Sparsepc::ComponentState::Unvalidated;
         }
 
         auto iter = sparsePC.candidates.cbegin();
@@ -179,7 +179,7 @@ namespace Sparsely
         if (!m_ValidatedComponents.empty())
         {
             m_ValidatedComponents.back().get().state =
-                sparsepc::ComponentState::Unvalidated;
+                Sparsepc::ComponentState::Unvalidated;
             m_ValidatedComponents.pop_back();
         }
         m_SparsePCs.pop_back();
@@ -196,7 +196,7 @@ namespace Sparsely
 
             m_ValidatedComponents.push_back(candidates.at(iWinner));
             m_ValidatedComponents.back().get().state =
-                sparsepc::ComponentState::Validated;
+                Sparsepc::ComponentState::Validated;
             qDebug() << " Sparse component candidate validated";
         }
     }
@@ -206,7 +206,7 @@ namespace Sparsely
     {
         return std::ranges::fold_left(
             m_ValidatedComponents, 0.0,
-            [](double done, const sparsepc::Component<double> &c) {
+            [](double done, const Sparsepc::Component<double> &c) {
                 return done + c.value;
             });
     }
