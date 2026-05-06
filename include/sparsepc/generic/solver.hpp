@@ -4,8 +4,8 @@
 #include <utility>
 #include <vector>
 
-#include <Sparsepc/eigen/solver.hpp>
-#include <Sparsepc/utils/matrix.hpp>
+#include <sparsepc/eigen/solver.hpp>
+#include <sparsepc/utils/matrix.hpp>
 
 namespace Sparsepc
 {

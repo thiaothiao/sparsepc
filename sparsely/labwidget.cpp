@@ -30,7 +30,7 @@
 #include <jkqtplotter/graphs/jkqtpimpulses.h>
 #include <jkqtplotter/jkqtplotter.h>
 
-#include <Sparsepc/core.hpp>
+#include <sparsepc/core.hpp>
 
 namespace
 {

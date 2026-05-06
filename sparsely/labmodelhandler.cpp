@@ -17,7 +17,7 @@
 
 #include <labmodel.h>
 
-#include <Sparsepc/core.hpp>
+#include <sparsepc/core.hpp>
 
 namespace
 {
