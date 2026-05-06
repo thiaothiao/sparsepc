@@ -6,7 +6,7 @@ on:
 #      - master
       - main
 #      - develop
-#      - build_windows_action
+      - build_windows
 #  pull_request:
 #    branches:
 #      - master
