@@ -1,7 +1,7 @@
 #include <doctest/doctest.h>
 #include <source/simu.hpp>
-#include <Sparsepc/core.hpp>
-#include <Sparsepc/infos.hpp>
+#include <sparsepc/core.hpp>
+#include <sparsepc/infos.hpp>
 
 #include <cstdlib>
 #include <string>

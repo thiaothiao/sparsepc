@@ -9,7 +9,7 @@
 #include <QString>
 #include <QVector>
 
-#include <Sparsepc/core.hpp>
+#include <sparsepc/core.hpp>
 
 class QLibrary;
 

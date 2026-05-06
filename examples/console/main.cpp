@@ -3,8 +3,8 @@
 #include <utility>
 
 #include <../../test/source/simu.hpp>
-#include <Sparsepc/core.hpp>
-#include <Sparsepc/infos.hpp>
+#include <sparsepc/core.hpp>
+#include <sparsepc/infos.hpp>
 
 int main()
 {

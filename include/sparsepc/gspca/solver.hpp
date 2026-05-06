@@ -4,10 +4,10 @@
 #include <concepts>
 #include <future>
 
-#include <Sparsepc/eigen/solver.hpp>
-#include <Sparsepc/generic/solver.hpp>
-#include <Sparsepc/progress/bar.hpp>
-#include <Sparsepc/utils/matrix.hpp>
+#include <sparsepc/eigen/solver.hpp>
+#include <sparsepc/generic/solver.hpp>
+#include <sparsepc/progress/bar.hpp>
+#include <sparsepc/utils/matrix.hpp>
 
 namespace Sparsepc
 {

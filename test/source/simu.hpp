@@ -2,7 +2,7 @@
 
 #include <concepts>
 
-#include <Sparsepc/utils/matrix.hpp>
+#include <sparsepc/utils/matrix.hpp>
 
 namespace Sparsepc
 {

@@ -9,7 +9,7 @@
 #include <Spectra/MatOp/DenseSymMatProd.h>
 #include <Spectra/SymEigsSolver.h>
 
-#include <Sparsepc/utils/matrix.hpp>
+#include <sparsepc/utils/matrix.hpp>
 
 namespace Sparsepc
 {
