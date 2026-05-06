@@ -180,7 +180,7 @@ if(LINUX)
         DESTINATION "${CMAKE_INSTALL_DATADIR}/icons"
         COMPONENT "${appName}"
     )
-    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/Sparsely.desktop"
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/sparsely.desktop"
         DESTINATION "${CMAKE_INSTALL_DATADIR}/applications"
         COMPONENT "${appName}"
     )
