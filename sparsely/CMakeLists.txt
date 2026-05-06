@@ -16,7 +16,6 @@ project(${exeName}
 		
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0")
 
 include(../cmake/tools.cmake)
 include(../cmake/CPM.cmake)
@@ -41,7 +40,7 @@ if(NOT TARGET Eigen3::Eigen)
 
     if(Eigen3_ADDED)
         add_library(Eigen3::Eigen INTERFACE IMPORTED)
-        target_include_directories(Eigen3::Eigen INTERFACE ${Eigen3_SOURCE_DIR})
+        target_include_directories(Eigen3::Eigen INTERFACE "${Eigen3_SOURCE_DIR}")
     endif()
 endif()
 
@@ -55,7 +54,7 @@ if(NOT TARGET Spectra::Spectra)
 
     if(Spectra_ADDED)
         add_library(Spectra::Spectra INTERFACE IMPORTED)
-        target_include_directories(Spectra::Spectra INTERFACE ${Spectra_SOURCE_DIR}/include)
+        target_include_directories(Spectra::Spectra INTERFACE "${Spectra_SOURCE_DIR}/include")
     endif()
 endif()
 
@@ -68,7 +67,7 @@ if(NOT TARGET sparsepc::sparsepc)
 
     if(sparsepc_ADDED)
         add_library(sparsepc::sparsepc INTERFACE IMPORTED)
-        target_include_directories(sparsepc::sparsepc INTERFACE ${sparsepc_SOURCE_DIR}/include)
+        target_include_directories(sparsepc::sparsepc INTERFACE "${sparsepc_SOURCE_DIR}/include")
     endif()
 endif()
 
@@ -81,6 +80,7 @@ CPMAddPackage(
 	COMPONENTS JKQTPlotter6 JKQTCommon6 JKQTMath6 JKQTMathText6
 	FIND_PACKAGE_ARGUMENTS REQUIRED
 	OPTIONS 
+            "BUILD_SHARED_LIBS OFF"
             "JKQtPlotter_BUILD_FORCE_NO_PRINTER_SUPPORT ON"
             "JKQtPlotter_BUILD_TESTS OFF" "JKQtPlotter_BUILD_EXAMPLES OFF"
             "JKQtPlotter_BUILD_LIB_JKQTFASTPLOTTER OFF"
@@ -114,14 +114,14 @@ elseif(APPLE)
             MACOSX_BUNDLE_SHORT_VERSION_STRING ${appVersion}
             MACOSX_BUNDLE_LONG_VERSION_STRING ${appVersion}
             #MACOSX_RPATH TRUE
-            #INSTALL_RPATH "@loader_path/../lib"
+            #INSTALL_RPATH "@executable_path/../Frameworks"
     )
-else()
-    set_target_properties(${exeName}
-        PROPERTIES
-            INSTALL_RPATH "\$ORIGIN/../lib"
-            BUILD_WITH_INSTALL_RPATH TRUE
-    )
+#else()
+#    set_target_properties(${exeName}
+#        PROPERTIES
+#            INSTALL_RPATH "\$ORIGIN/../lib"
+#            BUILD_WITH_INSTALL_RPATH TRUE
+#    )
 endif()
 
 target_compile_definitions(${exeName}
@@ -129,6 +129,8 @@ target_compile_definitions(${exeName}
         _CRT_SECURE_NO_WARNINGS
         _SILENCE_ALL_CXX23_DEPRECATION_WARNINGS
 )
+
+target_include_directories(${exeName} PRIVATE "${JKQTPlotter6_SOURCE_DIR}/lib")
 
 target_link_libraries(${exeName}
     PRIVATE
@@ -146,6 +148,8 @@ target_link_libraries(${exeName}
         Qt6::Svg
 )
 
+include(GNUInstallDirs)
+
 include(CPackComponent)
 cpack_add_component(${appName}
     DISPLAY_NAME ${appName}
@@ -153,26 +157,25 @@ cpack_add_component(${appName}
     REQUIRED
 )
 
-include(GNUInstallDirs)
-
-if(WIN32)# grab some dependencies
-    install(FILES   $<TARGET_FILE:JKQTPlotter6::JKQTPlotter6>
-                    $<TARGET_FILE:JKQTPlotter6::JKQTCommon6>
-                    $<TARGET_FILE:JKQTPlotter6::JKQTMath6>
-                    $<TARGET_FILE:JKQTPlotter6::JKQTMathText6>
-                    $<TARGET_FILE:Qt6::Xml>
-        DESTINATION ${CMAKE_INSTALL_BINDIR}
-        COMPONENT ${appName}
-    )
-elseif(APPLE)
-    install(FILES   $<TARGET_FILE:JKQTPlotter6::JKQTPlotter6>
-                    $<TARGET_FILE:JKQTPlotter6::JKQTCommon6>
-                    $<TARGET_FILE:JKQTPlotter6::JKQTMath6>
-                    $<TARGET_FILE:JKQTPlotter6::JKQTMathText6>
-        DESTINATION "${exeName}.app/Contents/Frameworks"
-        COMPONENT ${appName}
-    )
-else()# assuming linux. grab icons
+#if(WIN32)# grab some dependencies
+    #install(FILES   $<TARGET_FILE:JKQTPlotter6::JKQTPlotter6>
+    #                $<TARGET_FILE:JKQTPlotter6::JKQTCommon6>
+    #                $<TARGET_FILE:JKQTPlotter6::JKQTMath6>
+    #                $<TARGET_FILE:JKQTPlotter6::JKQTMathText6>
+    #                $<TARGET_FILE:Qt6::Xml>
+    #    DESTINATION ${CMAKE_INSTALL_BINDIR}
+    #    COMPONENT ${appName}
+    #)
+#elseif(APPLE)
+#    install(FILES   $<TARGET_FILE:JKQTPlotter6::JKQTPlotter6>
+#                    $<TARGET_FILE:JKQTPlotter6::JKQTCommon6>
+#                    $<TARGET_FILE:JKQTPlotter6::JKQTMath6>
+#                    $<TARGET_FILE:JKQTPlotter6::JKQTMathText6>
+#        DESTINATION "${exeName}.app/Contents/Frameworks"
+#        COMPONENT ${appName}
+#    )
+#else()# assuming linux. grab icons
+if(LINUX)
     install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/images/icon.png"
         DESTINATION "${CMAKE_INSTALL_DATADIR}/icons"
         COMPONENT "${appName}"
