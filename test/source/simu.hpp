@@ -2,9 +2,9 @@
 
 #include <concepts>
 
-#include <sparsepc/utils/matrix.hpp>
+#include <Sparsepc/utils/matrix.hpp>
 
-namespace sparsepc
+namespace Sparsepc
 {
     namespace linearmodel
     {
@@ -35,4 +35,4 @@ namespace sparsepc
             return QData;
         }
     } // namespace linearmodel
-} // namespace sparsepc
+} // namespace Sparsepc

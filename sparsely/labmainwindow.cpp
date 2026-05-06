@@ -33,30 +33,30 @@ namespace
     void saveLastFolder(const QString &path)
     {
         QSettings settings(
-            QString::fromStdString(std::string(sparsely::metadata::appVendor)),
-            QString::fromStdString(std::string(sparsely::metadata::appName)));
+            QString::fromStdString(std::string(Sparsely::metadata::appVendor)),
+            QString::fromStdString(std::string(Sparsely::metadata::appName)));
         settings.setValue("lastFolder", path);
     }
 
     QString getLastFolder()
     {
         const QSettings settings(
-            QString::fromStdString(std::string(sparsely::metadata::appVendor)),
-            QString::fromStdString(std::string(sparsely::metadata::appName)));
+            QString::fromStdString(std::string(Sparsely::metadata::appVendor)),
+            QString::fromStdString(std::string(Sparsely::metadata::appName)));
         const auto defaultPath =
             QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
         return settings.value("lastFolder", defaultPath).toString();
     }
 } // namespace
 
-namespace sparsely
+namespace Sparsely
 {
     LabMainWindow::~LabMainWindow() = default;
 
     LabMainWindow::LabMainWindow(QWidget *parent) : QMainWindow(parent)
     {
         this->setWindowTitle(
-            QString::fromStdString(std::string(sparsely::metadata::appTitle)));
+            QString::fromStdString(std::string(Sparsely::metadata::appTitle)));
         this->setMinimumSize(640, 500);
         auto *newAction = new QAction(
             QIcon::fromTheme(QIcon::ThemeIcon::DocumentNew), tr("&New"), this);
@@ -165,7 +165,7 @@ namespace sparsely
 
         const auto lastDir = getLastFolder();
         const auto fileName = QFileDialog::getOpenFileName(
-            this, tr("Open File"), lastDir, tr("Files (*.sparsely)"));
+            this, tr("Open File"), lastDir, tr("Files (*.Sparsely)"));
 
         if (fileName.isEmpty())
         {
@@ -190,7 +190,7 @@ namespace sparsely
         }
         const auto lastDir = getLastFolder();
         const auto fileName = QFileDialog::getSaveFileName(
-            this, tr("Save File"), lastDir, tr("Files (*.sparsely)"));
+            this, tr("Save File"), lastDir, tr("Files (*.Sparsely)"));
 
         if (fileName.isEmpty())
         {
@@ -296,4 +296,4 @@ namespace sparsely
                "solvers, and related algorithms. <a "
                "href=\"https://libeigen.gitlab.io\">Visit Eigen</a></ul>"));
     }
-} // namespace sparsely
+} // namespace Sparsely

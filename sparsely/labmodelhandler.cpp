@@ -17,7 +17,7 @@
 
 #include <labmodel.h>
 
-#include <sparsepc/core.hpp>
+#include <Sparsepc/core.hpp>
 
 namespace
 {
@@ -103,7 +103,7 @@ namespace
     }
 
     template <std::floating_point ScalarType>
-    sparsepc::Matrix<ScalarType> openData(std::string fileToOpen)
+    Sparsepc::Matrix<ScalarType> openData(std::string fileToOpen)
     try
     {
         std::ifstream matrixDataFile(fileToOpen);
@@ -164,8 +164,8 @@ namespace
             if (matrixRowNumber > 0 && matrixColumnNumber > 0 &&
                 !matrixEntries.empty())
             {
-                const sparsepc::RMMatrix<ScalarType> matrix =
-                    Eigen::Map<sparsepc::RMMatrix<Scalar>>(matrixEntries.data(),
+                const Sparsepc::RMMatrix<ScalarType> matrix =
+                    Eigen::Map<Sparsepc::RMMatrix<Scalar>>(matrixEntries.data(),
                                                            matrixRowNumber,
                                                            matrixColumnNumber);
                 qDebug() << "Matrix size:" << matrixRowNumber << "x"
@@ -184,7 +184,7 @@ namespace
     }
 
     // write operator
-    QDataStream &operator<<(QDataStream &out, const sparsely::Nominees &user)
+    QDataStream &operator<<(QDataStream &out, const Sparsely::Nominees &user)
     {
         out << static_cast<qint32>(user.iWinner);
         out << static_cast<qint32>(user.candidates.size());
@@ -209,7 +209,7 @@ namespace
     }
 
     // read operator
-    QDataStream &operator>>(QDataStream &in, sparsely::Nominees &user)
+    QDataStream &operator>>(QDataStream &in, Sparsely::Nominees &user)
     {
         in >> user.iWinner;
         qint32 candidatesSize = -1;
@@ -220,19 +220,19 @@ namespace
             in >> valInt;
             auto &component = user.candidates[valInt];
             in >> valInt;
-            component.state = static_cast<sparsepc::ComponentState>(valInt);
+            component.state = static_cast<Sparsepc::ComponentState>(valInt);
             auto val = static_cast<double>(-1);
             in >> val;
             component.value = val;
             in >> valInt;
-            component.vector = sparsepc::Vector<double>(valInt);
+            component.vector = Sparsepc::Vector<double>(valInt);
             in.readRawData(reinterpret_cast<char *>(component.vector.data()),
                            valInt * sizeof(double));
 
             in >> valInt;
             if (valInt != 0)
             {
-                component.q = sparsepc::Vector<double>(valInt);
+                component.q = Sparsepc::Vector<double>(valInt);
                 in.readRawData(reinterpret_cast<char *>(component.q.data()),
                                valInt * sizeof(double));
             }
@@ -243,7 +243,7 @@ namespace
 
 } // namespace
 
-namespace sparsely
+namespace Sparsely
 {
     ModelHandler::ModelHandler(LabModel &modelToBuild) : m_Model{modelToBuild}
     {
@@ -262,7 +262,7 @@ namespace sparsely
         if (newProject)
         {
             { // TODO improve covariance computations
-                const sparsepc::Matrix<double> X =
+                const Sparsepc::Matrix<double> X =
                     openData<double>(fileName.toStdString());
 
                 if (X.rows() <= 1)
@@ -271,7 +271,7 @@ namespace sparsely
                     return false;
                 }
 
-                const sparsepc::Matrix<double> centeredX =
+                const Sparsepc::Matrix<double> centeredX =
                     X.rowwise() - X.colwise().mean();
 
                 // sample covariance formula
@@ -424,4 +424,4 @@ namespace sparsely
             qDebug() << "No plugin";
         }
     }
-} // namespace sparsely
+} // namespace Sparsely

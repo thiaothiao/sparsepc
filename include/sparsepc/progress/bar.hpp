@@ -3,7 +3,7 @@
 #include <concepts>
 #include <utility>
 
-namespace sparsepc
+namespace Sparsepc
 {
     /**
      * @brief Concept for a type that can be used to report progresses.
@@ -39,4 +39,4 @@ namespace sparsepc
         bool wasCanceled() const { return false; }
         void processEvents() const {}
     };
-} // namespace sparsepc
+} // namespace Sparsepc

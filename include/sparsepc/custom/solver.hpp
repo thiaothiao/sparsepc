@@ -1,17 +1,17 @@
 #pragma once
 
-#include <sparsepc/eigen/solver.hpp>
-#include <sparsepc/generic/solver.hpp>
-#include <sparsepc/progress/bar.hpp>
-#include <sparsepc/utils/matrix.hpp>
+#include <Sparsepc/eigen/solver.hpp>
+#include <Sparsepc/generic/solver.hpp>
+#include <Sparsepc/progress/bar.hpp>
+#include <Sparsepc/utils/matrix.hpp>
 
 namespace
 {
     template <std::floating_point ScalarType>
-    auto sortVector(const sparsepc::Vector<ScalarType> &v)
+    auto sortVector(const Sparsepc::Vector<ScalarType> &v)
     {
         using Scalar = ScalarType;
-        using Index = sparsepc::Index;
+        using Index = Sparsepc::Index;
 
         std::vector<std::pair<Index, Scalar>> worker;
         worker.reserve(v.size());
@@ -36,13 +36,13 @@ namespace
     }
 
     template <std::floating_point ScalarType>
-    auto sortMatrix(const sparsepc::Matrix<ScalarType> &sigma)
+    auto sortMatrix(const Sparsepc::Matrix<ScalarType> &sigma)
     {
         return sortVector<ScalarType>(sigma.cwiseAbs().colwise().sum().eval());
     }
 } // namespace
 
-namespace sparsepc
+namespace Sparsepc
 {
     namespace linearmodel
     {
@@ -256,4 +256,4 @@ namespace sparsepc
         // using Custom = SparsePC<CustomSolver<ScalarType,
         // EigenSolver<ScalarType>>>;
     } // namespace linearmodel
-} // namespace sparsepc
+} // namespace Sparsepc

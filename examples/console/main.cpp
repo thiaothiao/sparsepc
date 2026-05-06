@@ -3,30 +3,30 @@
 #include <utility>
 
 #include <../../test/source/simu.hpp>
-#include <sparsepc/core.hpp>
-#include <sparsepc/infos.hpp>
+#include <Sparsepc/core.hpp>
+#include <Sparsepc/infos.hpp>
 
 int main()
 {
-    std::cout << "sparsepc library version " << sparsepc::metadata::libVersion
+    std::cout << "Sparsepc library version " << Sparsepc::metadata::libVersion
               << "\n";
 
     using Scalar = double;
-    using Matrix = sparsepc::Matrix<Scalar>;
-    using Vector = sparsepc::Vector<Scalar>;
-    using Component = sparsepc::Component<Scalar>;
-    using Index = sparsepc::Index;
+    using Matrix = Sparsepc::Matrix<Scalar>;
+    using Vector = Sparsepc::Vector<Scalar>;
+    using Component = Sparsepc::Component<Scalar>;
+    using Index = Sparsepc::Index;
 
-    const auto sigma = sparsepc::linearmodel::pitprops<Scalar>();
+    const auto sigma = Sparsepc::linearmodel::pitprops<Scalar>();
 
     const auto tic = std::chrono::high_resolution_clock::now();
-    auto gram = sparsepc::EigenSolver<Scalar>{}.maximumValueElement(sigma);
+    auto gram = Sparsepc::EigenSolver<Scalar>{}.maximumValueElement(sigma);
     const auto toc = std::chrono::high_resolution_clock::now();
     auto eigen =
-        sparsepc::EigenLibEigenSolver<Scalar>{}.maximumValueElement(sigma);
+        Sparsepc::EigenLibEigenSolver<Scalar>{}.maximumValueElement(sigma);
     const auto tac = std::chrono::high_resolution_clock::now();
     auto spectra =
-        sparsepc::SpectraLibEigenSolver<Scalar>{}.maximumValueElement(sigma);
+        Sparsepc::SpectraLibEigenSolver<Scalar>{}.maximumValueElement(sigma);
     const auto tuc = std::chrono::high_resolution_clock::now();
 
     std::cout << "\nGram method Maximum eigenvalue: " << gram.value << "\n"
@@ -55,7 +55,7 @@ int main()
 
     {
         std::cout << "\nStarting backward run.\n";
-        using BackwardGspca = sparsepc::linearmodel::BackwardGspca<Scalar>;
+        using BackwardGspca = Sparsepc::linearmodel::BackwardGspca<Scalar>;
 
         const auto start = std::chrono::high_resolution_clock::now();
 
@@ -80,7 +80,7 @@ int main()
 
     {
         std::cout << "\nStarting forward run.\n";
-        using ForwardGspca = sparsepc::linearmodel::ForwardGspca<Scalar>;
+        using ForwardGspca = Sparsepc::linearmodel::ForwardGspca<Scalar>;
 
         const auto start = std::chrono::high_resolution_clock::now();
 
@@ -105,7 +105,7 @@ int main()
 
     {
         std::cout << "\nStarting parallel run.\n";
-        using ParallelGspca = sparsepc::linearmodel::ParallelGspca<Scalar>;
+        using ParallelGspca = Sparsepc::linearmodel::ParallelGspca<Scalar>;
         const auto start = std::chrono::high_resolution_clock::now();
 
         const ParallelGspca::Param param{{k0, k1, k2}};
@@ -129,7 +129,7 @@ int main()
 
     {
         std::cout << "\nStarting dca run.\n";
-        using Dca = sparsepc::linearmodel::Dca<Scalar>;
+        using Dca = Sparsepc::linearmodel::Dca<Scalar>;
         const auto start = std::chrono::high_resolution_clock::now();
 
         const Dca::Param param{{k0, k1, k2}};

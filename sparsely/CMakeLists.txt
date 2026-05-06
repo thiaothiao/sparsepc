@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 4.1)
 
 set(appName "Sparsely")
-set(exeName "sparsely")
+set(exeName "Sparsely")
 set(appVersion "0.1.0")
 set(appTitle "SPARSELY Software - SPARSE principal component LaboratorY")
 set(appVendor "Inulo")
@@ -58,16 +58,16 @@ if(NOT TARGET Spectra::Spectra)
     endif()
 endif()
 
-if(NOT TARGET sparsepc::sparsepc)
+if(NOT TARGET Sparsepc::Sparsepc)
     CPMAddPackage(
-        NAME sparsepc
+        NAME Sparsepc
         SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/..
         DOWNLOAD_ONLY YES
     )
 
-    if(sparsepc_ADDED)
-        add_library(sparsepc::sparsepc INTERFACE IMPORTED)
-        target_include_directories(sparsepc::sparsepc INTERFACE "${sparsepc_SOURCE_DIR}/include")
+    if(Sparsepc_ADDED)
+        add_library(Sparsepc::Sparsepc INTERFACE IMPORTED)
+        target_include_directories(Sparsepc::Sparsepc INTERFACE "${Sparsepc_SOURCE_DIR}/include")
     endif()
 endif()
 
@@ -109,7 +109,7 @@ elseif(APPLE)
     set_target_properties(${exeName}
         PROPERTIES
             MACOSX_BUNDLE TRUE
-            MACOSX_BUNDLE_GUI_IDENTIFIER "com.inulo.sparsely"
+            MACOSX_BUNDLE_GUI_IDENTIFIER "com.Inulo.Sparsely"
             MACOSX_BUNDLE_BUNDLE_NAME ${exeName}
             MACOSX_BUNDLE_SHORT_VERSION_STRING ${appVersion}
             MACOSX_BUNDLE_LONG_VERSION_STRING ${appVersion}
@@ -134,7 +134,7 @@ target_include_directories(${exeName} PRIVATE "${JKQTPlotter6_SOURCE_DIR}/lib")
 
 target_link_libraries(${exeName}
     PRIVATE
-        sparsepc::sparsepc
+        Sparsepc::Sparsepc
         Spectra::Spectra
         Eigen3::Eigen
         JKQTPlotter6::JKQTPlotter6
@@ -180,7 +180,7 @@ if(LINUX)
         DESTINATION "${CMAKE_INSTALL_DATADIR}/icons"
         COMPONENT "${appName}"
     )
-    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/sparsely.desktop"
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/Sparsely.desktop"
         DESTINATION "${CMAKE_INSTALL_DATADIR}/applications"
         COMPONENT "${appName}"
     )
