@@ -30,6 +30,15 @@ Component.prototype.createOperations = function()
         const startMenuDir = installer.value("StartMenuDir");
         component.addOperation("CreateShortcut", installPath + "/bin/" + baseName + ".exe",
             	startMenuDir + "/" + baseName + ".lnk", "workingDir=" + installPath + "/bin");
+				
+        const vcredistKey = "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\VisualStudio\\14.0\\VC\\Runtimes\\x64";
+        const isInstalled = installer.execute("reg", ["QUERY", vcredistKey, "/v", "Installed"])[0];
+        if (!isInstalled) 
+		{            
+            // Add elevated operation to run the installer silently	
+			component.addElevatedOperation("Execute", installPath + "/bin/vc_redist.x64.exe", 
+                "/passive", "/norestart");	
+        }
     }
 	else if (systemInfo.kernelType === "darwin") 
 	{
