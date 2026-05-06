@@ -186,6 +186,12 @@ if(LINUX)
     )
 endif()
 
+install(TARGETS ${exeName}
+    BUNDLE DESTINATION .
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    COMPONENT ${appName}
+)
+
 if(APPLE)
     set(SIGNING_IDENTITY "-")#"Developer ID Application: Your Company (ID)") # Define your signing identity
     set(DEPLOY_OPTIONS "-codesign=${SIGNING_IDENTITY}" "-hardened-runtime" "-timestamp")
@@ -197,20 +203,6 @@ qt6_generate_deploy_app_script(
     DEPLOY_TOOL_OPTIONS ${DEPLOY_OPTIONS}
     NO_TRANSLATIONS
 )
-
-if (APPLE)
-    install(TARGETS ${exeName}
-        BUNDLE DESTINATION .
-        COMPONENT ${appName}
-    )
-else()
-    install(TARGETS ${exeName}
-        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
-        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-        ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-        COMPONENT "${appName}"
-    )
-endif()
 
 install(SCRIPT ${deploy_script}
     COMPONENT "${appName}"
