@@ -4,7 +4,7 @@ A header-only C++ library for sparse principal component computations.
 ## Sparsely
 A standalone application that allows computing and selecting sparse principal components. It uses Sparsepc as solver.
 
-![Visit web site](https://thiaothiao.github.io/sparsely/)
+[Visit web site](https://thiaothiao.github.io/sparsely/)
 
 ## Platforms
 * Windows
