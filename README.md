@@ -1,5 +1,7 @@
 # Sparsepc
 A header-only C++ library for sparse principal component computations.
+
+
 A formulation of the Sparse Principal Component Problem is as follows
 ```math
 (\text{SPCA}_{\Sigma}^{k})\;
@@ -11,13 +13,14 @@ s.t.&x^{T}x = 1,\\
 \end{array}
 \right.
 ```
-where the integer parameter $1 \leq k\leq n $ controls the sparsity of the solution.
+where the integer parameter $1 \leq k \leq n$ controls the sparsity of the solution.
 
 ## Sparsely
 A standalone application that allows computing and selecting sparse principal components. It uses Sparsepc as solver.
+
+
 ![description](sparsely/images/welcomeCopy.png)
 [Visit web site](https://thiaothiao.github.io/sparsely/)
-
 
 
 ## Platforms
