@@ -5,10 +5,10 @@ A formulation of the Sparse Principal Component Problem is as follows
 (\text{SPCA}_{\Sigma}^{k})\;
 \left\{
 \begin{array}{ll}\max & x^{T}\Sigma x\\
-	s.t.&x^{T}x = 1,\\
-	&\left\|x\right\|_0 \leq k,\\
-	&\;x\in\mathbb{R}^n,\\
-\end{array} 
+s.t.&x^{T}x = 1,\\
+&\left\|x\right\|_0 \leq k,\\
+&\;x\in\mathbb{R}^n,\\
+\end{array}
 \right.
 ```
 where the integer parameter $1 \leq k\leq n $ controls the sparsity of the solution.
