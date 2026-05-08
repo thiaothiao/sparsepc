@@ -86,22 +86,43 @@ CPMAddPackage(
             "JKQtPlotter_BUILD_LIB_JKQTFASTPLOTTER OFF"
 )
 
-file(GLOB sources CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
-file(GLOB headers CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
-file(GLOB apprccs CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/*.qrc)
+set(sources 
+	labcontroller.cpp
+	labmainwindow.cpp
+	labmodel.cpp
+	labmodelhandler.cpp
+	labpreferences.cpp
+	labpreferencesdialog.cpp
+	labprogressdialog.cpp
+	labwidget.cpp
+)
+
+set(headers 
+	labcontroller.h
+	labenums.h
+	labmainwindow.h
+	labmodel.h
+	labmodelhandler.h
+	labpreferences.h
+	labpreferencesdialog.h
+	labprogressdialog.h
+	labwidget.h
+)
+
+set(apprccs resources.qrc)
 
 if(WIN32)
-    file(GLOB appiconrcs CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/images/*.rc)
+	set(appiconrcs images/appicon.rc)
     enable_language(RC)
 elseif(APPLE)
-    set(appiconrcs "${CMAKE_CURRENT_SOURCE_DIR}/images/app.icns")
+	set(appiconrcs images/app.icns)
     set(MACOSX_BUNDLE_ICON_FILE "app.icns")
     set_source_files_properties(${appiconrcs} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 endif()
 
 qt_standard_project_setup()
 qt_add_resources(sources ${apprccs})
-qt_add_executable(${exeName} ${sources} ${appiconrcs} ${headers})
+qt_add_executable(${exeName} main.cpp ${sources} ${appiconrcs} ${headers})
 
 if(WIN32)
 	set_target_properties(${exeName} PROPERTIES WIN32_EXECUTABLE TRUE)
