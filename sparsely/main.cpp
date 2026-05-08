@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
         using namespace std::chrono_literals;
         std::this_thread::sleep_for(1000ms);
     }
-    Sparsely::LabMainWindow w;
+    Sparsely::LabMainWindow w{Sparsely::Enums::ScaleType::GENERAL};
     w.show();
     splash.finish(&w);
     return app.exec();

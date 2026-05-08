@@ -53,7 +53,8 @@ namespace Sparsely
 {
     LabMainWindow::~LabMainWindow() = default;
 
-    LabMainWindow::LabMainWindow(QWidget *parent) : QMainWindow(parent)
+    LabMainWindow::LabMainWindow(Enums::ScaleType scale, QWidget *parent)
+        : QMainWindow(parent), m_Scale{scale}
     {
         this->setWindowTitle(
             QString::fromStdString(std::string(Sparsely::metadata::appTitle)));
