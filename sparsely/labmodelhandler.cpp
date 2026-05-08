@@ -7,7 +7,9 @@
 #include <QString>
 #include <QtLogging>
 
+#include <algorithm>
 #include <array>
+#include <cctype>
 #include <concepts>
 #include <fstream>
 #include <iostream>
@@ -27,6 +29,13 @@ namespace
         QStringList filters;
         filters << "*.dll" << "*.so" << "*.dylib";
         return dir.entryInfoList(filters, QDir::Files | QDir::NoDotAndDotDot);
+    }
+
+    bool hasOnlySpaces(const std::string &s)
+    {
+        return std::count_if(s.begin(), s.end(), [](unsigned char c) {
+                   return std::isspace(c) != 0;
+               }) == s.size();
     }
 
     char findSeparator(const std::string &line)
@@ -81,10 +90,11 @@ namespace
                         [[maybe_unused]] const auto scalarValue =
                             std::stod(word, &pos);
 
-                        if (pos < word.size())
+                        if (pos < word.size() &&
+                            !hasOnlySpaces(word.substr(pos)))
                         {
                             hasHeader = true;
-                            qDebug() << "Trailing characters found: "
+                            qDebug() << "Trailing non-space characters found: "
                                      << word.substr(pos);
                             break;
                         }
@@ -142,9 +152,10 @@ namespace
                 {
                     std::size_t pos = 0;
                     const auto scalarValue = std::stod(matrixEntry, &pos);
-                    if (pos < matrixEntry.size())
+                    if (pos < matrixEntry.size() &&
+                        !hasOnlySpaces(matrixEntry.substr(pos)))
                     {
-                        qCritical() << "Trailing characters found: "
+                        qCritical() << "Trailing non-space characters found: "
                                     << matrixEntry.substr(pos);
                         return {};
                     }
