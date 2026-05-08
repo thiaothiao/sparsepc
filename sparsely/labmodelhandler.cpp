@@ -77,8 +77,17 @@ namespace
 
                     try
                     {
+                        std::size_t pos = 0;
                         [[maybe_unused]] const auto scalarValue =
-                            std::stod(word);
+                            std::stod(word, &pos);
+
+                        if (pos < word.size())
+                        {
+                            hasHeader = true;
+                            qDebug() << "Trailing characters found: "
+                                     << word.substr(pos);
+                            break;
+                        }
                     }
                     catch (...)
                     {
@@ -131,8 +140,15 @@ namespace
                 while (
                     std::getline(matrixRowStringStream, matrixEntry, separator))
                 {
-                    matrixEntries.push_back(
-                        static_cast<Scalar>(std::stod(matrixEntry)));
+                    std::size_t pos = 0;
+                    const auto scalarValue = std::stod(matrixEntry, &pos);
+                    if (pos < matrixEntry.size())
+                    {
+                        qCritical() << "Trailing characters found: "
+                                    << matrixEntry.substr(pos);
+                        return {};
+                    }
+                    matrixEntries.push_back(static_cast<Scalar>(scalarValue));
                     ++currentColumnNumber;
                 }
 
