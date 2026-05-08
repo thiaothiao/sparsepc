@@ -101,6 +101,10 @@ namespace Sparsely
 
         int m_N;
         std::size_t m_ColumnX;
+        double m_Xmin;
+        double m_Xmax;
+        const double m_Ymin;
+        const double m_Ymax;
         JKQTPlotter *m_Plotter;
     };
 } // namespace Sparsely

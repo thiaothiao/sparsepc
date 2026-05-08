@@ -113,7 +113,8 @@ namespace Sparsely
         : QWidget(parent), m_Plotter{nullptr}, m_SliderGroupBox{nullptr},
           m_Slider{nullptr}, m_SliderOrProgressBarWidgetStackedLayout{nullptr},
           m_MethodComboBox{nullptr}, m_PlotTypeComboBox{nullptr}, m_Colors{},
-          m_N{0}, m_ColumnX{0}
+          m_N{0}, m_ColumnX{0}, m_Xmin{0.0}, m_Xmax{1.0}, m_Ymin{-1.0},
+          m_Ymax{1.0}
     {
     }
 
@@ -406,7 +407,9 @@ namespace Sparsely
         clear(*m_Plotter);
         m_Plotter->setPlotUpdateEnabled(true);
         auto *datastore = m_Plotter->getDatastore();
-        m_ColumnX = datastore->addLinearColumn(m_N, 0, m_N - 1);
+        m_Xmin = static_cast<double>(0);
+        m_Xmax = static_cast<double>(m_N - 1);
+        m_ColumnX = datastore->addLinearColumn(m_N, m_Xmin, m_Xmax);
         m_Slider->setRange(1, m_N);
         m_Slider->setSingleStep(1);
         setSliderColor("black");
@@ -443,10 +446,8 @@ namespace Sparsely
 
     void LabWidget::zoomToFit()
     {
-        m_Plotter->setAbsoluteX(static_cast<double>(0),
-                                static_cast<double>(m_N - 1));
-        m_Plotter->setAbsoluteY(static_cast<double>(-1),
-                                static_cast<double>(1));
+        m_Plotter->setAbsoluteX(m_Xmin, m_Xmax);
+        m_Plotter->setAbsoluteY(m_Ymin, m_Ymax);
         m_Plotter->zoomToFit();
         // m_Plotter->resize(400,300);
     }
