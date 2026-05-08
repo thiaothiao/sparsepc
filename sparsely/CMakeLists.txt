@@ -134,15 +134,7 @@ elseif(APPLE)
             MACOSX_BUNDLE_BUNDLE_NAME ${exeName}
             MACOSX_BUNDLE_SHORT_VERSION_STRING ${appVersion}
             MACOSX_BUNDLE_LONG_VERSION_STRING ${appVersion}
-            #MACOSX_RPATH TRUE
-            #INSTALL_RPATH "@executable_path/../Frameworks"
     )
-#else()
-#    set_target_properties(${exeName}
-#        PROPERTIES
-#            INSTALL_RPATH "\$ORIGIN/../lib"
-#            BUILD_WITH_INSTALL_RPATH TRUE
-#    )
 endif()
 
 target_compile_definitions(${exeName}
@@ -178,24 +170,6 @@ cpack_add_component(${appName}
     REQUIRED
 )
 
-#if(WIN32)# grab some dependencies
-    #install(FILES   $<TARGET_FILE:JKQTPlotter6::JKQTPlotter6>
-    #                $<TARGET_FILE:JKQTPlotter6::JKQTCommon6>
-    #                $<TARGET_FILE:JKQTPlotter6::JKQTMath6>
-    #                $<TARGET_FILE:JKQTPlotter6::JKQTMathText6>
-    #                $<TARGET_FILE:Qt6::Xml>
-    #    DESTINATION ${CMAKE_INSTALL_BINDIR}
-    #    COMPONENT ${appName}
-    #)
-#elseif(APPLE)
-#    install(FILES   $<TARGET_FILE:JKQTPlotter6::JKQTPlotter6>
-#                    $<TARGET_FILE:JKQTPlotter6::JKQTCommon6>
-#                    $<TARGET_FILE:JKQTPlotter6::JKQTMath6>
-#                    $<TARGET_FILE:JKQTPlotter6::JKQTMathText6>
-#        DESTINATION "${exeName}.app/Contents/Frameworks"
-#        COMPONENT ${appName}
-#    )
-#else()# assuming linux. grab icons
 if(LINUX)
     install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/images/icon.png"
         DESTINATION "${CMAKE_INSTALL_DATADIR}/icons"
@@ -206,12 +180,6 @@ if(LINUX)
         COMPONENT "${appName}"
     )
 endif()
-
-#install(TARGETS ${exeName}
-#    BUNDLE DESTINATION .
-#    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
-#    COMPONENT ${appName}
-#)
 
 if(APPLE)
     set(SIGNING_IDENTITY "-")#"Developer ID Application: Your Company (ID)") # Define your signing identity
