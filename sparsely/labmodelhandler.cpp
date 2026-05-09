@@ -335,6 +335,7 @@ namespace Sparsely
         const auto &sigma = m_Model.get().m_Sigma;
         const auto &standardPCs = m_Model.get().m_StandardPCs;
         const auto &sparsePCs = m_Model.get().m_SparsePCs;
+        const auto &header = m_Model.get().m_Header;
 
         // Serialization
         QDataStream out(&file);
@@ -343,6 +344,7 @@ namespace Sparsely
         out << static_cast<qint32>(n);
         out.writeRawData(reinterpret_cast<const char *>(sigma.data()),
                          n * n * sizeof(double));
+        out << header;
         const auto standardPCsSize = static_cast<qint32>(standardPCs.size());
         out << standardPCsSize;
         for (qint32 j = 0; j < standardPCsSize; ++j)
@@ -375,6 +377,7 @@ namespace Sparsely
         auto &trace = m_Model.get().m_Trace;
         auto &standardPCs = m_Model.get().m_StandardPCs;
         auto &sparsePCs = m_Model.get().m_SparsePCs;
+        auto &header = m_Model.get().m_Header;
 
         // Deserialization
         QDataStream in(&file);
@@ -386,6 +389,7 @@ namespace Sparsely
         in.readRawData(reinterpret_cast<char *>(sigma.data()),
                        n * n * sizeof(double));
         trace = sigma.trace();
+        in >> header;
         standardPCs.clear();
         standardPCs.reserve(n);
         sparsePCs.clear();
