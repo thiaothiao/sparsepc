@@ -112,10 +112,10 @@ set(headers
 set(apprccs resources.qrc)
 
 if(WIN32)
-	set(appiconrcs images/appicon.rc)
+    set(appiconrcs "images/appicon.rc")
     enable_language(RC)
 elseif(APPLE)
-	set(appiconrcs images/app.icns)
+    set(appiconrcs "images/app.icns")
     set(MACOSX_BUNDLE_ICON_FILE "app.icns")
     set_source_files_properties(${appiconrcs} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 endif()
@@ -130,7 +130,7 @@ elseif(APPLE)
     set_target_properties(${exeName}
         PROPERTIES
             MACOSX_BUNDLE TRUE
-            MACOSX_BUNDLE_GUI_IDENTIFIER "com.Inulo.Sparsely"
+            MACOSX_BUNDLE_GUI_IDENTIFIER "com.${appVendor}.${appName}"
             MACOSX_BUNDLE_BUNDLE_NAME ${exeName}
             MACOSX_BUNDLE_SHORT_VERSION_STRING ${appVersion}
             MACOSX_BUNDLE_LONG_VERSION_STRING ${appVersion}
