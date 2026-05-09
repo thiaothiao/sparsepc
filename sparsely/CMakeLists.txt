@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 4.1)
 
 set(appName "Sparsely")
 set(exeName "Sparsely")
-set(appVersion "0.1.0")
+set(appVersion "0.2.0")
 set(appTitle "SPARSELY Software - SPARSE principal component LaboratorY")
 set(appVendor "Inulo")
 set(appDomain "https://github.com/thiaothiao/sparsepc")
