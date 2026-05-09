@@ -118,7 +118,7 @@ namespace Sparsely
 
         auto *mainWidget = new QWidget(this);
         auto *mainWidgetLayout = new QVBoxLayout(mainWidget);
-        m_LabWidget = new LabWidget(this);
+        m_LabWidget = new LabWidget(scale, this);
         mainWidgetLayout->addWidget(m_LabWidget);
 
         m_LabModel = std::make_unique<LabModel>();

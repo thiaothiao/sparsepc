@@ -109,12 +109,12 @@ namespace
 
 namespace Sparsely
 {
-    LabWidget::LabWidget(QWidget *parent)
+    LabWidget::LabWidget(Enums::ScaleType scale, QWidget *parent)
         : QWidget(parent), m_Plotter{nullptr}, m_SliderGroupBox{nullptr},
           m_Slider{nullptr}, m_SliderOrProgressBarWidgetStackedLayout{nullptr},
           m_MethodComboBox{nullptr}, m_PlotTypeComboBox{nullptr}, m_Colors{},
           m_N{0}, m_ColumnX{0}, m_Xmin{0.0}, m_Xmax{1.0}, m_Ymin{-1.0},
-          m_Ymax{1.0}
+          m_Ymax{1.0}, m_Scale{scale}
     {
     }
 
