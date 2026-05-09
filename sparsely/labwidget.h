@@ -58,7 +58,8 @@ namespace Sparsely
       public:
         void welcome(const QString &addonName);
         void updateWidget(const Preferences &preferences,
-                          const QString &addonName);
+                          const QString &addonName,
+                          const QVector<QString> &header);
         void setPlotUpdateEnabled(bool enable);
         void redrawPlot();
         void zoomToFit();

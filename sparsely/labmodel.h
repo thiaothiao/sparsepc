@@ -78,6 +78,7 @@ namespace Sparsely
             m_ValidatedComponents;
         std::vector<Nominees> m_SparsePCs;
         std::vector<Nominees> m_StandardPCs;
+        QVector<QString> m_Header;
 
       private:
         auto getStandardComponents() const;
