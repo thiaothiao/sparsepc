@@ -12,6 +12,7 @@
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLibrary>
+#include <QMessageBox>
 #include <QPen>
 #include <QProgressBar>
 #include <QProgressDialog>
@@ -567,5 +568,12 @@ namespace Sparsely
             colorString +
             ";"
             "}");
+    }
+
+    void LabWidget::lauchMessageBox(const QString &text)
+    {
+        QMessageBox messageBox(this);
+        messageBox.setText(text);
+        messageBox.exec();
     }
 } // namespace Sparsely
