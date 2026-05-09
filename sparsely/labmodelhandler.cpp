@@ -40,7 +40,7 @@ namespace
 
     char findSeparator(const std::string &line)
     {
-        static constexpr std::array<char, 4> separators{',', ';', '|', '\t'};
+        static constexpr std::array<char, 3> separators{',', ';', '|'};
         for (auto separator : separators)
         {
             if (line.find(separator) != std::string::npos)
