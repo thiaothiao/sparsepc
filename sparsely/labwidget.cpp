@@ -136,13 +136,13 @@ namespace
 
     void clear(JKQTPlotter &plotter)
     {
-        plotter.clearGraphs();
-        // plotter.getXAxis()->clearAxisTickLabels();
         auto *datastore = plotter.getDatastore();
         if (datastore)
         {
             datastore->clear();
         }
+        plotter.clearGraphs();
+        plotter.getXAxis()->clearAxisTickLabels();
     }
 } // namespace
 
@@ -443,16 +443,14 @@ namespace Sparsely
         }
         m_StandardPCGraphs.reserve(preferences.componentsColors.size());
         m_SparsePCGraphs.reserve(preferences.componentsColors.size());
-        // m_Plotter->setPlotUpdateEnabled(false);
         clear(*m_Plotter);
-
-        QVector<double> values;
-        values.reserve(header.size());
         bool isDateTime = true;
         auto startDate =
             QDateTime::fromString(header[0], monthDayFormat.toString());
         if (startDate.isValid())
         {
+            QVector<double> values;
+            values.reserve(header.size());
             for (const auto &elmt : header)
             {
                 values << QDateTime::fromString(startDate.toString(Qt::ISODate),
@@ -461,35 +459,33 @@ namespace Sparsely
                               .toMSecsSinceEpoch();
                 startDate = startDate.addDays(1);
             }
-        }
-        else
-        {
-            isDateTime = false;
-            values.clear();
-            for (int i = 0; i < m_N; ++i)
-            {
-                values << static_cast<double>(i);
-            }
-        }
-
-        m_Xmin = values.front();
-        m_Xmax = values.back();
-
-        auto *datastore = m_Plotter->getDatastore();
-        m_ColumnX = datastore->addCopiedColumn(values.data(), m_N, "values");
-
-        m_Plotter->getXAxis()->clearAxisTickLabels();
-        if (isDateTime)
-        {
+            m_Xmin = values.front();
+            m_Xmax = values.back();
+            m_Plotter->setAbsoluteX(m_Xmin, m_Xmax);
+            m_Plotter->getXAxis()->setRange(m_Xmin, m_Xmax);
+            m_ColumnX = m_Plotter->getDatastore()->addCopiedColumn(
+                values.data(), m_N, "values");
             m_Plotter->getXAxis()->setTickLabelType(JKQTPCALTdatetime);
             m_Plotter->getXAxis()->setTickDateTimeFormat(
                 monthDayFormat.toString());
             m_Plotter->getXAxis()->setMinTicks(minTicks);
         }
+        else
+        {
+            m_Xmin = static_cast<double>(0);
+            m_Xmax = static_cast<double>(m_N - 1);
+            m_Plotter->setAbsoluteX(m_Xmin, m_Xmax);
+            m_Plotter->getXAxis()->setRange(m_Xmin, m_Xmax);
+            m_ColumnX = m_Plotter->getDatastore()->addLinearColumn(
+                m_N, m_Xmin, m_Xmax, "values");
+            m_Plotter->getXAxis()->setTickLabelType(JKQTPCALTdefault);
+            m_Plotter->getXAxis()->setTickFormatFormat("%.0f");
+            m_Plotter->getXAxis()->setMinTicks(5);
+        }
+
         m_Plotter->getXAxis()->setTickLabelAngle(labelAngle);
         m_Plotter->getXAxis()->setTickLabelFontSize(xLabelFontSize);
         m_Plotter->getYAxis()->setTickLabelFontSize(yLabelFontSize);
-        // m_Plotter->setPlotUpdateEnabled(true);
 
         m_Slider->setRange(1, m_N);
         m_Slider->setSingleStep(1);
@@ -530,7 +526,6 @@ namespace Sparsely
         m_Plotter->setAbsoluteX(m_Xmin, m_Xmax);
         m_Plotter->setAbsoluteY(m_Ymin, m_Ymax);
         m_Plotter->zoomToFit();
-        // m_Plotter->resize(400,300);
     }
 
     void LabWidget::reInitSlider(int value)
