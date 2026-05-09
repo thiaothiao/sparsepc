@@ -25,7 +25,19 @@ namespace Sparsely
             IMPULSES     // impulse plots
         };
 
+        // Data types
+        enum class ScaleType : std::uint8_t
+        {
+            GENERAL = 0U, // general data analysis
+            ANNUAL,       // annual data analysis
+            SMALL,
+            MEDIUM,
+            LARGE,
+            VERYLARGE
+        };
+
         Q_ENUM_NS(Method)
         Q_ENUM_NS(PlotType)
+        Q_ENUM_NS(ScaleType)
     }; // namespace Enums
 } // namespace Sparsely

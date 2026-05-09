@@ -53,7 +53,8 @@ namespace Sparsely
 {
     LabMainWindow::~LabMainWindow() = default;
 
-    LabMainWindow::LabMainWindow(QWidget *parent) : QMainWindow(parent)
+    LabMainWindow::LabMainWindow(Enums::ScaleType scale, QWidget *parent)
+        : QMainWindow(parent), m_Scale{scale}
     {
         this->setWindowTitle(
             QString::fromStdString(std::string(Sparsely::metadata::appTitle)));
@@ -117,7 +118,7 @@ namespace Sparsely
 
         auto *mainWidget = new QWidget(this);
         auto *mainWidgetLayout = new QVBoxLayout(mainWidget);
-        m_LabWidget = new LabWidget(this);
+        m_LabWidget = new LabWidget(scale, this);
         mainWidgetLayout->addWidget(m_LabWidget);
 
         m_LabModel = std::make_unique<LabModel>();

@@ -8,6 +8,8 @@
 #include <QVector>
 #include <QWidget>
 
+#include <labenums.h>
+
 class QGroupBox;
 class QSlider;
 class QStackedLayout;
@@ -48,7 +50,7 @@ namespace Sparsely
         Q_OBJECT
 
       public:
-        LabWidget(QWidget *parent = nullptr);
+        LabWidget(Enums::ScaleType scale, QWidget *parent = nullptr);
 
       public slots:
         void updateSliderTitle(int value);
@@ -56,7 +58,8 @@ namespace Sparsely
       public:
         void welcome(const QString &addonName);
         void updateWidget(const Preferences &preferences,
-                          const QString &addonName);
+                          const QString &addonName,
+                          const QVector<QString> &header);
         void setPlotUpdateEnabled(bool enable);
         void redrawPlot();
         void zoomToFit();
@@ -101,6 +104,11 @@ namespace Sparsely
 
         int m_N;
         std::size_t m_ColumnX;
+        double m_Xmin;
+        double m_Xmax;
+        const double m_Ymin;
+        const double m_Ymax;
         JKQTPlotter *m_Plotter;
+        const Enums::ScaleType m_Scale;
     };
 } // namespace Sparsely

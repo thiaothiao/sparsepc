@@ -3,6 +3,8 @@
 #include <QButtonGroup>
 #include <QColor>
 #include <QComboBox>
+#include <QDate>
+#include <QDateTime>
 #include <QDir>
 #include <QFile>
 #include <QFormLayout>
@@ -34,27 +36,52 @@
 
 namespace
 {
+    constexpr QStringView monthDayFormat = u"MM-dd";
+    constexpr double labelAngle = 45.0;
+    constexpr unsigned int minTicks = 10u;
+    constexpr double xLabelFontSize = 10.0;
+    constexpr double yLabelFontSize = 10.0;
+
     void addSparselyIconGraphs(JKQTPlotter &plotter)
     {
+        QDate startDate(2025, 1, 1);
+        const QDate endDate(2025, 12, 31);
+        QVector<double> date;
+        while (startDate <= endDate)
+        {
+            date << QDateTime::fromString(startDate.toString(Qt::ISODate),
+                                          Qt::ISODate)
+                        .toUTC()
+                        .toMSecsSinceEpoch();
+            startDate = startDate.addDays(1); // increment by one day
+        }
+        const auto n = date.size();
         auto *datastore = plotter.getDatastore();
-        const auto n = 11;
-        const auto columnX = datastore->addLinearColumn(n, 0, n - 1);
+        const auto colDate = datastore->addCopiedColumn(date, "date");
+
         Sparsepc::Vector<double> redValues =
-            Sparsepc::Vector<double>::Constant(n, 0.01);
-        redValues[2] = 0.25;
-        redValues[3] = 0.5;
-        redValues[4] = 0.25;
+            Sparsepc::Vector<double>::Constant(n, 0.0);
+        const double nOver2 = n / 2.0;
+        const double nOver4 = n / 4.0;
+        const double threeNOver4 = n * 3.0 / 4.0;
+        for (int i = 0; i <= nOver2; ++i)
+        {
+            redValues[i] = (i < nOver4) ? i / nOver4 : (2.0 - i / nOver4);
+        }
         redValues.normalize();
         Sparsepc::Vector<double> greenValues =
-            Sparsepc::Vector<double>::Constant(n, -0.01);
-        greenValues[6] = -0.25;
-        greenValues[7] = -0.5;
-        greenValues[8] = -0.25;
+            Sparsepc::Vector<double>::Constant(n, 0.0);
+        for (int i = nOver2; i < n; ++i)
+        {
+            greenValues[i] =
+                (i <= threeNOver4) ? (2.0 - i / nOver4) : (i / nOver4 - 4.0);
+        }
         greenValues.normalize();
 
         const auto columnRed = datastore->addColumn(n);
         const auto columnGreen = datastore->addColumn(n);
         datastore->setAll(columnRed, static_cast<double>(0));
+        datastore->setAll(columnGreen, static_cast<double>(0));
         for (int i = 0; i < n; ++i)
         {
             datastore->inc(columnRed, i, redValues[i]);
@@ -73,7 +100,7 @@ namespace
             redGraph->setFillColor(col);
             redGraph->fillStyleBelow().setFillColor(col);
             redGraph->setBaseline(0.0);
-            redGraph->setXColumn(columnX);
+            redGraph->setXColumn(colDate);
             redGraph->setYColumn(columnRed);
             redGraph->setTitle("0");
             plotter.addGraph(redGraph);
@@ -90,30 +117,43 @@ namespace
             greenGraph->setFillColor(col);
             greenGraph->fillStyleBelow().setFillColor(col);
             greenGraph->setBaseline(0.0);
-            greenGraph->setXColumn(columnX);
+            greenGraph->setXColumn(colDate);
             greenGraph->setYColumn(columnGreen);
             greenGraph->setTitle("1");
             plotter.addGraph(greenGraph);
         }
+
+        plotter.getXAxis()->clearAxisTickLabels();
+        plotter.getXAxis()->setTickLabelType(JKQTPCALTdatetime);
+        plotter.getXAxis()->setTickDateTimeFormat(monthDayFormat.toString());
+        plotter.getXAxis()->setTickLabelAngle(labelAngle);
+        plotter.getXAxis()->setMinTicks(minTicks);
+        plotter.getXAxis()->setTickLabelFontSize(xLabelFontSize);
+        plotter.getYAxis()->setTickLabelFontSize(yLabelFontSize);
+        plotter.setAbsoluteX(date.front(), date.back());
+        plotter.setAbsoluteY(-1, 1);
     }
+
     void clear(JKQTPlotter &plotter)
     {
-        plotter.clearGraphs();
         auto *datastore = plotter.getDatastore();
         if (datastore)
         {
             datastore->clear();
         }
+        plotter.clearGraphs();
+        plotter.getXAxis()->clearAxisTickLabels();
     }
 } // namespace
 
 namespace Sparsely
 {
-    LabWidget::LabWidget(QWidget *parent)
+    LabWidget::LabWidget(Enums::ScaleType scale, QWidget *parent)
         : QWidget(parent), m_Plotter{nullptr}, m_SliderGroupBox{nullptr},
           m_Slider{nullptr}, m_SliderOrProgressBarWidgetStackedLayout{nullptr},
           m_MethodComboBox{nullptr}, m_PlotTypeComboBox{nullptr}, m_Colors{},
-          m_N{0}, m_ColumnX{0}
+          m_N{0}, m_ColumnX{0}, m_Xmin{0.0}, m_Xmax{1.0}, m_Ymin{-1.0},
+          m_Ymax{1.0}, m_Scale{scale}
     {
     }
 
@@ -393,7 +433,8 @@ namespace Sparsely
     }
 
     void LabWidget::updateWidget(const Preferences &preferences,
-                                 const QString &addonName)
+                                 const QString &addonName,
+                                 const QVector<QString> &header)
     {
         m_Colors.reserve(preferences.componentsColors.size());
         foreach (const auto &colorString, preferences.componentsColors)
@@ -402,11 +443,50 @@ namespace Sparsely
         }
         m_StandardPCGraphs.reserve(preferences.componentsColors.size());
         m_SparsePCGraphs.reserve(preferences.componentsColors.size());
-        m_Plotter->setPlotUpdateEnabled(false);
         clear(*m_Plotter);
-        m_Plotter->setPlotUpdateEnabled(true);
-        auto *datastore = m_Plotter->getDatastore();
-        m_ColumnX = datastore->addLinearColumn(m_N, 0, m_N - 1);
+        bool isDateTime = true;
+        auto startDate =
+            QDateTime::fromString(header[0], monthDayFormat.toString());
+        if (startDate.isValid())
+        {
+            QVector<double> values;
+            values.reserve(header.size());
+            for (const auto &elmt : header)
+            {
+                values << QDateTime::fromString(startDate.toString(Qt::ISODate),
+                                                Qt::ISODate)
+                              .toUTC()
+                              .toMSecsSinceEpoch();
+                startDate = startDate.addDays(1);
+            }
+            m_Xmin = values.front();
+            m_Xmax = values.back();
+            m_Plotter->setAbsoluteX(m_Xmin, m_Xmax);
+            m_Plotter->getXAxis()->setRange(m_Xmin, m_Xmax);
+            m_ColumnX = m_Plotter->getDatastore()->addCopiedColumn(
+                values.data(), m_N, "values");
+            m_Plotter->getXAxis()->setTickLabelType(JKQTPCALTdatetime);
+            m_Plotter->getXAxis()->setTickDateTimeFormat(
+                monthDayFormat.toString());
+            m_Plotter->getXAxis()->setMinTicks(minTicks);
+        }
+        else
+        {
+            m_Xmin = static_cast<double>(0);
+            m_Xmax = static_cast<double>(m_N - 1);
+            m_Plotter->setAbsoluteX(m_Xmin, m_Xmax);
+            m_Plotter->getXAxis()->setRange(m_Xmin, m_Xmax);
+            m_ColumnX = m_Plotter->getDatastore()->addLinearColumn(
+                m_N, m_Xmin, m_Xmax, "values");
+            m_Plotter->getXAxis()->setTickLabelType(JKQTPCALTdefault);
+            m_Plotter->getXAxis()->setTickFormatFormat("%.0f");
+            m_Plotter->getXAxis()->setMinTicks(5);
+        }
+
+        m_Plotter->getXAxis()->setTickLabelAngle(labelAngle);
+        m_Plotter->getXAxis()->setTickLabelFontSize(xLabelFontSize);
+        m_Plotter->getYAxis()->setTickLabelFontSize(yLabelFontSize);
+
         m_Slider->setRange(1, m_N);
         m_Slider->setSingleStep(1);
         setSliderColor("black");
@@ -443,12 +523,9 @@ namespace Sparsely
 
     void LabWidget::zoomToFit()
     {
-        m_Plotter->setAbsoluteX(static_cast<double>(0),
-                                static_cast<double>(m_N - 1));
-        m_Plotter->setAbsoluteY(static_cast<double>(-1),
-                                static_cast<double>(1));
+        m_Plotter->setAbsoluteX(m_Xmin, m_Xmax);
+        m_Plotter->setAbsoluteY(m_Ymin, m_Ymax);
         m_Plotter->zoomToFit();
-        // m_Plotter->resize(400,300);
     }
 
     void LabWidget::reInitSlider(int value)

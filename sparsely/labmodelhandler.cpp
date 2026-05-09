@@ -40,7 +40,7 @@ namespace
 
     char findSeparator(const std::string &line)
     {
-        static constexpr std::array<char, 4> separators{',', ';', '|', '\t'};
+        static constexpr std::array<char, 3> separators{',', ';', '|'};
         for (auto separator : separators)
         {
             if (line.find(separator) != std::string::npos)
@@ -53,7 +53,8 @@ namespace
         return '\0';
     }
 
-    char findSeparator(std::ifstream &file, int &numberOfColumns)
+    char findSeparator(std::ifstream &file, int &numberOfColumns,
+                       QVector<QString> &candidateHeader)
     {
         std::string line;
         if (std::getline(file, line))
@@ -68,38 +69,28 @@ namespace
                 //     c++23 on gcc 14.1+
 
                 auto split_view = line | std::views::split(separator);
-                std::vector<std::string> candidateHeader;
+                candidateHeader.clear();
                 for (auto &&part : split_view)
                 {
-                    candidateHeader.emplace_back(std::string_view(part));
+                    // safe but less efficient
+                    candidateHeader.push_back(QString::fromStdString(
+                        std::string(std::string_view(part))));
                 }
                 numberOfColumns = static_cast<int>(candidateHeader.size());
                 bool hasHeader = false;
                 for (const auto &word : candidateHeader)
                 { // assuming at least one non-empty element is not a number
-                    if (word.empty())
+                    if (word.isEmpty())
                     {
                         qDebug() << "Empty element somewhere on the first "
                                     "line of the file";
                         return '\0';
                     }
 
-                    try
-                    {
-                        std::size_t pos = 0;
-                        [[maybe_unused]] const auto scalarValue =
-                            std::stod(word, &pos);
-
-                        if (pos < word.size() &&
-                            !hasOnlySpaces(word.substr(pos)))
-                        {
-                            hasHeader = true;
-                            qDebug() << "Trailing non-space characters found: "
-                                     << word.substr(pos);
-                            break;
-                        }
-                    }
-                    catch (...)
+                    bool ok{};
+                    [[maybe_unused]] const auto value =
+                        word.trimmed().toDouble(&ok);
+                    if (!ok)
                     {
                         hasHeader = true;
                         qDebug() << "Data has header";
@@ -107,10 +98,18 @@ namespace
                     }
                 }
 
-                if (!hasHeader && !file.seekg(0, std::ios::beg))
-                { // cannot fallback to the beginning of the file. Leave!
-                    qDebug() << "Cannot seek at the beginning of the file";
-                    return '\0';
+                if (!hasHeader)
+                {
+                    candidateHeader.clear(); // no header
+                    for (int i = 0; i < numberOfColumns; ++i)
+                    {
+                        candidateHeader.push_back(QString::number(i));
+                    }
+                    if (!file.seekg(0, std::ios::beg))
+                    { // cannot fallback to the beginning of the file. Leave!
+                        qDebug() << "Cannot seek at the beginning of the file";
+                        return '\0';
+                    }
                 }
 
                 return separator;
@@ -122,15 +121,15 @@ namespace
     }
 
     template <std::floating_point ScalarType>
-    Sparsepc::Matrix<ScalarType> openData(std::string fileToOpen)
-    try
+    Sparsepc::Matrix<ScalarType> openData(std::string fileToOpen,
+                                          QVector<QString> &candidateHeader)
     {
         std::ifstream matrixDataFile(fileToOpen);
         if (matrixDataFile.is_open() && !matrixDataFile.eof())
         { // TODO optimize memory usage
             int matrixColumnNumber = 0;
-            const auto separator =
-                findSeparator(matrixDataFile, matrixColumnNumber);
+            const auto separator = findSeparator(
+                matrixDataFile, matrixColumnNumber, candidateHeader);
             if (!separator)
             {
                 // qCritical() << "Cannot find a separator:" << fileToOpen;
@@ -150,15 +149,16 @@ namespace
                 while (
                     std::getline(matrixRowStringStream, matrixEntry, separator))
                 {
-                    std::size_t pos = 0;
-                    const auto scalarValue = std::stod(matrixEntry, &pos);
-                    if (pos < matrixEntry.size() &&
-                        !hasOnlySpaces(matrixEntry.substr(pos)))
+                    bool ok{};
+                    const auto scalarValue = QString::fromStdString(matrixEntry)
+                                                 .trimmed()
+                                                 .toDouble(&ok);
+                    if (!ok)
                     {
-                        qCritical() << "Trailing non-space characters found: "
-                                    << matrixEntry.substr(pos);
+                        qCritical() << "Cannot convert string: " << matrixEntry;
                         return {};
                     }
+
                     matrixEntries.push_back(static_cast<Scalar>(scalarValue));
                     ++currentColumnNumber;
                 }
@@ -202,11 +202,6 @@ namespace
         }
 
         qCritical() << "Cannot load data:" << fileToOpen;
-        return {};
-    }
-    catch (...)
-    {
-        qCritical() << "An exception pops up:" << fileToOpen;
         return {};
     }
 
@@ -285,12 +280,14 @@ namespace Sparsely
         auto &standardPCs = m_Model.get().m_StandardPCs;
         auto &sparsePCs = m_Model.get().m_SparsePCs;
         auto &validatedComponents = m_Model.get().m_ValidatedComponents;
+        auto &header = m_Model.get().m_Header;
 
         if (newProject)
         {
             { // TODO improve covariance computations
                 const Sparsepc::Matrix<double> X =
-                    openData<double>(fileName.toStdString());
+                    openData<double>(fileName.toStdString(), header);
+
 
                 if (X.rows() <= 1)
                 {

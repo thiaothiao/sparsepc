@@ -155,8 +155,9 @@ namespace Sparsely
         }
         m_N = labModel.getN();
         labWidget.setN(m_N);
-        labWidget.updateWidget(m_Preferences, labModel.getAddonName());
         const DeferredUpdateForPlots deferredUpdateForPlots(labWidget);
+        labWidget.updateWidget(m_Preferences, labModel.getAddonName(),
+                               labModel.m_Header);
         addStandardPCGraphs();
         addSparsePCGraphs();
         labWidget.reInitSlider(labModel.getiWinner());

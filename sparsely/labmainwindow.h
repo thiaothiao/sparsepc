@@ -4,6 +4,8 @@
 
 #include <QMainWindow>
 
+#include <labenums.h>
+
 class QWidget;
 class QCloseEvent;
 
@@ -28,7 +30,7 @@ namespace Sparsely
         void aboutEigen();
 
       public:
-        LabMainWindow(QWidget *parent = nullptr);
+        LabMainWindow(Enums::ScaleType scale, QWidget *parent = nullptr);
         ~LabMainWindow();
 
       private:
@@ -36,5 +38,6 @@ namespace Sparsely
         std::unique_ptr<LabModel> m_LabModel;
         LabWidget *m_LabWidget;
         LabController *m_LabController;
+        const Enums::ScaleType m_Scale;
     };
 } // namespace Sparsely
