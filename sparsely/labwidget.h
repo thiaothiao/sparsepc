@@ -60,6 +60,7 @@ namespace Sparsely
         void updateWidget(const Preferences &preferences,
                           const QString &addonName,
                           const QVector<QString> &header);
+        void lauchMessageBox(const QString &text);
         void setPlotUpdateEnabled(bool enable);
         void redrawPlot();
         void zoomToFit();

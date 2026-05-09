@@ -225,10 +225,19 @@ namespace Sparsely
         const DeferredUpdateForPlots deferredUpdateForPlots(labWidget);
         if (labWidget.m_StandardPCRadioButton->isChecked())
         {
+            if (labModel.m_StandardPCs.size() >= labWidget.m_Colors.size())
+            {
+                labWidget.lauchMessageBox(
+                    tr("Maximum number of standard components reached. You can "
+                       "change it from preferences then relaunch the "
+                       "application."));
+                return;
+            }
             const auto newStandardPCColor =
                 labWidget.m_Colors[labModel.m_StandardPCs.size()];
             NoEscapeQProgressDialog qProgressDialog(
-                "Computing standard pcs...", "Abort", 0, m_N, &labWidget);
+                tr("Computing standard pcs..."), tr("Abort"), 0, m_N,
+                &labWidget);
             ProgressDialog progressDialog(qProgressDialog);
 
             qProgressDialog.setStyleSheet(
@@ -264,6 +273,14 @@ namespace Sparsely
             return;
         }
 
+        if (labModel.m_SparsePCs.size() >= labWidget.m_Colors.size())
+        {
+            labWidget.lauchMessageBox(tr(
+                "Maximum number of sparse components reached. You can change "
+                "it from preferences then relaunch the application."));
+            return;
+        }
+
         const SliderDisconnectConnect sliderDisconnectConnect(
             *labWidget.m_Slider, *this);
 
@@ -272,8 +289,8 @@ namespace Sparsely
         const auto newSparsePCColor =
             labWidget.m_Colors[labModel.m_SparsePCs.size()];
 
-        NoEscapeQProgressDialog qProgressDialog("Computing sparse pcs...",
-                                                "Abort", 0, m_N, &labWidget);
+        NoEscapeQProgressDialog qProgressDialog(
+            tr("Computing sparse pcs..."), tr("Abort"), 0, m_N, &labWidget);
         ProgressDialog progressDialog(qProgressDialog);
 
         qProgressDialog.setStyleSheet(
