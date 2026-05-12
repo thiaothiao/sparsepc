@@ -23,6 +23,8 @@ A standalone application that allows computing and selecting sparse principal co
 [Visit web site](https://thiaothiao.github.io/sparsely/)
 
 
+## Programming Language
+We use c++ 23 and later.
 ## Platforms
 * Windows
 * Ubuntu
