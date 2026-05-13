@@ -346,6 +346,7 @@ namespace Sparsepc
             const auto n = sigma.cols();
 
             ComponentsContainer components;
+            components.reserve(n);
 
             if (k > static_cast<Index>(0))
             {
@@ -586,6 +587,7 @@ namespace Sparsepc
             const auto n = sigma.cols();
 
             ComponentsContainer components;
+            components.reserve(n);
 
             if (k > static_cast<Index>(0))
             {
@@ -792,6 +794,7 @@ namespace Sparsepc
             if (k > static_cast<Index>(0))
             {
                 ComponentsContainer components;
+                components.reserve(n);
 
                 if (progressBar)
                 {
