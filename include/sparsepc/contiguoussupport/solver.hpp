@@ -110,12 +110,7 @@ namespace Sparsepc
                 return cmponent;
             }
 
-            Vectori indices(n);
-            for (Index i = 0; i < n; ++i)
-            {
-                indices[i] = i;
-            }
-
+            Vectori indices = Vectori::LinSpaced(n, 0, n - 1);
             auto lambdaMax = 0.0;
             Index iMax = 0;
             for (Index i = 0; i < n - k + 1; ++i)
