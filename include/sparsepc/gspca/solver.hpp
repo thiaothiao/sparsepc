@@ -361,7 +361,7 @@ namespace Sparsepc
                     }
                 }
 
-                components.emplace(
+                components.try_emplace(
                     std::min(k, n),
                     BackwardGspcaSolver<Scalar, EigenSolver, ProgressBar>{param}
                         .run(sigma));
@@ -376,7 +376,7 @@ namespace Sparsepc
                 return components;
             }
 
-            components.emplace(n, eigenSolver.maximumValueElement(sigma));
+            components.try_emplace(n, eigenSolver.maximumValueElement(sigma));
 
             if (n == static_cast<Index>(1))
             {
@@ -456,7 +456,7 @@ namespace Sparsepc
                     sigma(kFoundIndices, kFoundIndices));
 
                 auto &component =
-                    components.emplace(kCurrent, Component(n)).first->second;
+                    components.try_emplace(kCurrent, Component(n)).first->second;
                 component.value = subDimEigenElement.value;
                 component.vector(kFoundIndices) = subDimEigenElement.vector;
 
@@ -601,7 +601,7 @@ namespace Sparsepc
                     }
                 }
 
-                components.emplace(
+                components.try_emplace(
                     std::min(k, n),
                     ForwardGspcaSolver<Scalar, EigenSolver, ProgressBar>{param}
                         .run(sigma));
@@ -616,7 +616,7 @@ namespace Sparsepc
                 return components;
             }
 
-            components.emplace(n, eigenSolver.maximumValueElement(sigma));
+            components.try_emplace(n, eigenSolver.maximumValueElement(sigma));
 
             if (n == static_cast<Index>(1))
             {
@@ -693,7 +693,7 @@ namespace Sparsepc
                     sigma(kFoundIndices, kFoundIndices));
 
                 auto &component =
-                    components.emplace(kCurrent, Component(n)).first->second;
+                    components.try_emplace(kCurrent, Component(n)).first->second;
                 component.value = subDimEigenElement.value;
                 component.vector(kFoundIndices) = subDimEigenElement.vector;
 
@@ -805,7 +805,7 @@ namespace Sparsepc
                     }
                 }
 
-                components.emplace(
+                components.try_emplace(
                     std::min(k, n),
                     ParallelGspcaSolver<Scalar, EigenSolver, ProgressBar>{param}
                         .run(sigma));
