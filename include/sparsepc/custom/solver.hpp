@@ -188,7 +188,7 @@ namespace Sparsepc
                     }
                 }
 
-                components.emplace(
+                components.try_emplace(
                     std::min(k, n),
                     CustomSolver<Scalar, EigenSolver, ProgressBar>{param}
                         .run(sigma));
@@ -203,7 +203,7 @@ namespace Sparsepc
                 return components;
             }
 
-            components.emplace(n, eigenSolver.maximumValueElement(sigma));
+            components.try_emplace(n, eigenSolver.maximumValueElement(sigma));
 
             if (n == 1)
             {
@@ -224,7 +224,7 @@ namespace Sparsepc
 
             for (Index k = 1; k < n; ++k)
             {
-                components.emplace(k, Component(n));
+                components.try_emplace(k, Component(n));
             }
 
             auto indices = sortMatrix(sigma);
