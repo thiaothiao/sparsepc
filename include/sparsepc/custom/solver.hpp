@@ -173,6 +173,7 @@ namespace Sparsepc
             const auto n = sigma.cols();
 
             ComponentsContainer components;
+            components.reserve(n);
 
             if (k > static_cast<Index>(0))
             {
