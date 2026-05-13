@@ -287,7 +287,7 @@ namespace Sparsepc
                     }
                 }
 
-                components.emplace(
+                components.try_emplace(
                     std::min(k, n),
                     DcaSolver<Scalar, EigenSolver, ProgressBar>{param}.run(
                         sigma));
@@ -303,7 +303,7 @@ namespace Sparsepc
             }
 
             const auto &component =
-                components.emplace(n, eigenSolver.maximumValueElement(sigma))
+                components.try_emplace(n, eigenSolver.maximumValueElement(sigma))
                     .first->second;
 
             if (n == 1)
@@ -325,7 +325,7 @@ namespace Sparsepc
 
             for (Index k = 1; k < n; ++k)
             {
-                components.emplace(k, Component(n));
+                components.try_emplace(k, Component(n));
             }
 
             // TODO use #pragma omp parallel and #pragma omp cancel
