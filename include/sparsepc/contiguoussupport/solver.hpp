@@ -1,55 +1,20 @@
 #pragma once
 
+#include <concepts>
+
 #include <sparsepc/eigen/solver.hpp>
 #include <sparsepc/generic/solver.hpp>
 #include <sparsepc/progress/bar.hpp>
 #include <sparsepc/utils/matrix.hpp>
-
-namespace
-{
-    template <std::floating_point ScalarType>
-    auto sortVector(const Sparsepc::Vector<ScalarType> &v)
-    {
-        using Scalar = ScalarType;
-        using Index = Sparsepc::Index;
-
-        std::vector<std::pair<Index, Scalar>> worker;
-        worker.reserve(v.size());
-        for (Index i = 0; i < v.size(); ++i)
-        {
-            worker.emplace_back(i, v[i]);
-        }
-
-        std::sort(worker.begin(), worker.end(),
-                  [](const std::pair<Index, Scalar> &lhs,
-                     const std::pair<Index, Scalar> &rhs) {
-                      return lhs.second > rhs.second;
-                  });
-
-        std::vector<Index> indices;
-        indices.reserve(v.size());
-        for (const auto &w : worker)
-        {
-            indices.push_back(w.first);
-        }
-        return indices;
-    }
-
-    template <std::floating_point ScalarType>
-    auto sortMatrix(const Sparsepc::Matrix<ScalarType> &sigma)
-    {
-        return sortVector<ScalarType>(sigma.cwiseAbs().colwise().sum().eval());
-    }
-} // namespace
 
 namespace Sparsepc
 {
     namespace linearmodel
     {
         /**
-         * @brief A wrapper class that allows to add custom C++ implementations.
-         * @details Replace the current implementation with your own sparse
-         * principal component implementation.
+         * @brief A Contiguous support solver class.
+         * @details It computes solutions using contiguous subsets of indices
+         * as support.
          * @tparam ScalarType The considered scalar type.
          * @tparam EigenSolverType The eigen solver to be used for eigen
          * elements computation.
@@ -58,7 +23,7 @@ namespace Sparsepc
         template <std::floating_point ScalarType,
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType = DummyProgressBar>
-        class CustomSolver final
+        class ContiguousSupportSolver final
         {
           public:
             using Scalar = ScalarType;
@@ -66,7 +31,7 @@ namespace Sparsepc
             using ProgressBar = ProgressBarType;
 
             /**
-             * @brief CustomSolver parameter set.
+             * @brief ContiguousSupportSolver parameter set.
              * @details Store the parameters needed for the computations.
              */
             struct Param final
@@ -90,11 +55,11 @@ namespace Sparsepc
             };
 
             /**
-             * @brief Constructs a new CustomSolver object with specified
+             * @brief Constructs a new ContiguousSupportSolver object with specified
              * parameters.
              * @param param The parameters used by the solver object.
              */
-            CustomSolver(const Param &param = {}) : m_Param{param} {}
+            ContiguousSupportSolver(const Param &param = {}) : m_Param{param} {}
 
             /**
              * @brief Computes the principal component associated with the
@@ -122,7 +87,7 @@ namespace Sparsepc
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
         auto
-        CustomSolver<ScalarType, EigenSolverType, ProgressBarType>::run(
+        ContiguousSupportSolver<ScalarType, EigenSolverType, ProgressBarType>::run(
             const Matrix<Scalar> &sigma) const
         {
             using Component = Component<Scalar>;
@@ -145,14 +110,27 @@ namespace Sparsepc
                 return cmponent;
             }
 
-            auto indices = sortMatrix(sigma);
-            indices.resize(k);
-            const auto subDimEigenElement =
-                eigenSolver.maximumValueElement(sigma(indices, indices));
+            const Vectori indices = Vectori::LinSpaced(n, 0, n - 1);
+            auto lambdaMax = 0.0;
+            Index iMax = 0;
+            for (Index i = 0; i < n - k + 1; ++i)
+            {
+                const auto sub = indices.segment(i, k);
+                const auto lambda = eigenSolver.maximumValue(sigma(sub, sub));
+                if (lambda > lambdaMax)
+                {
+                    lambdaMax = lambda;
+                    iMax = i;
+                }
+            }
+
+            const auto subMax = indices.segment(iMax, k);
+            auto subDimEigenElement =
+                eigenSolver.maximumValueElement(sigma(subMax, subMax));
 
             Component component(n);
+            component.vector(subMax) = subDimEigenElement.vector;
             component.value = subDimEigenElement.value;
-            component.vector(indices) = subDimEigenElement.vector;
 
             return component;
         }
@@ -161,7 +139,7 @@ namespace Sparsepc
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
         auto
-        CustomSolver<ScalarType, EigenSolverType, ProgressBarType>::run(
+        ContiguousSupportSolver<ScalarType, EigenSolverType, ProgressBarType>::run(
             const Matrix<Scalar> &sigma, const Param &param,
             ProgressBar *progressBar)
         {
@@ -191,7 +169,7 @@ namespace Sparsepc
 
                 components.try_emplace(
                     std::min(k, n),
-                    CustomSolver<Scalar, EigenSolver, ProgressBar>{param}
+                    ContiguousSupportSolver<Scalar, EigenSolver, ProgressBar>{param}
                         .run(sigma));
 
                 if (progressBar)
@@ -228,15 +206,11 @@ namespace Sparsepc
                 components.try_emplace(k, Component(n));
             }
 
-            auto indices = sortMatrix(sigma);
             for (Index k = n - 1; k > 0; --k)
             {
-                indices.resize(k);
-                auto &component = components.at(k);
-                const auto subDimEigenElement =
-                    eigenSolver.maximumValueElement(sigma(indices, indices));
-                component.value = subDimEigenElement.value;
-                component.vector(indices) = subDimEigenElement.vector;
+                components.at(
+                    k) = ContiguousSupportSolver<Scalar, EigenSolver, ProgressBar>{
+                    Param{k}}.run(sigma);
 
                 if (progressBar)
                 {
@@ -253,8 +227,9 @@ namespace Sparsepc
 
             return components;
         }
-        // template<std::floating_point ScalarType>
-        // using Custom = SparsePC<CustomSolver<ScalarType,
-        // EigenSolver<ScalarType>>>;
+
+        template <std::floating_point ScalarType>
+        using ContiguousFacetsFinder = SparsePC<
+            ContiguousSupportSolver<ScalarType, EigenSolver<ScalarType>>>;
     } // namespace linearmodel
 } // namespace Sparsepc

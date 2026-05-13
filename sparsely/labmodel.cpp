@@ -36,6 +36,11 @@ namespace
         Sparsepc::linearmodel::SparsePC<Sparsepc::linearmodel::DynamicLibSolver<
             double, Sparsepc::SpectraLibEigenSolver<double>,
             Sparsely::ProgressDialog>>;
+
+    using ContiguousSupportSolver = Sparsepc::linearmodel::SparsePC<
+        Sparsepc::linearmodel::ContiguousSupportSolver<
+            double, Sparsepc::SpectraLibEigenSolver<double>,
+            Sparsely::ProgressDialog>>;
 } // namespace
 
 namespace Sparsely
@@ -115,6 +120,12 @@ namespace Sparsely
             sparsePC.candidates = CustomSolver::computeNextComponentCandidates(
                 m_Sigma, CustomSolver::ImplementationParam{}, m_ValidatedComponents,
                 progressBar);
+            break;
+        case Enums::Method::CONTIGUOUSSUPPORT:
+            sparsePC.candidates =
+                ContiguousSupportSolver::computeNextComponentCandidates(
+                    m_Sigma, ContiguousSupportSolver::ImplementationParam{},
+                    m_ValidatedComponents, progressBar);
             break;
         case Enums::Method::USERDYNAMICLIB: {
             auto &library = m_DynamicLibSolverLoaders.at(0);
