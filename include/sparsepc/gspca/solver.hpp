@@ -260,11 +260,7 @@ namespace Sparsepc
                 return eigenSolver.maximumValueElement(sigma);
             }
 
-            Vectori choosenIndices(n);
-            for (Index i = 0; i < n; ++i)
-            {
-                choosenIndices[i] = i;
-            }
+            Vectori choosenIndices = Vectori::LinSpaced(n, 0, n - 1);
 
             auto j0 = static_cast<Index>(0);
             while (true)
@@ -396,11 +392,7 @@ namespace Sparsepc
                 }
             }
 
-            Vectori choosenIndices(n);
-            for (Index i = 0; i < n; ++i)
-            {
-                choosenIndices[i] = i;
-            }
+            Vectori choosenIndices = Vectori::LinSpaced(n, 0, n - 1);
 
             auto j0 = static_cast<Index>(0);
             while (true)
@@ -501,11 +493,7 @@ namespace Sparsepc
                 return eigenSolver.maximumValueElement(sigma);
             }
 
-            Vectori reserveIndices(n);
-            for (Index i = 0; i < n; ++i)
-            {
-                reserveIndices[i] = i;
-            }
+            Vectori reserveIndices = Vectori::LinSpaced(n, 0, n - 1);
 
             auto j0 = static_cast<Index>(0);
             while (true)
@@ -637,11 +625,7 @@ namespace Sparsepc
                 }
             }
 
-            Vectori reserveIndices(n);
-            for (Index i = 0; i < n; ++i)
-            {
-                reserveIndices[i] = i;
-            }
+            Vectori reserveIndices = Vectori::LinSpaced(n, 0, n - 1);
 
             auto j0 = static_cast<Index>(0);
             while (true)
