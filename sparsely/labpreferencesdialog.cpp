@@ -254,27 +254,9 @@ namespace Sparsely
         m_MethodComboBox->addItem(
             tr("User Dynamic Lib"),
             QVariant::fromValue(Enums::Method::USERDYNAMICLIB));
-        switch (prefs.method)
-        { // should use a map type ontainer!
-        case Enums::Method::DCA:
-            m_MethodComboBox->setCurrentIndex(0);
-            break;
-        case Enums::Method::FGSPCA:
-            m_MethodComboBox->setCurrentIndex(1);
-            break;
-        case Enums::Method::BGSPCA:
-            m_MethodComboBox->setCurrentIndex(2);
-            break;
-        case Enums::Method::CUSTOM:
-            m_MethodComboBox->setCurrentIndex(3);
-            break;
-        case Enums::Method::USERDYNAMICLIB:
-            m_MethodComboBox->setCurrentIndex(4);
-            break;
-        default:
-            m_MethodComboBox->setCurrentIndex(0);
-            break;
-        }
+
+        m_MethodComboBox->setCurrentIndex(std::to_underlying(prefs.method));
+
         methodGroupBoxLayout->addWidget(m_MethodComboBox);
         containerLayout->addWidget(methodGroupBox);
         QObject::connect(m_MethodComboBox,
