@@ -324,18 +324,15 @@ namespace Sparsepc
                 }
             }
 
-            for (Index k = 1; k < n; ++k)
-            {
-                components.try_emplace(k, Component(n));
-            }
-
             // TODO use #pragma omp parallel and #pragma omp cancel
             for (Index k = 1; k < n; ++k)
             {
-                components.at(k) = DcaSolver<Scalar, EigenSolver, ProgressBar>{
-                    Param{k, param.eigenSolver, param.t, param.tolerance,
-                          param.maximumNumberOfIterations,
-                          param.zero}}.run(sigma, component);
+                components.try_emplace(
+                    k,
+                    DcaSolver<Scalar, EigenSolver, ProgressBar>{
+                        Param{k, param.eigenSolver, param.t, param.tolerance,
+                              param.maximumNumberOfIterations, param.zero}}
+                        .run(sigma, component));
 
                 if (progressBar)
                 {
