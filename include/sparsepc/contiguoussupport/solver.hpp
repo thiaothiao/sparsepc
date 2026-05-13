@@ -201,16 +201,13 @@ namespace Sparsepc
                 }
             }
 
-            for (Index k = 1; k < n; ++k)
-            {
-                components.try_emplace(k, Component(n));
-            }
-
             for (Index k = n - 1; k > 0; --k)
             {
-                components.at(
-                    k) = ContiguousSupportSolver<Scalar, EigenSolver, ProgressBar>{
-                    Param{k}}.run(sigma);
+                components.try_emplace(
+                    k,
+                    ContiguousSupportSolver<Scalar, EigenSolver, ProgressBar>{
+                        Param{k}}
+                        .run(sigma));
 
                 if (progressBar)
                 {
