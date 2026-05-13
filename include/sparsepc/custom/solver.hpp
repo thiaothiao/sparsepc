@@ -229,7 +229,7 @@ namespace Sparsepc
             }
 
             auto indices = sortMatrix(sigma);
-            for (Index k = n - 1; k > 1; --k)
+            for (Index k = n - 1; k > 0; --k)
             {
                 indices.resize(k);
                 auto &component = components.at(k);
