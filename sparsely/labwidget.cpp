@@ -400,6 +400,10 @@ namespace Sparsely
         m_MethodComboBox->insertItem(
             std::to_underlying(Enums::Method::CUSTOM), tr("Custom"),
             QVariant::fromValue(Enums::Method::CUSTOM));
+        m_MethodComboBox->insertItem(
+            std::to_underlying(Enums::Method::CONTIGUOUSSUPPORT),
+            tr("Contiguous Support"),
+            QVariant::fromValue(Enums::Method::CONTIGUOUSSUPPORT));
         if (!addonName.isEmpty())
         {
             m_MethodComboBox->insertItem(

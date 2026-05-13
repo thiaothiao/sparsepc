@@ -11,11 +11,12 @@ namespace Sparsely
         // Sparse principal component methods enumeration
         enum class Method : std::uint8_t
         {
-            DCA = 0U,      // Dca based
-            FGSPCA,        // Gspca based, forward
-            BGSPCA,        // Gspca based, backward
-            CUSTOM,        // statically customizable user defined method
-            USERDYNAMICLIB // addon based user defined method
+            DCA = 0U,          // Dca based
+            FGSPCA,            // Gspca based, forward
+            BGSPCA,            // Gspca based, backward
+            CUSTOM,            // Statically customizable user defined method
+            CONTIGUOUSSUPPORT, // Contiguous support finder
+            USERDYNAMICLIB     // addon based user defined method
         };
 
         // Graphs plot types enumeration

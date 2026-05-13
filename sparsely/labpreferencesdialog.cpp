@@ -252,6 +252,9 @@ namespace Sparsely
         m_MethodComboBox->addItem(tr("Custom"),
                                   QVariant::fromValue(Enums::Method::CUSTOM));
         m_MethodComboBox->addItem(
+            tr("Contiguous Support"),
+            QVariant::fromValue(Enums::Method::CONTIGUOUSSUPPORT));
+        m_MethodComboBox->addItem(
             tr("User Dynamic Lib"),
             QVariant::fromValue(Enums::Method::USERDYNAMICLIB));
 
