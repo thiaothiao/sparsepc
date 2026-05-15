@@ -1,6 +1,7 @@
 #pragma once
 
 #include <concepts>
+#include <cstdlib>
 
 #include <sparsepc/eigen/solver.hpp>
 #include <sparsepc/generic/solver.hpp>
@@ -110,21 +111,21 @@ namespace Sparsepc
                 return cmponent;
             }
 
-            const Vectori indices = Vectori::LinSpaced(n, 0, n - 1);
-            auto lambdaMax = 0.0;
-            Index iMax = 0;
-            for (Index i = 0; i < n - k + 1; ++i)
+            auto lambdaMax = static_cast<Scalar>(-1);
+            Vectori subMax;
+            Vectori sub = Vectori::LinSpaced(k, 0, k - 1);
+            for (Index i = 0; i < n; ++i)
             {
-                const auto sub = indices.segment(i, k);
                 const auto lambda = eigenSolver.maximumValue(sigma(sub, sub));
                 if (lambda > lambdaMax)
                 {
                     lambdaMax = lambda;
-                    iMax = i;
+                    subMax = sub;
                 }
+
+                sub[std::div(i, k).rem] = std::div(k + i, n).rem;
             }
 
-            const auto subMax = indices.segment(iMax, k);
             auto subDimEigenElement =
                 eigenSolver.maximumValueElement(sigma(subMax, subMax));
 
