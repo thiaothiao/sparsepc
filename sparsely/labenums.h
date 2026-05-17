@@ -16,6 +16,8 @@ namespace Sparsely
             BGSPCA,            // Gspca based, backward
             CUSTOM,            // Statically customizable user defined method
             CONTIGUOUSSUPPORT, // Contiguous support finder
+            MAVIEA,            // Iea based, mav
+            AMVLIEA,           // Iea based, amvl
             USERDYNAMICLIB     // addon based user defined method
         };
 

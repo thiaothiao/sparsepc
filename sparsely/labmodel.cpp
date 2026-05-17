@@ -41,6 +41,16 @@ namespace
         Sparsepc::linearmodel::ContiguousSupportSolver<
             double, Sparsepc::SpectraLibEigenSolver<double>,
             Sparsely::ProgressDialog>>;
+
+    using MavIterativeEliminationSolver = Sparsepc::linearmodel::SparsePC<
+        Sparsepc::linearmodel::MavIterativeEliminationSolver<
+            double, Sparsepc::SpectraLibEigenSolver<double>,
+            Sparsely::ProgressDialog>>;
+
+    using AmvlIterativeEliminationSolver = Sparsepc::linearmodel::SparsePC<
+        Sparsepc::linearmodel::AmvlIterativeEliminationSolver<
+            double, Sparsepc::SpectraLibEigenSolver<double>,
+            Sparsely::ProgressDialog>>;
 } // namespace
 
 namespace Sparsely
@@ -125,6 +135,18 @@ namespace Sparsely
             sparsePC.candidates =
                 ContiguousSupportSolver::computeNextComponentCandidates(
                     m_Sigma, ContiguousSupportSolver::ImplementationParam{},
+                    m_ValidatedComponents, progressBar);
+            break;
+        case Enums::Method::MAVIEA:
+            sparsePC.candidates =
+                MavIterativeEliminationSolver::computeNextComponentCandidates(
+                    m_Sigma, MavIterativeEliminationSolver::ImplementationParam{},
+                    m_ValidatedComponents, progressBar);
+            break;
+        case Enums::Method::AMVLIEA:
+            sparsePC.candidates =
+                AmvlIterativeEliminationSolver::computeNextComponentCandidates(
+                    m_Sigma, AmvlIterativeEliminationSolver::ImplementationParam{},
                     m_ValidatedComponents, progressBar);
             break;
         case Enums::Method::USERDYNAMICLIB: {
