@@ -404,6 +404,14 @@ namespace Sparsely
             std::to_underlying(Enums::Method::CONTIGUOUSSUPPORT),
             tr("Contiguous Support"),
             QVariant::fromValue(Enums::Method::CONTIGUOUSSUPPORT));
+        m_MethodComboBox->insertItem(
+            std::to_underlying(Enums::Method::MAVIEA),
+            tr("Mav Iea"),
+            QVariant::fromValue(Enums::Method::MAVIEA));
+        m_MethodComboBox->insertItem(
+            std::to_underlying(Enums::Method::AMVLIEA),
+            tr("Amvl Iea"),
+            QVariant::fromValue(Enums::Method::AMVLIEA));
         if (!addonName.isEmpty())
         {
             m_MethodComboBox->insertItem(

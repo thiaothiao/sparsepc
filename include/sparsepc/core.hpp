@@ -11,5 +11,6 @@
 #include <sparsepc/dl/solver.hpp>
 #include <sparsepc/eigen/solver.hpp>
 #include <sparsepc/gspca/solver.hpp>
+#include <sparsepc/iterativeelimination/solver.hpp>
 #include <sparsepc/progress/bar.hpp>
 #include <sparsepc/utils/matrix.hpp>

@@ -287,6 +287,138 @@ TEST_CASE("Sparsepc all")
             CHECK((validatedComponents[2].vector - v).norm() < 1e-6);
         }
     }
+
+    {
+        using ContiguousFacetsFinder =
+            Sparsepc::linearmodel::ContiguousFacetsFinder<Scalar>;
+        constexpr auto nbComponents = 3;
+        const std::array<Index, nbComponents> choices{6, 2, 2};
+        std::vector<Component> validatedComponents;
+        validatedComponents.reserve(nbComponents);
+        for (Index j = 0; j < nbComponents; ++j)
+        {
+            auto candidates =
+                ContiguousFacetsFinder::computeNextComponentCandidates(
+                    sigma, ContiguousFacetsFinder::ImplementationParam{},
+                    validatedComponents, nullptr);
+            const auto iCandidate = choices[j];
+            for (auto &[i, candidate] : candidates)
+            {
+                candidate.state = Sparsepc::ComponentState::Unvalidated;
+            }
+            candidates.at(iCandidate).state =
+                Sparsepc::ComponentState::Validated;
+            validatedComponents.push_back(std::move(candidates.at(iCandidate)));
+        }
+
+        {
+            CHECK(std::abs(validatedComponents[0].value - 2.88511) < 1e-4);
+            Vector v(n);
+            v << 0, 0, 0, 0, 0.165465, 0.398, 0.540816, 0.367875, 0.4003,
+                0.475567, 0, 0, 0;
+            CHECK((validatedComponents[0].vector - v).norm() < 1e-6);
+        }
+        {
+            CHECK(std::abs(validatedComponents[1].value - 1.954) < 1e-4);
+            Vector v(n);
+            v << 0.707107, 0.707107, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0;
+            CHECK((validatedComponents[1].vector - v).norm() < 1e-6);
+        }
+        {
+            CHECK(std::abs(validatedComponents[2].value - 1.882) < 1e-4);
+            Vector v(n);
+            v << 0, 0, 0.707107, 0.707107, 0, 0, 0, 0, 0, 0, 0, 0, 0;
+            CHECK((validatedComponents[2].vector - v).norm() < 1e-6);
+        }
+    }
+
+    {
+        using MavIterativeElimination =
+            Sparsepc::linearmodel::MavIterativeElimination<Scalar>;
+        constexpr auto nbComponents = 3;
+        const std::array<Index, nbComponents> choices{6, 2, 2};
+        std::vector<Component> validatedComponents;
+        validatedComponents.reserve(nbComponents);
+        for (Index j = 0; j < nbComponents; ++j)
+        {
+            auto candidates =
+                MavIterativeElimination::computeNextComponentCandidates(
+                    sigma, MavIterativeElimination::ImplementationParam{},
+                    validatedComponents, nullptr);
+            const auto iCandidate = choices[j];
+            for (auto &[i, candidate] : candidates)
+            {
+                candidate.state = Sparsepc::ComponentState::Unvalidated;
+            }
+            candidates.at(iCandidate).state =
+                Sparsepc::ComponentState::Validated;
+            validatedComponents.push_back(std::move(candidates.at(iCandidate)));
+        }
+
+        {
+            CHECK(std::abs(validatedComponents[0].value - 3.77096) < 1e-4);
+            Vector v(n);
+            v << 0.444022, 0.453036, 0, 0, 0, 0, 0.378041, 0.341986, 0.403168,
+                0.418555, 0, 0, 0;
+            CHECK((validatedComponents[0].vector - v).norm() < 1e-6);
+        }
+        {
+            CHECK(std::abs(validatedComponents[1].value - 1.882) < 1e-4);
+            Vector v(n);
+            v << 0, 0, 0.707107, 0.707107, 0, 0, 0, 0, 0, 0, 0, 0, 0;
+            CHECK((validatedComponents[1].vector - v).norm() < 1e-6);
+        }
+        {
+            CHECK(std::abs(validatedComponents[2].value - 1.364) < 1e-4);
+            Vector v(n);
+            v << 0, 0, 0, 0, 0.707107, 0.707107, 0, 0, 0, 0, 0, 0, 0;
+            CHECK((validatedComponents[2].vector - v).norm() < 1e-6);
+        }
+    }
+
+    {
+        using AmvlIterativeElimination =
+            Sparsepc::linearmodel::AmvlIterativeElimination<Scalar>;
+        constexpr auto nbComponents = 3;
+        const std::array<Index, nbComponents> choices{6, 2, 2};
+        std::vector<Component> validatedComponents;
+        validatedComponents.reserve(nbComponents);
+        for (Index j = 0; j < nbComponents; ++j)
+        {
+            auto candidates =
+                AmvlIterativeElimination::computeNextComponentCandidates(
+                    sigma, AmvlIterativeElimination::ImplementationParam{},
+                    validatedComponents, nullptr);
+            const auto iCandidate = choices[j];
+            for (auto &[i, candidate] : candidates)
+            {
+                candidate.state = Sparsepc::ComponentState::Unvalidated;
+            }
+            candidates.at(iCandidate).state =
+                Sparsepc::ComponentState::Validated;
+            validatedComponents.push_back(std::move(candidates.at(iCandidate)));
+        }
+
+        {
+            CHECK(std::abs(validatedComponents[0].value - 3.77096) < 1e-4);
+            Vector v(n);
+            v << 0.444022, 0.453036, 0, 0, 0, 0, 0.378041, 0.341986, 0.403168,
+                0.418555, 0, 0, 0;
+            CHECK((validatedComponents[0].vector - v).norm() < 1e-6);
+        }
+        {
+            CHECK(std::abs(validatedComponents[1].value - 1.882) < 1e-4);
+            Vector v(n);
+            v << 0, 0, 0.707107, 0.707107, 0, 0, 0, 0, 0, 0, 0, 0, 0;
+            CHECK((validatedComponents[1].vector - v).norm() < 1e-6);
+        }
+        {
+            CHECK(std::abs(validatedComponents[2].value - 1.364) < 1e-4);
+            Vector v(n);
+            v << 0, 0, 0, 0, 0.707107, 0.707107, 0, 0, 0, 0, 0, 0, 0;
+            CHECK((validatedComponents[2].vector - v).norm() < 1e-6);
+        }
+    }
 }
 
 TEST_CASE("Sparsepc version")

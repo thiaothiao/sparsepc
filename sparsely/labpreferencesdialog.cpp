@@ -255,6 +255,12 @@ namespace Sparsely
             tr("Contiguous Support"),
             QVariant::fromValue(Enums::Method::CONTIGUOUSSUPPORT));
         m_MethodComboBox->addItem(
+            tr("Mav Iea"),
+            QVariant::fromValue(Enums::Method::MAVIEA));
+        m_MethodComboBox->addItem(
+            tr("Amvl Iea"),
+            QVariant::fromValue(Enums::Method::AMVLIEA));
+        m_MethodComboBox->addItem(
             tr("User Dynamic Lib"),
             QVariant::fromValue(Enums::Method::USERDYNAMICLIB));
 
