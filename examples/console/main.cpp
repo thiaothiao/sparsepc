@@ -151,5 +151,83 @@ int main()
         }
     }
 
+    {
+        std::cout << "\nStarting contiguous facets finder run.\n";
+        using ContiguousFacetsFinder =
+            Sparsepc::linearmodel::ContiguousFacetsFinder<Scalar>;
+        const auto start = std::chrono::high_resolution_clock::now();
+
+        const ContiguousFacetsFinder::Param param{{k0, k1, k2}};
+
+        const auto sparseEigenElements =
+            ContiguousFacetsFinder{param}.run(sigma);
+
+        const auto stop = std::chrono::high_resolution_clock::now();
+
+        const auto durationUs =
+            std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+
+        std::cout << "\n\nContiguous facets finder run done in "
+                  << durationUs.count() << " microseconds!\n";
+
+        for (const auto &component : sparseEigenElements)
+        {
+            std::cout << component.value << ":\t"
+                      << component.vector.transpose() << "\n";
+        }
+    }
+
+    {
+        std::cout << "\nStarting iterative elimination algo. mav run.\n";
+        using MavIterativeElimination =
+            Sparsepc::linearmodel::MavIterativeElimination<Scalar>;
+        const auto start = std::chrono::high_resolution_clock::now();
+
+        const MavIterativeElimination::Param param{{k0, k1, k2}};
+
+        const auto sparseEigenElements =
+            MavIterativeElimination{param}.run(sigma);
+
+        const auto stop = std::chrono::high_resolution_clock::now();
+
+        const auto durationUs =
+            std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+
+        std::cout << "\n\nIterative elimination algo. mav run done in "
+                  << durationUs.count() << " microseconds!\n";
+
+        for (const auto &component : sparseEigenElements)
+        {
+            std::cout << component.value << ":\t"
+                      << component.vector.transpose() << "\n";
+        }
+    }
+
+    {
+        std::cout << "\nStarting iterative elimination algo. amvl run.\n";
+        using AmvlIterativeElimination =
+            Sparsepc::linearmodel::AmvlIterativeElimination<Scalar>;
+        const auto start = std::chrono::high_resolution_clock::now();
+
+        const AmvlIterativeElimination::Param param{{k0, k1, k2}};
+
+        const auto sparseEigenElements =
+            AmvlIterativeElimination{param}.run(sigma);
+
+        const auto stop = std::chrono::high_resolution_clock::now();
+
+        const auto durationUs =
+            std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+
+        std::cout << "\n\nIterative elimination algo. amvl run done in "
+                  << durationUs.count() << " microseconds!\n";
+
+        for (const auto &component : sparseEigenElements)
+        {
+            std::cout << component.value << ":\t"
+                      << component.vector.transpose() << "\n";
+        }
+    }
+
     return 0;
 }
