@@ -365,6 +365,10 @@ namespace Sparsepc
                                        MAVCriterion<ScalarType>,
                                        ProgressBarType>;
 
+        template <std::floating_point ScalarType>
+        using MavIterativeElimination = SparsePC<
+            MavIterativeEliminationSolver<ScalarType, EigenSolver<ScalarType>>>;
+
         template <std::floating_point ScalarType,
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType = DummyProgressBar>
@@ -372,5 +376,10 @@ namespace Sparsepc
             IterativeEliminationSolver<ScalarType, EigenSolverType,
                                        AMVLCriterion<ScalarType>,
                                        ProgressBarType>;
+
+        template <std::floating_point ScalarType>
+        using AmvlIterativeElimination =
+            SparsePC<AmvlIterativeEliminationSolver<ScalarType,
+                                                    EigenSolver<ScalarType>>>;
     } // namespace linearmodel
 } // namespace Sparsepc
