@@ -457,7 +457,6 @@ namespace Sparsely
         m_StandardPCGraphs.reserve(preferences.componentsColors.size());
         m_SparsePCGraphs.reserve(preferences.componentsColors.size());
         clear(*m_Plotter);
-        bool isDateTime = true;
         auto startDate =
             QDateTime::fromString(header[0], monthDayFormat.toString());
         if (startDate.isValid())

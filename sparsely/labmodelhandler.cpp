@@ -274,34 +274,32 @@ namespace Sparsely
     bool ModelHandler::init(const QString &fileName, bool newProject)
     {
         qDebug() << "Initializing model handler...";
-        auto &n = m_Model.get().m_N;
-        auto &sigma = m_Model.get().m_Sigma;
-        auto &trace = m_Model.get().m_Trace;
-        auto &standardPCs = m_Model.get().m_StandardPCs;
-        auto &sparsePCs = m_Model.get().m_SparsePCs;
-        auto &validatedComponents = m_Model.get().m_ValidatedComponents;
-        auto &header = m_Model.get().m_Header;
 
         if (newProject)
-        {
-            { // TODO improve covariance computations
-                const Sparsepc::Matrix<double> X =
-                    openData<double>(fileName.toStdString(), header);
+        { // TODO improve covariance computations
+            auto &n = m_Model.get().m_N;
+            auto &sigma = m_Model.get().m_Sigma;
+            auto &trace = m_Model.get().m_Trace;
+            auto &standardPCs = m_Model.get().m_StandardPCs;
+            auto &sparsePCs = m_Model.get().m_SparsePCs;
+            auto &validatedComponents = m_Model.get().m_ValidatedComponents;
+            auto &header = m_Model.get().m_Header;
 
+            const Sparsepc::Matrix<double> X =
+                openData<double>(fileName.toStdString(), header);
 
-                if (X.rows() <= 1)
-                {
-                    qCritical() << "Load data as matrix failed:" << fileName;
-                    return false;
-                }
-
-                const Sparsepc::Matrix<double> centeredX =
-                    X.rowwise() - X.colwise().mean();
-
-                // sample covariance formula
-                sigma = (centeredX.adjoint() * centeredX) /
-                        static_cast<double>(X.rows() - 1);
+            if (X.rows() <= 1)
+            {
+                qCritical() << "Load data as matrix failed:" << fileName;
+                return false;
             }
+
+            const Sparsepc::Matrix<double> centeredX =
+                X.rowwise() - X.colwise().mean();
+
+            // sample covariance formula
+            sigma = (centeredX.adjoint() * centeredX) /
+                    static_cast<double>(X.rows() - 1);
 
             n = sigma.cols();
             trace = sigma.trace();
@@ -416,7 +414,6 @@ namespace Sparsely
     void ModelHandler::loadAddon(const QString &path)
     {
         auto &dynamicLibSolverLoaders = m_Model.get().m_DynamicLibSolverLoaders;
-        auto &dynamicLibSolverNames = m_Model.get().m_DynamicLibSolverNames;
         qDebug() << "Loading addon ...";
         if (!dynamicLibSolverLoaders.empty())
         {
@@ -427,6 +424,8 @@ namespace Sparsely
         const auto pluginList = getPluginList(path);
         if (!pluginList.empty())
         {
+            auto &dynamicLibSolverNames = m_Model.get().m_DynamicLibSolverNames;
+
             dynamicLibSolverLoaders.reserve(pluginList.size());
             dynamicLibSolverNames.reserve(pluginList.size());
             foreach (const auto &fileInfo, pluginList)

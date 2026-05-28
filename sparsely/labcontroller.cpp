@@ -28,7 +28,7 @@ namespace
     class DeferredUpdateForPlots final
     { // RAII
       public:
-        DeferredUpdateForPlots(Sparsely::LabWidget &aLabWidget)
+        explicit DeferredUpdateForPlots(Sparsely::LabWidget &aLabWidget)
             : labWidget{aLabWidget}
         {
             labWidget.get().setPlotUpdateEnabled(false);
