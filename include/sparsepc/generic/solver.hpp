@@ -190,7 +190,7 @@ namespace Sparsepc
             const Matrix<Scalar> &deflatedSigma, const Matrix<Scalar> &B,
             ProgressBar *progressBar)
         {
-            if (B.size() == static_cast<Scalar>(0))
+            if (B.size() == static_cast<Index>(0))
             {
                 auto candidates =
                     ImplementationType::run(sigma, param, progressBar);
