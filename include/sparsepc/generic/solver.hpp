@@ -152,10 +152,6 @@ namespace Sparsepc
                 ImplementationType{m_Param.implementationParams[0]}.run(sigma));
 
             Matrix B = Matrix::Identity(n, n);
-            Matrix inverse = Matrix::Zero(n, n); // TODO optimize this block
-            inverse.diagonal().array() =
-                static_cast<Scalar>(1) /
-                (static_cast<Scalar>(1) + static_cast<Scalar>(1e-4));
 
             auto q = sparseSolutions.back().vector;
 
@@ -163,17 +159,9 @@ namespace Sparsepc
             {
                 B -= q * q.transpose();
 
-                const auto inverseQ = inverse * q;
-
-                // Woodbury matrix identity
-                inverse += ((static_cast<Scalar>(1) /
-                             (static_cast<Scalar>(1) - q.dot(inverseQ))) *
-                            inverseQ) *
-                           inverseQ.transpose();
-
                 sparseSolutions.push_back(
-                    ImplementationType{m_Param.implementationParams[j]}.run(inverse * B *
-                                                                   sigma * B));
+                    ImplementationType{m_Param.implementationParams[j]}.run(
+                        B * sigma * B));
 
                 q = B * sparseSolutions.back().vector;
 
@@ -238,28 +226,16 @@ namespace Sparsepc
             }
 
             Matrix B = Matrix::Identity(n, n);
-            Matrix inverse = Matrix::Zero(n, n); // TODO optimize this block
-            inverse.diagonal().array() =
-                static_cast<Scalar>(1) /
-                (static_cast<Scalar>(1) + static_cast<Scalar>(1e-4));
 
             for (const Component &validatedComponent : validatedComponents)
             {
                 const auto &q = validatedComponent.q;
 
                 B -= q * q.transpose();
-
-                const auto inverseQ = inverse * q;
-
-                // Woodbury matrix identity
-                inverse += ((static_cast<Scalar>(1) /
-                             (static_cast<Scalar>(1) - q.dot(inverseQ))) *
-                            inverseQ) *
-                           inverseQ.transpose();
             }
 
             return SparsePC::computeComponentCandidates(
-                sigma, param, inverse * B * sigma * B, B, progressBar);
+                sigma, param, B * sigma * B, B, progressBar);
         }
     } // namespace linearmodel
 } // namespace Sparsepc
