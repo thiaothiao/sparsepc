@@ -83,7 +83,6 @@ namespace Sparsely
       private:
         auto getStandardComponents() const;
 
-        Sparsepc::Matrix<double> m_Sigma;
         Sparsepc::Matrix<double> m_CenteredX;
         Sparsepc::Index m_N;
         double m_Trace;

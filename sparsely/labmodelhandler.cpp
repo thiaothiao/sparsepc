@@ -279,9 +279,8 @@ namespace Sparsely
         qDebug() << "Initializing model handler...";
 
         if (newProject)
-        { // TODO improve covariance computations
+        {
             auto &n = m_Model.get().m_N;
-            auto &sigma = m_Model.get().m_Sigma;
             auto &centeredX = m_Model.get().m_CenteredX;
             auto &trace = m_Model.get().m_Trace;
             auto &standardPCs = m_Model.get().m_StandardPCs;
@@ -299,12 +298,9 @@ namespace Sparsely
             }
 
             centeredX = X.rowwise() - X.colwise().mean();
+            n = centeredX.cols();
+            trace = centeredX.colwise().squaredNorm().sum();
 
-            // sample covariance formula
-            sigma = centeredX.transpose() * centeredX;
-
-            n = sigma.cols();
-            trace = sigma.trace();
             standardPCs.clear();
             standardPCs.reserve(n);
             sparsePCs.clear();
@@ -331,34 +327,23 @@ namespace Sparsely
             return false;
         }
 
-        const auto &n = m_Model.get().m_N;
-        const auto &sigma = m_Model.get().m_Sigma;
         const auto &centeredX = m_Model.get().m_CenteredX;
+        const auto m = centeredX.rows();
+        const auto n = centeredX.cols();
         const auto &standardPCs = m_Model.get().m_StandardPCs;
         const auto &sparsePCs = m_Model.get().m_SparsePCs;
         const auto &header = m_Model.get().m_Header;
 
-        const auto m = m_Model.get().m_CenteredX.rows();
-
         // Serialization
         QDataStream out(&file);
-        out.setVersion(QDataStream::Qt_6_0); // version for forward/backward
-                                             // compatibility
-        if (m == 0)
-        {
-            out << static_cast<qint32>(n);
-            out.writeRawData(reinterpret_cast<const char *>(sigma.data()),
-                             n * n * sizeof(double));
-        }
-        else
-        {
-            out << magicNumber;
-            out << versionNumber;
-            out << static_cast<qint32>(m);
-            out << static_cast<qint32>(n);
-            out.writeRawData(reinterpret_cast<const char *>(centeredX.data()),
-                             m * n * sizeof(double));
-        }
+        out.setVersion(QDataStream::Qt_6_0);
+
+        out << magicNumber;
+        out << versionNumber;
+        out << static_cast<qint32>(m);
+        out << static_cast<qint32>(n);
+        out.writeRawData(reinterpret_cast<const char *>(centeredX.data()),
+                         m * n * sizeof(double));
         out << header;
         const auto standardPCsSize = static_cast<qint32>(standardPCs.size());
         out << standardPCsSize;
@@ -400,26 +385,22 @@ namespace Sparsely
         in >> magic;
         if (magic != magicNumber)
         {
-            n = magic;
-            auto &sigma = m_Model.get().m_Sigma;
-            sigma.resize(n, n);
-            in.readRawData(reinterpret_cast<char *>(sigma.data()),
-                           n * n * sizeof(double));
-            trace = sigma.trace();
+            qCritical() << "File version to old. Use old Sparsely version "
+                           "0.1.0 or 0.2.0 or 0.3.0:"
+                        << fileName;
+            return false;
         }
-        else
-        {
-            qint32 version;
-            in >> version;
-            qint32 m;
-            in >> m;
-            in >> n;
-            auto &centeredX = m_Model.get().m_CenteredX;
-            centeredX.resize(m, n);
-            in.readRawData(reinterpret_cast<char *>(centeredX.data()),
-                           m * n * sizeof(double));
-            trace = centeredX.colwise().squaredNorm().sum();
-        }
+
+        qint32 version;
+        in >> version;
+        qint32 m;
+        in >> m;
+        in >> n;
+        auto &centeredX = m_Model.get().m_CenteredX;
+        centeredX.resize(m, n);
+        in.readRawData(reinterpret_cast<char *>(centeredX.data()),
+                       m * n * sizeof(double));
+        trace = centeredX.colwise().squaredNorm().sum();
 
         in >> header;
         standardPCs.clear();
