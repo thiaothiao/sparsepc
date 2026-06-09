@@ -97,10 +97,10 @@ namespace Sparsepc
             /**
              * @brief Computes the principal component associated with the
              * parameters.
-             * @param sigma The covariance matrix.
+             * @param centeredX The featurewise centered matrix.
              * @return The computed principal component.
              */
-            auto run(const Matrix<Scalar> &sigma) const;
+            auto run(const Matrix<Scalar> &centeredX) const;
 
             /**
              * @brief Computes a set of candidates for the next round principal
@@ -114,7 +114,8 @@ namespace Sparsepc
              */
             template <class ComponentType>
             static auto computeNextComponentCandidates(
-                const Matrix<Scalar> &sigma, const ImplementationParam &param,
+                const Matrix<Scalar> &centeredX,
+                const ImplementationParam &param,
                 const std::vector<ComponentType> &previousRoundComponents,
                 ProgressBar *progressBar);
 
@@ -125,27 +126,25 @@ namespace Sparsepc
              * @brief Computes a set of candidates. Does not know about rounds.
              * @param sigma The covariance matrix.
              * @param param The parameters to be used during the computations.
-             * @param deflatedSigma The the delated covariance matrix.
              * @param B The matrix that accumulates (I - projections).
              * @param progressBar The computation progress reporter.
              * @return The computed next round candidates.
              */
             static auto
-            computeComponentCandidates(const Matrix<Scalar> &sigma,
+            computeComponentCandidates(const Matrix<Scalar> &centeredX,
                                        const ImplementationParam &param,
-                                       const Matrix<Scalar> &deflatedSigma,
                                        const ComplementaryProjection<Scalar> &B,
                                        ProgressBar *progressBar);
         };
 
         template <SparsePCSolverLike ImplementationType>
         auto
-        SparsePC<ImplementationType>::run(const Matrix<Scalar> &sigma) const
+        SparsePC<ImplementationType>::run(const Matrix<Scalar> &centeredX) const
         {
             using Matrix = Matrix<Scalar>;
             using Component = Component<Scalar>;
 
-            const auto n = static_cast<Index>(sigma.cols());
+            const Matrix sigma = centeredX.transpose() * centeredX;
 
             std::vector<Component> sparseSolutions;
             sparseSolutions.reserve(m_Param.nbComponents);
@@ -176,10 +175,11 @@ namespace Sparsepc
 
         template <SparsePCSolverLike ImplementationType>
         auto SparsePC<ImplementationType>::computeComponentCandidates(
-            const Matrix<Scalar> &sigma, const ImplementationParam &param,
-            const Matrix<Scalar> &deflatedSigma,
+            const Matrix<Scalar> &centeredX, const ImplementationParam &param,
             const ComplementaryProjection<Scalar> &B, ProgressBar *progressBar)
         {
+            const Matrix<Scalar> sigma = centeredX.transpose() * centeredX;
+
             if (B.isIdentity())
             {
                 auto candidates =
@@ -195,7 +195,7 @@ namespace Sparsepc
             else
             {
                 auto candidates =
-                    ImplementationType::run(deflatedSigma, param, progressBar);
+                    ImplementationType::run(B * sigma * B, param, progressBar);
 
                 for (auto &[i, cpnt] : candidates)
                 {
@@ -212,22 +212,20 @@ namespace Sparsepc
         template <SparsePCSolverLike ImplementationType>
         template <class ComponentType>
         auto SparsePC<ImplementationType>::computeNextComponentCandidates(
-            const Matrix<Scalar> &sigma, const ImplementationParam &param,
+            const Matrix<Scalar> &centeredX, const ImplementationParam &param,
             const std::vector<ComponentType> &validatedComponents,
             ProgressBar *progressBar)
         {
-            using Matrix = Matrix<Scalar>;
+            using ComplementaryProjection = ComplementaryProjection<Scalar>;
             using Component = Component<Scalar>;
-
-            const auto n = sigma.cols();
 
             if (validatedComponents.empty())
             {
-                return SparsePC::computeComponentCandidates(sigma, param, sigma,
+                return SparsePC::computeComponentCandidates(centeredX, param,
                                                             {}, progressBar);
             }
 
-            auto B = ComplementaryProjection<Scalar>();
+            auto B = ComplementaryProjection();
 
             for (const Component &validatedComponent : validatedComponents)
             {
@@ -236,8 +234,8 @@ namespace Sparsepc
                 B.add(q);
             }
 
-            return SparsePC::computeComponentCandidates(
-                sigma, param, B * sigma * B, B, progressBar);
+            return SparsePC::computeComponentCandidates(centeredX, param, B,
+                                                        progressBar);
         }
     } // namespace linearmodel
 } // namespace Sparsepc
