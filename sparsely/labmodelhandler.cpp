@@ -23,6 +23,9 @@
 
 namespace
 {
+    constexpr qint32 magicNumber = -1;
+    constexpr qint32 versionNumber = 1;
+
     auto getPluginList(const QString &path)
     {
         const QDir dir(path);
@@ -279,6 +282,7 @@ namespace Sparsely
         { // TODO improve covariance computations
             auto &n = m_Model.get().m_N;
             auto &sigma = m_Model.get().m_Sigma;
+            auto &centeredX = m_Model.get().m_CenteredX;
             auto &trace = m_Model.get().m_Trace;
             auto &standardPCs = m_Model.get().m_StandardPCs;
             auto &sparsePCs = m_Model.get().m_SparsePCs;
@@ -294,12 +298,10 @@ namespace Sparsely
                 return false;
             }
 
-            const Sparsepc::Matrix<double> centeredX =
-                X.rowwise() - X.colwise().mean();
+            centeredX = X.rowwise() - X.colwise().mean();
 
             // sample covariance formula
-            sigma = (centeredX.adjoint() * centeredX) /
-                    static_cast<double>(X.rows() - 1);
+            sigma = centeredX.transpose() * centeredX;
 
             n = sigma.cols();
             trace = sigma.trace();
@@ -331,17 +333,32 @@ namespace Sparsely
 
         const auto &n = m_Model.get().m_N;
         const auto &sigma = m_Model.get().m_Sigma;
+        const auto &centeredX = m_Model.get().m_CenteredX;
         const auto &standardPCs = m_Model.get().m_StandardPCs;
         const auto &sparsePCs = m_Model.get().m_SparsePCs;
         const auto &header = m_Model.get().m_Header;
+
+        const auto m = m_Model.get().m_CenteredX.rows();
 
         // Serialization
         QDataStream out(&file);
         out.setVersion(QDataStream::Qt_6_0); // version for forward/backward
                                              // compatibility
-        out << static_cast<qint32>(n);
-        out.writeRawData(reinterpret_cast<const char *>(sigma.data()),
-                         n * n * sizeof(double));
+        if (m == 0)
+        {
+            out << static_cast<qint32>(n);
+            out.writeRawData(reinterpret_cast<const char *>(sigma.data()),
+                             n * n * sizeof(double));
+        }
+        else
+        {
+            out << magicNumber;
+            out << versionNumber;
+            out << static_cast<qint32>(m);
+            out << static_cast<qint32>(n);
+            out.writeRawData(reinterpret_cast<const char *>(centeredX.data()),
+                             m * n * sizeof(double));
+        }
         out << header;
         const auto standardPCsSize = static_cast<qint32>(standardPCs.size());
         out << standardPCsSize;
@@ -371,7 +388,6 @@ namespace Sparsely
         }
 
         auto &n = m_Model.get().m_N;
-        auto &sigma = m_Model.get().m_Sigma;
         auto &trace = m_Model.get().m_Trace;
         auto &standardPCs = m_Model.get().m_StandardPCs;
         auto &sparsePCs = m_Model.get().m_SparsePCs;
@@ -380,18 +396,37 @@ namespace Sparsely
         // Deserialization
         QDataStream in(&file);
         in.setVersion(QDataStream::Qt_6_0);
-        qint32 intVal = -1;
-        in >> intVal;
-        n = intVal;
-        sigma.resize(n, n);
-        in.readRawData(reinterpret_cast<char *>(sigma.data()),
-                       n * n * sizeof(double));
-        trace = sigma.trace();
+        qint32 magic = 0;
+        in >> magic;
+        if (magic != magicNumber)
+        {
+            n = magic;
+            auto &sigma = m_Model.get().m_Sigma;
+            sigma.resize(n, n);
+            in.readRawData(reinterpret_cast<char *>(sigma.data()),
+                           n * n * sizeof(double));
+            trace = sigma.trace();
+        }
+        else
+        {
+            qint32 version;
+            in >> version;
+            qint32 m;
+            in >> m;
+            in >> n;
+            auto &centeredX = m_Model.get().m_CenteredX;
+            centeredX.resize(m, n);
+            in.readRawData(reinterpret_cast<char *>(centeredX.data()),
+                           m * n * sizeof(double));
+            trace = centeredX.colwise().squaredNorm().sum();
+        }
+
         in >> header;
         standardPCs.clear();
         standardPCs.reserve(n);
         sparsePCs.clear();
         sparsePCs.reserve(n);
+        qint32 intVal = -1;
         in >> intVal;
         for (qint32 j = 0; j < intVal; ++j)
         {
