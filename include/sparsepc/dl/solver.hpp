@@ -70,21 +70,25 @@ namespace Sparsepc
             /**
              * @brief Computes the principal component associated with the
              * parameters by calling the addon interface.
-             * @param sigma The covariance matrix.
+             * @param centeredX The featurewise centered matrix.
+             * @param B The complementary projection.
              * @return The computed principal component.
              */
-            auto run(const Matrix<Scalar> &sigma) const;
+            auto run(const Matrix<Scalar> &centeredX,
+                     const ComplementaryProjection<Scalar> &B) const;
 
             /**
              * @brief Computes a set of principal component candidates by
              * several calls to the addon function.
-             * @param sigma The covariance matrix.
+             * @param centeredX The featurewise centered matrix.
+             * @param B The complementary projection.
              * @param param The parameters to be used.
              * @param progressBar The computation progress reporter.
              * @return The computed candidates.
              */
-            static auto run(const Matrix<Scalar> &sigma, const Param &param,
-                            ProgressBar *progressBar);
+            static auto run(const Matrix<Scalar> &centeredX,
+                            const ComplementaryProjection<Scalar> &B,
+                            const Param &param, ProgressBar *progressBar);
 
           private:
             const Param m_Param;
@@ -93,11 +97,16 @@ namespace Sparsepc
         template <std::floating_point ScalarType,
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
-        auto DynamicLibSolver<ScalarType, EigenSolverType,
-                                   ProgressBarType>::run(const Matrix<Scalar>
-                                                             &sigma) const
+        auto
+        DynamicLibSolver<ScalarType, EigenSolverType, ProgressBarType>::run(
+            const Matrix<Scalar> &centeredX,
+            const ComplementaryProjection<Scalar> &B) const
         {
             using Component = Component<Scalar>;
+            using Matrix = Matrix<Scalar>;
+
+            const auto tmp = centeredX * B;
+            const Matrix sigma = tmp.transpose() * tmp;
 
             const auto k = m_Param.k;
             const auto &eigenSolver = m_Param.eigenSolver;
@@ -137,13 +146,17 @@ namespace Sparsepc
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
         auto
-        DynamicLibSolver<ScalarType, EigenSolverType,
-                              ProgressBarType>::run(const Matrix<Scalar> &sigma,
-                                                    const Param &param,
-                                                    ProgressBar *progressBar)
+        DynamicLibSolver<ScalarType, EigenSolverType, ProgressBarType>::run(
+            const Matrix<Scalar> &centeredX,
+            const ComplementaryProjection<Scalar> &B, const Param &param,
+            ProgressBar *progressBar)
         {
             using Component = Component<Scalar>;
             using ComponentsContainer = ComponentsContainer<Component>;
+            using Matrix = Matrix<Scalar>;
+
+            const auto tmp = centeredX * B;
+            const Matrix sigma = tmp.transpose() * tmp;
 
             const auto &eigenSolver = param.eigenSolver;
             const auto k = param.k;
@@ -168,9 +181,8 @@ namespace Sparsepc
 
                 components.try_emplace(
                     std::min(k, n),
-                    DynamicLibSolver<Scalar, EigenSolver, ProgressBar>{
-                        param}
-                        .run(sigma));
+                    DynamicLibSolver<Scalar, EigenSolver, ProgressBar>{param}
+                        .run(centeredX, B));
 
                 if (progressBar)
                 {

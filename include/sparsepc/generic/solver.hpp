@@ -20,8 +20,9 @@ namespace Sparsepc
          * @param ProgressBar an inner type that reports progress level.
          * @param run a const member function that takes a Matrix and return a
          * component.
-         * @param run a static member function that takes a Matrix, a Param, a
-         * progress and return a bunch of components.
+         * @param run a static member function that takes a Matrix, a
+         * ComplementaryProjection, a Param, a progress and return a bunch of
+         * components.
          * @tparam ImplementationType The type to check.
          */
         template <class ImplementationType>
@@ -29,13 +30,17 @@ namespace Sparsepc
             requires(ImplementationType impl) {
                 {
                     std::as_const(impl).run(
-                        Matrix<typename ImplementationType::Scalar>{})
+                        Matrix<typename ImplementationType::Scalar>{},
+                        ComplementaryProjection<
+                            typename ImplementationType::Scalar>{})
                 } -> std::convertible_to<
                     Component<typename ImplementationType::Scalar>>;
 
                 {
                     ImplementationType::run(
                         Matrix<typename ImplementationType::Scalar>{},
+                        ComplementaryProjection<
+                            typename ImplementationType::Scalar>{},
                         typename ImplementationType::Param{},
                         static_cast<typename ImplementationType::ProgressBar *>(
                             nullptr))
@@ -126,7 +131,7 @@ namespace Sparsepc
              * @brief Computes a set of candidates. Does not know about rounds.
              * @param centeredX The featurewise centered matrix.
              * @param param The parameters to be used during the computations.
-             * @param B The matrix that accumulates (I - projections).
+             * @param B The complementary projection.
              * @param progressBar The computation progress reporter.
              * @return The computed next round candidates.
              */
@@ -144,13 +149,12 @@ namespace Sparsepc
             using Matrix = Matrix<Scalar>;
             using Component = Component<Scalar>;
 
-            const Matrix sigma = centeredX.transpose() * centeredX;
-
             std::vector<Component> sparseSolutions;
             sparseSolutions.reserve(m_Param.nbComponents);
 
             sparseSolutions.push_back(
-                ImplementationType{m_Param.implementationParams[0]}.run(sigma));
+                ImplementationType{m_Param.implementationParams[0]}.run(
+                    centeredX, {}));
 
             auto B = ComplementaryProjection<Scalar>();
 
@@ -162,12 +166,12 @@ namespace Sparsepc
 
                 sparseSolutions.push_back(
                     ImplementationType{m_Param.implementationParams[j]}.run(
-                        B * sigma * B));
+                        centeredX, B));
 
                 q = B * sparseSolutions.back().vector;
 
                 sparseSolutions.back().value =
-                    (q.transpose() * sigma * q).value() / q.squaredNorm();
+                    (centeredX * q).squaredNorm() / q.squaredNorm();
             }
 
             return sparseSolutions;
@@ -178,12 +182,10 @@ namespace Sparsepc
             const Matrix<Scalar> &centeredX, const ImplementationParam &param,
             const ComplementaryProjection<Scalar> &B, ProgressBar *progressBar)
         {
-            const Matrix<Scalar> sigma = centeredX.transpose() * centeredX;
-
             if (B.isIdentity())
-            {
+            { // TODO should put the check inside run
                 auto candidates =
-                    ImplementationType::run(sigma, param, progressBar);
+                    ImplementationType::run(centeredX, {}, param, progressBar);
 
                 for (auto &[i, cpnt] : candidates)
                 {
@@ -195,13 +197,13 @@ namespace Sparsepc
             else
             {
                 auto candidates =
-                    ImplementationType::run(B * sigma * B, param, progressBar);
+                    ImplementationType::run(centeredX, B, param, progressBar);
 
                 for (auto &[i, cpnt] : candidates)
                 {
                     cpnt.q = B * cpnt.vector;
 
-                    cpnt.value = (cpnt.q.transpose() * sigma * cpnt.q).value() /
+                    cpnt.value = (centeredX * cpnt.q).squaredNorm() /
                                  cpnt.q.squaredNorm();
                 }
 

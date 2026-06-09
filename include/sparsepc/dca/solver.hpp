@@ -74,22 +74,26 @@ namespace Sparsepc
             /**
              * @brief Computes the principal component associated with the
              * parameters.
-             * @param sigma The covariance matrix.
+             * @param centeredX The featurewise centered matrix.
+             * @param B The complementary projection.
              * @param guess The starting point of Dca if nonempty.
              * @return The computed principal component.
              */
-            auto run(const Matrix<Scalar> &sigma,
+            auto run(const Matrix<Scalar> &centeredX,
+                     const ComplementaryProjection<Scalar> &B,
                      const Component<Scalar> &guess = {}) const;
 
             /**
              * @brief Computes a set of principal component candidates.
-             * @param sigma The covariance matrix.
+             * @param centeredX The featurewise centered matrix.
+             * @param B The complementary projection.
              * @param param The parameters to be used.
              * @param progressBar The computation progress reporter.
              * @return The computed candidates.
              */
-            static auto run(const Matrix<Scalar> &sigma, const Param &param,
-                            ProgressBar *progressBar);
+            static auto run(const Matrix<Scalar> &centeredX,
+                            const ComplementaryProjection<Scalar> &B,
+                            const Param &param, ProgressBar *progressBar);
 
             struct PrimalSolution
             {
@@ -178,9 +182,15 @@ namespace Sparsepc
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
         auto DcaSolver<ScalarType, EigenSolverType, ProgressBarType>::run(
-            const Matrix<Scalar> &sigma, const Component<Scalar> &guess) const
+            const Matrix<Scalar> &centeredX,
+            const ComplementaryProjection<Scalar> &B,
+            const Component<Scalar> &guess) const
         {
             using Component = Component<Scalar>;
+            using Matrix = Matrix<Scalar>;
+
+            const auto tmp = centeredX * B;
+            const Matrix sigma = tmp.transpose() * tmp;
 
             const auto k = m_Param.k;
             const auto &eigenSolver = m_Param.eigenSolver;
@@ -261,11 +271,16 @@ namespace Sparsepc
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
         auto DcaSolver<ScalarType, EigenSolverType, ProgressBarType>::run(
-            const Matrix<Scalar> &sigma, const Param &param,
+            const Matrix<Scalar> &centeredX,
+            const ComplementaryProjection<Scalar> &B, const Param &param,
             ProgressBar *progressBar)
         {
             using Component = Component<Scalar>;
             using ComponentsContainer = ComponentsContainer<Component>;
+            using Matrix = Matrix<Scalar>;
+
+            const auto tmp = centeredX * B;
+            const Matrix sigma = tmp.transpose() * tmp;
 
             const auto &eigenSolver = param.eigenSolver;
             const auto k = param.k;
@@ -291,7 +306,7 @@ namespace Sparsepc
                 components.try_emplace(
                     std::min(k, n),
                     DcaSolver<Scalar, EigenSolver, ProgressBar>{param}.run(
-                        sigma));
+                        centeredX, B));
 
                 if (progressBar)
                 {
@@ -332,7 +347,7 @@ namespace Sparsepc
                     DcaSolver<Scalar, EigenSolver, ProgressBar>{
                         Param{k, param.eigenSolver, param.t, param.tolerance,
                               param.maximumNumberOfIterations, param.zero}}
-                        .run(sigma, component));
+                        .run(centeredX, B, component));
 
                 if (progressBar)
                 {

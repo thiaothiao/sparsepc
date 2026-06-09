@@ -91,20 +91,24 @@ namespace Sparsepc
             /**
              * @brief Computes the principal component associated with the
              * parameters.
-             * @param sigma The covariance matrix.
+             * @param centeredX The featurewise centered matrix.
+             * @param B The complementary projection.
              * @return The computed principal component.
              */
-            auto run(const Matrix<Scalar> &sigma) const;
+            auto run(const Matrix<Scalar> &centeredX,
+                     const ComplementaryProjection<Scalar> &B) const;
 
             /**
              * @brief Computes a set of principal component candidates.
-             * @param sigma The covariance matrix.
+             * @param centeredX The featurewise centered matrix.
+             * @param B The complementary projection.
              * @param param The parameters to be used.
              * @param progressBar The computation progress reporter.
              * @return The computed candidates.
              */
-            static auto run(const Matrix<Scalar> &sigma, const Param &param,
-                            ProgressBar *progressBar);
+            static auto run(const Matrix<Scalar> &centeredX,
+                            const ComplementaryProjection<Scalar> &B,
+                            const Param &param, ProgressBar *progressBar);
 
           private:
             const Param m_Param;
@@ -116,9 +120,15 @@ namespace Sparsepc
                   ProgressBarLike ProgressBarType>
         auto IterativeEliminationSolver<
             ScalarType, EigenSolverType, EliminationCriterionType,
-            ProgressBarType>::run(const Matrix<Scalar> &sigma) const
+            ProgressBarType>::run(const Matrix<Scalar> &centeredX,
+                                  const ComplementaryProjection<Scalar> &B)
+            const
         {
             using Component = Component<Scalar>;
+            using Matrix = Matrix<Scalar>;
+
+            const auto tmp = centeredX * B;
+            const Matrix sigma = tmp.transpose() * tmp;
 
             const auto k = m_Param.k;
             const auto &eigenSolver = m_Param.eigenSolver;
@@ -181,11 +191,16 @@ namespace Sparsepc
                   ProgressBarLike ProgressBarType>
         auto IterativeEliminationSolver<
             ScalarType, EigenSolverType, EliminationCriterionType,
-            ProgressBarType>::run(const Matrix<Scalar> &sigma,
+            ProgressBarType>::run(const Matrix<Scalar> &centeredX,
+                                  const ComplementaryProjection<Scalar> &B,
                                   const Param &param, ProgressBar *progressBar)
         {
             using Component = Component<Scalar>;
             using ComponentsContainer = ComponentsContainer<Component>;
+            using Matrix = Matrix<Scalar>;
+
+            const auto tmp = centeredX * B;
+            const Matrix sigma = tmp.transpose() * tmp;
 
             const auto k = param.k;
             const auto &eigenSolver = param.eigenSolver;
@@ -215,7 +230,7 @@ namespace Sparsepc
                     IterativeEliminationSolver<
                         Scalar, EigenSolver, EliminationCriterion, ProgressBar>{
                         param}
-                        .run(sigma));
+                        .run(centeredX, B));
 
                 if (progressBar)
                 {
