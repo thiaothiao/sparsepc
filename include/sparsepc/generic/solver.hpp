@@ -130,10 +130,12 @@ namespace Sparsepc
              * @param progressBar The computation progress reporter.
              * @return The computed next round candidates.
              */
-            static auto computeComponentCandidates(
-                const Matrix<Scalar> &sigma, const ImplementationParam &param,
-                const Matrix<Scalar> &deflatedSigma, const Matrix<Scalar> &B,
-                ProgressBar *progressBar);
+            static auto
+            computeComponentCandidates(const Matrix<Scalar> &sigma,
+                                       const ImplementationParam &param,
+                                       const Matrix<Scalar> &deflatedSigma,
+                                       const ComplementaryProjection<Scalar> &B,
+                                       ProgressBar *progressBar);
         };
 
         template <SparsePCSolverLike ImplementationType>
@@ -151,13 +153,13 @@ namespace Sparsepc
             sparseSolutions.push_back(
                 ImplementationType{m_Param.implementationParams[0]}.run(sigma));
 
-            Matrix B = Matrix::Identity(n, n);
+            auto B = ComplementaryProjection<Scalar>();
 
             auto q = sparseSolutions.back().vector;
 
             for (Index j = 1; j < m_Param.nbComponents; ++j)
             {
-                B -= q * q.transpose();
+                B.add(q);
 
                 sparseSolutions.push_back(
                     ImplementationType{m_Param.implementationParams[j]}.run(
@@ -175,10 +177,10 @@ namespace Sparsepc
         template <SparsePCSolverLike ImplementationType>
         auto SparsePC<ImplementationType>::computeComponentCandidates(
             const Matrix<Scalar> &sigma, const ImplementationParam &param,
-            const Matrix<Scalar> &deflatedSigma, const Matrix<Scalar> &B,
-            ProgressBar *progressBar)
+            const Matrix<Scalar> &deflatedSigma,
+            const ComplementaryProjection<Scalar> &B, ProgressBar *progressBar)
         {
-            if (B.size() == static_cast<Index>(0))
+            if (B.isIdentity())
             {
                 auto candidates =
                     ImplementationType::run(sigma, param, progressBar);
@@ -225,13 +227,13 @@ namespace Sparsepc
                                                             {}, progressBar);
             }
 
-            Matrix B = Matrix::Identity(n, n);
+            auto B = ComplementaryProjection<Scalar>();
 
             for (const Component &validatedComponent : validatedComponents)
             {
                 const auto &q = validatedComponent.q;
 
-                B -= q * q.transpose();
+                B.add(q);
             }
 
             return SparsePC::computeComponentCandidates(
