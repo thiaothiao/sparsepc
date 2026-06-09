@@ -105,7 +105,7 @@ namespace Sparsepc
             /**
              * @brief Computes a set of candidates for the next round principal
              * component.
-             * @param sigma The covariance matrix.
+             * @param centeredX The featurewise centered matrix.
              * @param param The parameters to be used during the computations.
              * @param previousRoundComponents The previous rounds principal
              * components.
@@ -124,7 +124,7 @@ namespace Sparsepc
 
             /**
              * @brief Computes a set of candidates. Does not know about rounds.
-             * @param sigma The covariance matrix.
+             * @param centeredX The featurewise centered matrix.
              * @param param The parameters to be used during the computations.
              * @param B The matrix that accumulates (I - projections).
              * @param progressBar The computation progress reporter.
