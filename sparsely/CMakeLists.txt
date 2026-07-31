@@ -76,7 +76,7 @@ find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui Xml Svg REQUIRED)
 CPMAddPackage(
     NAME JKQTPlotter6
     GITHUB_REPOSITORY jkriege2/JKQtPlotter
-    GIT_TAG master # Or a specific version/commit
+    GIT_TAG v5.0.0-beta2 # Or a specific version/commit
 	COMPONENTS JKQTPlotter6 JKQTCommon6 JKQTMath6 JKQTMathText6
 	FIND_PACKAGE_ARGUMENTS REQUIRED
 	OPTIONS 
