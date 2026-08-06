@@ -75,7 +75,7 @@ namespace Sparsepc
             {
                 Param(std::vector<ImplementationParam> implementationParamsInput)
                     : nbComponents{static_cast<Index>(implementationParamsInput.size())},
-                      implementationParams{implementationParamsInput}
+                      implementationParams{std::move(implementationParamsInput)}
                 {
                 }
 
