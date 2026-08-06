@@ -64,7 +64,7 @@ namespace Sparsepc
             using Implementation = ImplementationType;
             using Scalar = typename Implementation::Scalar;
             using ImplementationParam = typename Implementation::Param;
-            using ProgressBar = typename ImplementationType::ProgressBar;
+            using ProgressBar = typename Implementation::ProgressBar;
 
             /**
              * @brief Generic solver parameter set.
@@ -100,10 +100,12 @@ namespace Sparsepc
             SparsePC(const Param &param) : m_Param{param} {}
 
             /**
-             * @brief Computes the principal component associated with the
+             * @brief Computes the principal components associated with the
              * parameters.
+             * @details The components are computed sequentially, deflating the
+             * covariance matrix with the previously found components.
              * @param centeredX The featurewise centered matrix.
-             * @return The computed principal component.
+             * @return The computed principal components.
              */
             auto run(const Matrix<Scalar> &centeredX) const;
 
@@ -112,7 +114,7 @@ namespace Sparsepc
              * component.
              * @param centeredX The featurewise centered matrix.
              * @param param The parameters to be used during the computations.
-             * @param previousRoundComponents The previous rounds principal
+             * @param validatedComponents The previous rounds validated
              * components.
              * @param progressBar The computation progress reporter.
              * @return The computed next round candidates.
@@ -121,7 +123,7 @@ namespace Sparsepc
             static auto computeNextComponentCandidates(
                 const Matrix<Scalar> &centeredX,
                 const ImplementationParam &param,
-                const std::vector<ComponentType> &previousRoundComponents,
+                const std::vector<ComponentType> &validatedComponents,
                 ProgressBar *progressBar);
 
           private:
