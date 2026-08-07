@@ -1,6 +1,9 @@
 #pragma once
 
+#include <cmath>
 #include <concepts>
+#include <cstdint>
+#include <random>
 
 #include <sparsepc/utils/matrix.hpp>
 
@@ -8,31 +11,113 @@ namespace Sparsepc
 {
     namespace linearmodel
     {
-        template <std::floating_point ScalarType> static auto pitprops()
-        { // TODO add piptprops references
-            Matrix<ScalarType> QData(13, 13);
+        template <std::floating_point ScalarType>
+        struct SimulationData
+        {
+            Matrix<ScalarType> v1;
+            Matrix<ScalarType> v2;
+            Matrix<ScalarType> v3;
+            Matrix<ScalarType> observed;
+            Matrix<ScalarType> featureMatrix;
 
-            QData << 1, 0.954, 0.364, 0.342, -0.129, 0.313, 0.496, 0.424, 0.592,
-                0.545, 0.084, -0.019, 0.134, 0.954, 1, 0.297, 0.284, -0.118,
-                0.291, 0.503, 0.419, 0.648, 0.569, 0.076, -0.036, 0.144, 0.364,
-                0.297, 1, 0.882, -0.148, 0.153, -0.029, -0.054, 0.125, -0.081,
-                0.162, 0.22, 0.126, 0.342, 0.284, 0.882, 1, 0.22, 0.381, 0.174,
-                -0.059, 0.137, -0.014, 0.097, 0.169, 0.015, -0.129, -0.118,
-                -0.148, 0.22, 1, 0.364, 0.296, 0.004, -0.039, 0.037, -0.091,
-                -0.145, -0.208, 0.313, 0.291, 0.153, 0.381, 0.364, 1, 0.813,
-                0.09, 0.211, 0.274, -0.036, 0.024, -0.329, 0.496, 0.503, -0.029,
-                0.174, 0.296, 0.813, 1, 0.372, 0.465, 0.679, -0.113, -0.232,
-                -0.424, 0.424, 0.419, -0.054, -0.059, 0.004, 0.09, 0.372, 1,
-                0.482, 0.557, 0.061, -0.357, -0.202, 0.592, 0.648, 0.125, 0.137,
-                -0.039, 0.211, 0.465, 0.482, 1, 0.526, 0.085, -0.127, -0.076,
-                0.545, 0.569, -0.081, -0.014, 0.037, 0.274, 0.679, 0.557, 0.526,
-                1, -0.319, -0.368, -0.291, 0.084, 0.076, 0.162, 0.097, -0.091,
-                -0.036, -0.113, 0.061, 0.085, -0.319, 1, 0.029, 0.007, -0.019,
-                -0.036, 0.22, 0.169, -0.145, 0.024, -0.232, -0.357, -0.127,
-                -0.368, 0.029, 1, 0.184, 0.134, 0.144, 0.126, 0.015, -0.208,
-                -0.329, -0.424, -0.202, -0.076, -0.291, 0.007, 0.184, 1;
+            Matrix<ScalarType> covariance() const
+            {
+                const auto n = observed.rows();
+                if (n <= 1)
+                {
+                    return Matrix<ScalarType>::Zero(observed.cols(),
+                                                   observed.cols());
+                }
 
-            return QData;
+                const auto mean = observed.colwise().mean();
+                const auto centered = observed.rowwise() - mean;
+                return (centered.transpose() * centered);// /static_cast<ScalarType>(n - 1);
+            }
+
+            Matrix<ScalarType> theoretical_covariance() const
+            {
+                constexpr ScalarType varV1 = static_cast<ScalarType>(290);
+                constexpr ScalarType varV2 = static_cast<ScalarType>(300);
+                constexpr ScalarType covV1V3 = static_cast<ScalarType>(-87);
+                constexpr ScalarType covV2V3 = static_cast<ScalarType>(277.5);
+                constexpr ScalarType varV3 = static_cast<ScalarType>(283.7875);
+
+                Matrix<ScalarType> latentCov(3, 3);
+                latentCov.setZero();
+                latentCov(0, 0) = varV1;
+                latentCov(1, 1) = varV2;
+                latentCov(2, 2) = varV3;
+                latentCov(0, 2) = covV1V3;
+                latentCov(2, 0) = covV1V3;
+                latentCov(1, 2) = covV2V3;
+                latentCov(2, 1) = covV2V3;
+
+                const auto cov = (featureMatrix * latentCov * featureMatrix.transpose()).eval();
+                Matrix<ScalarType> result = cov;
+                result.diagonal().array() += static_cast<ScalarType>(1);
+                return result;
+            }
+        };
+
+        template <std::floating_point ScalarType>
+        auto generate_simulation(Index nSamples = 200,
+                                           std::uint32_t seed = 42)
+            -> SimulationData<ScalarType>
+        {
+            SimulationData<ScalarType> result;
+            result.v1.resize(nSamples, 1);
+            result.v2.resize(nSamples, 1);
+            result.v3.resize(nSamples, 1);
+            result.observed.resize(nSamples, 10);
+            result.featureMatrix.resize(10, 3);
+            result.featureMatrix.setZero();
+
+            std::mt19937 generator(seed);
+            std::normal_distribution<ScalarType> normalV1(
+                static_cast<ScalarType>(0),
+                std::sqrt(static_cast<ScalarType>(290)));
+            std::normal_distribution<ScalarType> normalV2(
+                static_cast<ScalarType>(0),
+                std::sqrt(static_cast<ScalarType>(300)));
+            std::normal_distribution<ScalarType> normalNoise(
+                static_cast<ScalarType>(0), static_cast<ScalarType>(1));
+
+            for (Index i = 0; i < nSamples; ++i)
+            {
+                const auto value1 = normalV1(generator);
+                const auto value2 = normalV2(generator);
+                const auto value3 =
+                    -static_cast<ScalarType>(0.3) * value1 +
+                    static_cast<ScalarType>(0.925) * value2 +
+                    normalNoise(generator);
+
+                result.v1(i, 0) = value1;
+                result.v2(i, 0) = value2;
+                result.v3(i, 0) = value3;
+
+                for (Index j = 0; j < 10; ++j)
+                {
+                    const auto latent = j < 4   ? value1
+                                        : j < 8 ? value2
+                                                 : value3;
+                    result.observed(i, j) = latent + normalNoise(generator);
+                }
+            }
+
+            for (Index i = 0; i < 4; ++i)
+            {
+                result.featureMatrix(i, 0) = static_cast<ScalarType>(1);
+            }
+            for (Index i = 4; i < 8; ++i)
+            {
+                result.featureMatrix(i, 1) = static_cast<ScalarType>(1);
+            }
+            for (Index i = 8; i < 10; ++i)
+            {
+                result.featureMatrix(i, 2) = static_cast<ScalarType>(1);
+            }
+
+            return result;
         }
     } // namespace linearmodel
 } // namespace Sparsepc
