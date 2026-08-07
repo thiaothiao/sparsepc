@@ -17,7 +17,8 @@ int main()
     using Component = Sparsepc::Component<Scalar>;
     using Index = Sparsepc::Index;
 
-    const auto sigma = Sparsepc::linearmodel::pitprops<Scalar>();
+    const auto sim = Sparsepc::linearmodel::generate_simulation<Scalar>(200, 1234);
+    const auto sigma = sim.covariance();
 
     const auto tic = std::chrono::high_resolution_clock::now();
     auto gram = Sparsepc::EigenSolver<Scalar>{}.maximumValueElement(sigma);
@@ -49,9 +50,8 @@ int main()
                                                                        tac)
               << "\n";
 
-    const Index k0 = 6;
-    const Index k1 = 2;
-    const Index k2 = 2;
+    const Index k0 = 4;
+    const Index k1 = 4;
 
     {
         std::cout << "\nStarting backward run.\n";
@@ -59,7 +59,7 @@ int main()
 
         const auto start = std::chrono::high_resolution_clock::now();
 
-        const BackwardGspca::Param param{{k0, k1, k2}};
+        const BackwardGspca::Param param{{k0, k1}};
 
         const auto sparseEigenElements = BackwardGspca{param}.run(sigma);
 
@@ -84,7 +84,7 @@ int main()
 
         const auto start = std::chrono::high_resolution_clock::now();
 
-        const ForwardGspca::Param param{{k0, k1, k2}};
+        const ForwardGspca::Param param{{k0, k1}};
 
         const auto sparseEigenElements = ForwardGspca{param}.run(sigma);
 
@@ -108,7 +108,7 @@ int main()
         using ParallelGspca = Sparsepc::linearmodel::ParallelGspca<Scalar>;
         const auto start = std::chrono::high_resolution_clock::now();
 
-        const ParallelGspca::Param param{{k0, k1, k2}};
+        const ParallelGspca::Param param{{k0, k1}};
 
         const auto sparseEigenElements = ParallelGspca{param}.run(sigma);
 
@@ -132,7 +132,7 @@ int main()
         using Dca = Sparsepc::linearmodel::Dca<Scalar>;
         const auto start = std::chrono::high_resolution_clock::now();
 
-        const Dca::Param param{{k0, k1, k2}};
+        const Dca::Param param{{k0, k1}};
 
         const auto sparseEigenElements = Dca{param}.run(sigma);
 
@@ -157,7 +157,7 @@ int main()
             Sparsepc::linearmodel::ContiguousFacetsFinder<Scalar>;
         const auto start = std::chrono::high_resolution_clock::now();
 
-        const ContiguousFacetsFinder::Param param{{k0, k1, k2}};
+        const ContiguousFacetsFinder::Param param{{k0, k1}};
 
         const auto sparseEigenElements =
             ContiguousFacetsFinder{param}.run(sigma);
@@ -183,7 +183,7 @@ int main()
             Sparsepc::linearmodel::MavIterativeElimination<Scalar>;
         const auto start = std::chrono::high_resolution_clock::now();
 
-        const MavIterativeElimination::Param param{{k0, k1, k2}};
+        const MavIterativeElimination::Param param{{k0, k1}};
 
         const auto sparseEigenElements =
             MavIterativeElimination{param}.run(sigma);
@@ -209,7 +209,7 @@ int main()
             Sparsepc::linearmodel::AmvlIterativeElimination<Scalar>;
         const auto start = std::chrono::high_resolution_clock::now();
 
-        const AmvlIterativeElimination::Param param{{k0, k1, k2}};
+        const AmvlIterativeElimination::Param param{{k0, k1}};
 
         const auto sparseEigenElements =
             AmvlIterativeElimination{param}.run(sigma);
