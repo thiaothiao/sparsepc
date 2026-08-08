@@ -20,7 +20,7 @@ namespace Sparsepc
             Matrix<ScalarType> observed;
             Matrix<ScalarType> featureMatrix;
 
-            Matrix<ScalarType> covariance() const
+            Matrix<ScalarType> centered() const
             {
                 const auto n = observed.rows();
                 if (n <= 1)
@@ -30,7 +30,12 @@ namespace Sparsepc
                 }
 
                 const auto mean = observed.colwise().mean();
-                const auto centered = observed.rowwise() - mean;
+                return observed.rowwise() - mean;
+            }
+
+            Matrix<ScalarType> covariance() const
+            {
+                const auto centered = centered();
                 return (centered.transpose() * centered);// /static_cast<ScalarType>(n - 1);
             }
 
