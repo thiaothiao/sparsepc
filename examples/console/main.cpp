@@ -17,38 +17,47 @@ int main()
     using Component = Sparsepc::Component<Scalar>;
     using Index = Sparsepc::Index;
 
-    const auto sim = Sparsepc::linearmodel::generate_simulation<Scalar>(200, 1234);
-    const auto sigma = sim.covariance();
+    const Index numberOfSamples = 200;
+    const std::atomic_uint32_t seed = 1234;
 
-    const auto tic = std::chrono::high_resolution_clock::now();
-    auto gram = Sparsepc::EigenSolver<Scalar>{}.maximumValueElement(sigma);
-    const auto toc = std::chrono::high_resolution_clock::now();
-    auto eigen =
-        Sparsepc::EigenLibEigenSolver<Scalar>{}.maximumValueElement(sigma);
-    const auto tac = std::chrono::high_resolution_clock::now();
-    auto spectra =
-        Sparsepc::SpectraLibEigenSolver<Scalar>{}.maximumValueElement(sigma);
-    const auto tuc = std::chrono::high_resolution_clock::now();
+    const auto sim = Sparsepc::linearmodel::generate_simulation<Scalar>(
+        numberOfSamples, seed);
+    const auto centeredX = sim.centered();
+    {
+        const Matrix sigma = centeredX.transpose() * centeredX;
 
-    std::cout << "\nGram method Maximum eigenvalue: " << gram.value << "\n"
-              << gram.vector.transpose() << "\n";
-    std::cout << "\nEigen lib Maximum eigenvalue: " << eigen.value << "\n"
-              << eigen.vector.transpose() << "\n";
-    std::cout << "\nSpectra lib Maximum eigenvalue: " << spectra.value << "\n"
-              << spectra.vector.transpose() << "\n";
+        const auto tic = std::chrono::high_resolution_clock::now();
+        auto gram = Sparsepc::EigenSolver<Scalar>{}.maximumValueElement(sigma);
+        const auto toc = std::chrono::high_resolution_clock::now();
+        auto eigen =
+            Sparsepc::EigenLibEigenSolver<Scalar>{}.maximumValueElement(sigma);
+        const auto tac = std::chrono::high_resolution_clock::now();
+        auto spectra =
+            Sparsepc::SpectraLibEigenSolver<Scalar>{}.maximumValueElement(
+                sigma);
+        const auto tuc = std::chrono::high_resolution_clock::now();
 
-    std::cout << "\nGram duration: "
-              << std::chrono::duration_cast<std::chrono::microseconds>(toc -
-                                                                       tic)
-              << "\n";
-    std::cout << "\nEigen duration: "
-              << std::chrono::duration_cast<std::chrono::microseconds>(tac -
-                                                                       toc)
-              << "\n";
-    std::cout << "\nSpectra duration: "
-              << std::chrono::duration_cast<std::chrono::microseconds>(tuc -
-                                                                       tac)
-              << "\n";
+        std::cout << "\nGram method Maximum eigenvalue: " << gram.value << "\n"
+                  << gram.vector.transpose() << "\n";
+        std::cout << "\nEigen lib Maximum eigenvalue: " << eigen.value << "\n"
+                  << eigen.vector.transpose() << "\n";
+        std::cout << "\nSpectra lib Maximum eigenvalue: " << spectra.value
+                  << "\n"
+                  << spectra.vector.transpose() << "\n";
+
+        std::cout << "\nGram duration: "
+                  << std::chrono::duration_cast<std::chrono::microseconds>(toc -
+                                                                           tic)
+                  << "\n";
+        std::cout << "\nEigen duration: "
+                  << std::chrono::duration_cast<std::chrono::microseconds>(tac -
+                                                                           toc)
+                  << "\n";
+        std::cout << "\nSpectra duration: "
+                  << std::chrono::duration_cast<std::chrono::microseconds>(tuc -
+                                                                           tac)
+                  << "\n";
+    }
 
     const Index k0 = 4;
     const Index k1 = 4;
@@ -61,7 +70,7 @@ int main()
 
         const BackwardGspca::Param param{{k0, k1}};
 
-        const auto sparseEigenElements = BackwardGspca{param}.run(sigma);
+        const auto sparseEigenElements = BackwardGspca{param}.run(centeredX);
 
         const auto stop = std::chrono::high_resolution_clock::now();
 
@@ -86,7 +95,7 @@ int main()
 
         const ForwardGspca::Param param{{k0, k1}};
 
-        const auto sparseEigenElements = ForwardGspca{param}.run(sigma);
+        const auto sparseEigenElements = ForwardGspca{param}.run(centeredX);
 
         const auto stop = std::chrono::high_resolution_clock::now();
 
@@ -110,7 +119,7 @@ int main()
 
         const ParallelGspca::Param param{{k0, k1}};
 
-        const auto sparseEigenElements = ParallelGspca{param}.run(sigma);
+        const auto sparseEigenElements = ParallelGspca{param}.run(centeredX);
 
         const auto stop = std::chrono::high_resolution_clock::now();
 
@@ -134,7 +143,7 @@ int main()
 
         const Dca::Param param{{k0, k1}};
 
-        const auto sparseEigenElements = Dca{param}.run(sigma);
+        const auto sparseEigenElements = Dca{param}.run(centeredX);
 
         const auto stop = std::chrono::high_resolution_clock::now();
 
@@ -160,7 +169,7 @@ int main()
         const ContiguousFacetsFinder::Param param{{k0, k1}};
 
         const auto sparseEigenElements =
-            ContiguousFacetsFinder{param}.run(sigma);
+            ContiguousFacetsFinder{param}.run(centeredX);
 
         const auto stop = std::chrono::high_resolution_clock::now();
 
@@ -186,7 +195,7 @@ int main()
         const MavIterativeElimination::Param param{{k0, k1}};
 
         const auto sparseEigenElements =
-            MavIterativeElimination{param}.run(sigma);
+            MavIterativeElimination{param}.run(centeredX);
 
         const auto stop = std::chrono::high_resolution_clock::now();
 
@@ -212,7 +221,7 @@ int main()
         const AmvlIterativeElimination::Param param{{k0, k1}};
 
         const auto sparseEigenElements =
-            AmvlIterativeElimination{param}.run(sigma);
+            AmvlIterativeElimination{param}.run(centeredX);
 
         const auto stop = std::chrono::high_resolution_clock::now();
 
