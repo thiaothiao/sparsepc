@@ -14,42 +14,42 @@ namespace
 {
     using BackwardGSPA = Sparsepc::linearmodel::SparsePC<
         Sparsepc::linearmodel::BackwardGspcaSolver<
-            double, Sparsepc::SpectraLibEigenSolver<double>,
+            double, Sparsepc::EigenLibEigenSolver<double>,
             Sparsely::ProgressDialog>>;
 
     using ForwardGSPCA = Sparsepc::linearmodel::SparsePC<
         Sparsepc::linearmodel::ForwardGspcaSolver<
-            double, Sparsepc::SpectraLibEigenSolver<double>,
+            double, Sparsepc::EigenLibEigenSolver<double>,
             Sparsely::ProgressDialog>>;
 
     using DCA =
         Sparsepc::linearmodel::SparsePC<Sparsepc::linearmodel::DcaSolver<
-            double, Sparsepc::SpectraLibEigenSolver<double>,
+            double, Sparsepc::EigenLibEigenSolver<double>,
             Sparsely::ProgressDialog>>;
 
     using CustomSolver =
         Sparsepc::linearmodel::SparsePC<Sparsepc::linearmodel::CustomSolver<
-            double, Sparsepc::SpectraLibEigenSolver<double>,
+            double, Sparsepc::EigenLibEigenSolver<double>,
             Sparsely::ProgressDialog>>;
 
     using DynamicLibSolver =
         Sparsepc::linearmodel::SparsePC<Sparsepc::linearmodel::DynamicLibSolver<
-            double, Sparsepc::SpectraLibEigenSolver<double>,
+            double, Sparsepc::EigenLibEigenSolver<double>,
             Sparsely::ProgressDialog>>;
 
     using ContiguousSupportSolver = Sparsepc::linearmodel::SparsePC<
         Sparsepc::linearmodel::ContiguousSupportSolver<
-            double, Sparsepc::SpectraLibEigenSolver<double>,
+            double, Sparsepc::EigenLibEigenSolver<double>,
             Sparsely::ProgressDialog>>;
 
     using MavIterativeEliminationSolver = Sparsepc::linearmodel::SparsePC<
         Sparsepc::linearmodel::MavIterativeEliminationSolver<
-            double, Sparsepc::SpectraLibEigenSolver<double>,
+            double, Sparsepc::EigenLibEigenSolver<double>,
             Sparsely::ProgressDialog>>;
 
     using AmvlIterativeEliminationSolver = Sparsepc::linearmodel::SparsePC<
         Sparsepc::linearmodel::AmvlIterativeEliminationSolver<
-            double, Sparsepc::SpectraLibEigenSolver<double>,
+            double, Sparsepc::EigenLibEigenSolver<double>,
             Sparsely::ProgressDialog>>;
 } // namespace
 

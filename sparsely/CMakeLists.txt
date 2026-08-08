@@ -44,20 +44,6 @@ if(NOT TARGET Eigen3::Eigen)
     endif()
 endif()
 
-if(NOT TARGET Spectra::Spectra)
-    CPMAddPackage(
-        NAME Spectra
-        GITHUB_REPOSITORY yixuan/spectra
-        GIT_TAG v1.2.0
-        DOWNLOAD_ONLY YES
-    )
-
-    if(Spectra_ADDED)
-        add_library(Spectra::Spectra INTERFACE IMPORTED)
-        target_include_directories(Spectra::Spectra INTERFACE "${Spectra_SOURCE_DIR}/include")
-    endif()
-endif()
-
 if(NOT TARGET Sparsepc::Sparsepc)
     CPMAddPackage(
         NAME Sparsepc
@@ -148,7 +134,6 @@ target_include_directories(${exeName} PRIVATE "${JKQTPlotter6_SOURCE_DIR}/lib")
 target_link_libraries(${exeName}
     PRIVATE
         Sparsepc::Sparsepc
-        Spectra::Spectra
         Eigen3::Eigen
         JKQTPlotter6::JKQTPlotter6
         JKQTPlotter6::JKQTCommon6

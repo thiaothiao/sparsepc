@@ -49,34 +49,17 @@ TEST_CASE("Artificial data covariance")
         auto gram = Sparsepc::EigenSolver<Scalar>{}.maximumValueElement(sigma);
         auto eigen =
             Sparsepc::EigenLibEigenSolver<Scalar>{}.maximumValueElement(sigma);
-        auto spectra =
-            Sparsepc::SpectraLibEigenSolver<Scalar>{}.maximumValueElement(
-                sigma);
 
         Index idxMaxCoeff = 0;
         gram.vector.cwiseAbs().maxCoeff(&idxMaxCoeff);
         gram.vector *= sign(gram.vector[idxMaxCoeff]);
         eigen.vector.cwiseAbs().maxCoeff(&idxMaxCoeff);
         eigen.vector *= sign(eigen.vector[idxMaxCoeff]);
-        spectra.vector.cwiseAbs().maxCoeff(&idxMaxCoeff);
-        spectra.vector *= sign(spectra.vector[idxMaxCoeff]);
 
         CHECK(std::abs(gram.value - eigen.value) <= 1e-4);
-        CHECK(std::abs(gram.value - spectra.value) <= 1e-4);
-        CHECK(std::abs(eigen.value - spectra.value) <= 1e-9);
         {
             const auto norm = (gram.vector - eigen.vector).norm();
             const auto ok = norm < 1e-5 && norm > 1e-6;
-            CHECK(ok);
-        }
-        {
-            const auto norm = (gram.vector - spectra.vector).norm();
-            const auto ok = norm < 1e-5 && norm > 1e-6;
-            CHECK(ok);
-        }
-        {
-            const auto norm = (eigen.vector - spectra.vector).norm();
-            const auto ok = norm < 1e-10;
             CHECK(ok);
         }
     }
