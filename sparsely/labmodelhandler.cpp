@@ -310,7 +310,11 @@ namespace Sparsely
         }
         else
         {
-            loadProject(fileName);
+            if (!loadProject(fileName))
+            {
+                qDebug() << "...model handler not initialized";
+                return false;
+            }
         }
 
         qDebug() << "...model handler initialized";
