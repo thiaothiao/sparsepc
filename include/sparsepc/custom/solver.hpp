@@ -36,9 +36,17 @@ namespace
     }
 
     template <std::floating_point ScalarType>
-    auto sortMatrix(const Sparsepc::Matrix<ScalarType> &sigma)
+    auto sortMatrix(const Sparsepc::Matrix<ScalarType> &X)
     {
-        return sortVector<ScalarType>(sigma.cwiseAbs().colwise().sum().eval());
+        using Index = Sparsepc::Index;
+        using Vector = Sparsepc::Vector<ScalarType>;
+        const auto n = X.cols();
+        Vector v(n);
+        for (Index i = 0; i < n; ++i)
+        {
+            v[i] = (X.transpose() * X.col(i)).cwiseAbs().sum();
+        }
+        return sortVector<ScalarType>(v);
     }
 } // namespace
 
@@ -152,9 +160,7 @@ namespace Sparsepc
                 return cmponent;
             }
 
-            const Matrix sigma =
-                deflatedCenteredX.transpose() * deflatedCenteredX;
-            auto indices = sortMatrix(sigma);
+            auto indices = sortMatrix(deflatedCenteredX);
             indices.resize(k);
             const auto subDimEigenElement = eigenSolver.maximumValueElement(
                 deflatedCenteredX(Eigen::placeholders::all, indices));
@@ -241,9 +247,7 @@ namespace Sparsepc
                 components.try_emplace(k, Component(n));
             }
 
-            const Matrix sigma =
-                deflatedCenteredX.transpose() * deflatedCenteredX;
-            auto indices = sortMatrix(sigma);
+            auto indices = sortMatrix(deflatedCenteredX);
             for (Index k = n - 1; k > 0; --k)
             {
                 indices.resize(k);

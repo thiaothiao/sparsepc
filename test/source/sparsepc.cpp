@@ -20,7 +20,6 @@ TEST_CASE("Artificial data covariance")
 {
     using Scalar = double;
     using Index = Sparsepc::Index;
-    using Matrix = Sparsepc::Matrix<Scalar>;
     using Vector = Sparsepc::Vector<Scalar>;
     using Component = Sparsepc::Component<Scalar>;
 

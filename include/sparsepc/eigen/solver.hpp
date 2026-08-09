@@ -141,7 +141,7 @@ namespace Sparsepc
         using Component = Component<Scalar>;
 
         Matrix G = centeredFeatureMatrix.transpose() *
-                   centeredFeatureMatrix; // std::move(sigma);
+                   centeredFeatureMatrix;
 
         if (G.cols() == static_cast<Index>(1))
         {
@@ -195,10 +195,7 @@ namespace Sparsepc
         using Vector = Vector<Scalar>;
         using Component = Component<Scalar>;
 
-        const Matrix sigma =
-            centeredFeatureMatrix.transpose() * centeredFeatureMatrix;
-
-        const auto n = sigma.cols();
+        const auto n = centeredFeatureMatrix.cols();
 
         Component eigenElement(n);
         auto &u = eigenElement.vector;
@@ -206,7 +203,7 @@ namespace Sparsepc
 
         u.setOnes();
 
-        value = (u.transpose() * sigma * u).value();
+        value = (centeredFeatureMatrix * u).squaredNorm();
 
         if (n == static_cast<Index>(1))
         {
@@ -216,10 +213,10 @@ namespace Sparsepc
         unsigned int count = 0U;
         while (true)
         { // TODO optimize products
-            u = sigma * u;
+            u = centeredFeatureMatrix.transpose() * (centeredFeatureMatrix * u);
             u.normalize();
 
-            const auto newValue = (u.transpose() * sigma * u).value();
+            const auto newValue = (centeredFeatureMatrix * u).squaredNorm();
 
             if (std::abs(value - newValue) <= m_Param.epsilon)
             {
