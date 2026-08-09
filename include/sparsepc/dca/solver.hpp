@@ -152,15 +152,15 @@ namespace Sparsepc
                 Vector<Scalar> y;
             };
 
-            auto objectiveValue(const Matrix<Scalar> &sigma,
+            auto objectiveValue(const Matrix<Scalar> &centeredX,
                                 const PrimalSolution &solution, double t) const;
             auto kktCandidate(const Vector<Scalar> &q, const Vector<Scalar> &y,
                               Scalar r) const;
             auto computePhir(const Vector<Scalar> &y, Scalar r,
                              const PrimalSolution &solution) const;
-            auto dual(const Matrix<Scalar> &sigma,
+            auto dual(const Matrix<Scalar> &centeredX,
                       const PrimalSolution &solution, double t) const;
-            auto primal([[maybe_unused]] const Matrix<Scalar> &sigma,
+            auto primal([[maybe_unused]] const Matrix<Scalar> &centeredX,
                         const DualSolution &dualSolution) const;
 
             const Param m_Param;
@@ -171,10 +171,10 @@ namespace Sparsepc
                   ProgressBarLike ProgressBarType>
         inline auto
         DcaSolver<ScalarType, EigenSolverType, ProgressBarType>::objectiveValue(
-            const Matrix<Scalar> &sigma, const PrimalSolution &solution,
+            const Matrix<Scalar> &centeredX, const PrimalSolution &solution,
             double t) const
         {
-            return -(solution.x.transpose() * sigma * solution.x).value() -
+            return -(centeredX * solution.x).squaredNorm() -
                    t * solution.u.squaredNorm();
         }
 
@@ -189,30 +189,30 @@ namespace Sparsepc
             using Component = Component<Scalar>;
             using Matrix = Matrix<Scalar>;
 
-            const auto tmp = centeredX * B;
-            const Matrix sigma = tmp.transpose() * tmp;
+            const Matrix deflatedCenteredX = centeredX * B;
 
             const auto k = m_Param.k;
             const auto &eigenSolver = m_Param.eigenSolver;
 
-            const auto n = sigma.cols();
+            const auto n = deflatedCenteredX.cols();
             if (k >= n || k < static_cast<Index>(0))
             {
-                return eigenSolver.maximumValueElement(sigma);
+                return eigenSolver.maximumValueElement(deflatedCenteredX);
             }
 
             if (static_cast<Index>(1) == n)
             {
                 Component cmponent(n);
-                cmponent.value = sigma.value();
+                cmponent.value = deflatedCenteredX.col(0).squaredNorm();
                 cmponent.vector.setOnes();
 
                 return cmponent;
             }
 
-            Component component = (guess.vector.size() == static_cast<Index>(0))
-                                      ? eigenSolver.maximumValueElement(sigma)
-                                      : guess;
+            Component component =
+                (guess.vector.size() == static_cast<Index>(0))
+                    ? eigenSolver.maximumValueElement(deflatedCenteredX)
+                    : guess;
 
             PrimalSolution primalSsolution(n);
             primalSsolution.x = std::move(component.vector); // std::move()
@@ -222,16 +222,19 @@ namespace Sparsepc
 
             while (t <= m_Param.t)
             {
-                auto previousObj = objectiveValue(sigma, primalSsolution, t);
+                auto previousObj =
+                    objectiveValue(deflatedCenteredX, primalSsolution, t);
 
                 unsigned int count = 0U;
                 while (true)
                 {
-                    auto dualSolution = dual(sigma, primalSsolution, t);
+                    auto dualSolution =
+                        dual(deflatedCenteredX, primalSsolution, t);
 
-                    primalSsolution = primal(sigma, dualSolution);
+                    primalSsolution = primal(deflatedCenteredX, dualSolution);
 
-                    auto obj = objectiveValue(sigma, primalSsolution, t);
+                    auto obj =
+                        objectiveValue(deflatedCenteredX, primalSsolution, t);
 
                     if (std::abs(previousObj - obj) <= m_Param.tolerance)
                     {
@@ -261,8 +264,7 @@ namespace Sparsepc
             component.vector.normalize();
 
             component.value =
-                (component.vector.transpose() * sigma * component.vector)
-                    .value();
+                (deflatedCenteredX * component.vector).squaredNorm();
 
             return component;
         }
@@ -279,12 +281,11 @@ namespace Sparsepc
             using ComponentsContainer = ComponentsContainer<Component>;
             using Matrix = Matrix<Scalar>;
 
-            const auto tmp = centeredX * B;
-            const Matrix sigma = tmp.transpose() * tmp;
+            const Matrix deflatedCenteredX = centeredX * B;
 
             const auto &eigenSolver = param.eigenSolver;
             const auto k = param.k;
-            const auto n = sigma.cols();
+            const auto n = deflatedCenteredX.cols();
 
             ComponentsContainer components;
             components.reserve(n);
@@ -319,7 +320,9 @@ namespace Sparsepc
             }
 
             const auto &component =
-                components.try_emplace(n, eigenSolver.maximumValueElement(sigma))
+                components
+                    .try_emplace(
+                        n, eigenSolver.maximumValueElement(deflatedCenteredX))
                     .first->second;
 
             if (n == 1)
@@ -370,10 +373,12 @@ namespace Sparsepc
                   ProgressBarLike ProgressBarType>
         inline auto
         DcaSolver<ScalarType, EigenSolverType, ProgressBarType>::dual(
-            const Matrix<Scalar> &sigma, const PrimalSolution &solution,
+            const Matrix<Scalar> &centeredX, const PrimalSolution &solution,
             double t) const
         {
-            return DualSolution{sigma * solution.x, t * solution.u};
+            return DualSolution{centeredX.transpose() *
+                                    (centeredX * solution.x),
+                                t * solution.u};
         }
 
         template <std::floating_point ScalarType,
@@ -472,7 +477,7 @@ namespace Sparsepc
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
         auto DcaSolver<ScalarType, EigenSolverType, ProgressBarType>::primal(
-            [[maybe_unused]] const Matrix<Scalar> &sigma,
+            [[maybe_unused]] const Matrix<Scalar> &centeredX,
             const DualSolution &dualSolution) const
         {
             const auto zero = m_Param.zero;

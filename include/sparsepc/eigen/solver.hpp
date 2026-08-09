@@ -6,6 +6,7 @@
 #include <utility>
 
 #include <Eigen/Dense>
+#include <Eigen/SVD>
 
 #include <sparsepc/utils/matrix.hpp>
 
@@ -122,23 +123,30 @@ namespace Sparsepc
 
         EigenSolver(const Param &param = {}) : m_Param{param} {}
 
-        auto maximumValue(Matrix<Scalar> sigma) const;
+        auto maximumValue(const Matrix<Scalar> &centeredFeatureMatrix) const;
 
-        auto maximumValueElement(const Matrix<Scalar> &sigma) const;
+        auto
+        maximumValueElement(const Matrix<Scalar> &centeredFeatureMatrix) const;
 
       private:
         Param m_Param;
     };
 
     template <std::floating_point ScalarType>
-    auto EigenSolver<ScalarType>::maximumValue(Matrix<Scalar> sigma) const
+    auto EigenSolver<ScalarType>::maximumValue(
+        const Matrix<Scalar> &centeredFeatureMatrix) const
     { // Gram iteration
-        if (sigma.cols() == static_cast<Index>(1))
-        {
-            return sigma.value();
-        }
+        using Matrix = Matrix<Scalar>;
+        using Vector = Vector<Scalar>;
+        using Component = Component<Scalar>;
 
-        Matrix<Scalar> G = std::move(sigma);
+        Matrix G = centeredFeatureMatrix.transpose() *
+                   centeredFeatureMatrix; // std::move(sigma);
+
+        if (G.cols() == static_cast<Index>(1))
+        {
+            return G.value();
+        }
 
         Scalar r = static_cast<Scalar>(0);
 
@@ -181,11 +189,18 @@ namespace Sparsepc
 
     template <std::floating_point ScalarType>
     auto EigenSolver<ScalarType>::maximumValueElement(
-        const Matrix<Scalar> &sigma) const
+        const Matrix<Scalar> &centeredFeatureMatrix) const
     { // Power iteration
+        using Matrix = Matrix<Scalar>;
+        using Vector = Vector<Scalar>;
+        using Component = Component<Scalar>;
+
+        const Matrix sigma =
+            centeredFeatureMatrix.transpose() * centeredFeatureMatrix;
+
         const auto n = sigma.cols();
 
-        Component<Scalar> eigenElement(n);
+        Component eigenElement(n);
         auto &u = eigenElement.vector;
         auto &value = eigenElement.value;
 
@@ -244,41 +259,48 @@ namespace Sparsepc
 
         EigenLibEigenSolver() {}
 
-        auto maximumValue(const Matrix<Scalar> &sigma) const;
+        auto maximumValue(const Matrix<Scalar> &centeredFeatureMatrix) const;
 
-        auto maximumValueElement(const Matrix<Scalar> &sigma) const;
+        auto
+        maximumValueElement(const Matrix<Scalar> &centeredFeatureMatrix) const;
     };
 
     template <std::floating_point ScalarType>
     inline auto EigenLibEigenSolver<ScalarType>::maximumValue(
-        const Matrix<Scalar> &sigma) const
+        const Matrix<Scalar> &centeredFeatureMatrix) const
     {
-        return (sigma.cols() == static_cast<Index>(1))
-                   ? sigma.value()
-                   : Eigen::SelfAdjointEigenSolver<Matrix<Scalar>>(sigma)
-                         .eigenvalues()[sigma.cols() - 1];
+        return (centeredFeatureMatrix.cols() == static_cast<Index>(1))
+                   ? centeredFeatureMatrix.col(0).squaredNorm()
+                   : std::pow(
+                         Eigen::JacobiSVD<Matrix<Scalar>>(centeredFeatureMatrix)
+                             .singularValues()(0),
+                         2);
     }
 
     template <std::floating_point ScalarType>
     auto EigenLibEigenSolver<ScalarType>::maximumValueElement(
-        const Matrix<Scalar> &sigma) const
+        const Matrix<Scalar> &centeredFeatureMatrix) const
     {
-        const auto n = sigma.cols();
+        using Matrix = Matrix<Scalar>;
+        using Vector = Vector<Scalar>;
+        using Component = Component<Scalar>;
 
-        Component<Scalar> eigenElement(n);
+        const auto n = centeredFeatureMatrix.cols();
+        Component eigenElement(n);
 
         if (n == static_cast<Index>(1))
         {
-            eigenElement.value = sigma.value();
+            eigenElement.value = centeredFeatureMatrix.col(0).squaredNorm();
             eigenElement.vector.setOnes();
             return eigenElement;
         }
 
-        Eigen::SelfAdjointEigenSolver<Matrix<Scalar>> selfAdjointEigenSolver(
-            sigma);
-        eigenElement.value = selfAdjointEigenSolver.eigenvalues()[n - 1];
-        eigenElement.vector = selfAdjointEigenSolver.eigenvectors().col(
-            n - 1); // Why not use move!!!
+        Eigen::JacobiSVD<Matrix> svd(centeredFeatureMatrix,
+                                     Eigen::ComputeThinV);
+
+        const auto maxSingularValue = svd.singularValues()(0);
+        eigenElement.value = maxSingularValue * maxSingularValue;
+        eigenElement.vector = svd.matrixV().col(0);
 
         // preferring non negative max values. <<rectify>> u s signs
         auto &u = eigenElement.vector;

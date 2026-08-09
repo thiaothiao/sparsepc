@@ -44,11 +44,9 @@ TEST_CASE("Artificial data covariance")
 
     const auto n = centeredX.cols();
     {
-        const Matrix sigma = centeredX.transpose() * centeredX;
-
-        auto gram = Sparsepc::EigenSolver<Scalar>{}.maximumValueElement(sigma);
+        auto gram = Sparsepc::EigenSolver<Scalar>{}.maximumValueElement(centeredX);
         auto eigen =
-            Sparsepc::EigenLibEigenSolver<Scalar>{}.maximumValueElement(sigma);
+            Sparsepc::EigenLibEigenSolver<Scalar>{}.maximumValueElement(centeredX);
 
         Index idxMaxCoeff = 0;
         gram.vector.cwiseAbs().maxCoeff(&idxMaxCoeff);

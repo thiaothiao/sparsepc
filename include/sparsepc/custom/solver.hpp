@@ -132,31 +132,32 @@ namespace Sparsepc
             using Component = Component<Scalar>;
             using Matrix = Matrix<Scalar>;
 
-            const auto tmp = centeredX * B;
-            const Matrix sigma = tmp.transpose() * tmp;
+            const Matrix deflatedCenteredX = centeredX * B;
 
             const auto k = m_Param.k;
             const auto &eigenSolver = m_Param.eigenSolver;
 
-            const auto n = sigma.cols();
+            const auto n = deflatedCenteredX.cols();
             if (k >= n || k < static_cast<Index>(0))
             {
-                return eigenSolver.maximumValueElement(sigma);
+                return eigenSolver.maximumValueElement(deflatedCenteredX);
             }
 
             if (static_cast<Index>(1) == n)
             {
                 Component cmponent(n);
-                cmponent.value = sigma.value();
+                cmponent.value = deflatedCenteredX.col(0).squaredNorm();
                 cmponent.vector.setOnes();
 
                 return cmponent;
             }
 
+            const Matrix sigma =
+                deflatedCenteredX.transpose() * deflatedCenteredX;
             auto indices = sortMatrix(sigma);
             indices.resize(k);
-            const auto subDimEigenElement =
-                eigenSolver.maximumValueElement(sigma(indices, indices));
+            const auto subDimEigenElement = eigenSolver.maximumValueElement(
+                deflatedCenteredX(Eigen::placeholders::all, indices));
 
             Component component(n);
             component.value = subDimEigenElement.value;
@@ -177,12 +178,11 @@ namespace Sparsepc
             using ComponentsContainer = ComponentsContainer<Component>;
             using Matrix = Matrix<Scalar>;
 
-            const auto tmp = centeredX * B;
-            const Matrix sigma = tmp.transpose() * tmp;
+            const auto deflatedCenteredX = centeredX * B;
 
             const auto &eigenSolver = param.eigenSolver;
             const auto k = param.k;
-            const auto n = sigma.cols();
+            const auto n = deflatedCenteredX.cols();
 
             ComponentsContainer components;
             components.reserve(n);
@@ -216,7 +216,8 @@ namespace Sparsepc
                 return components;
             }
 
-            components.try_emplace(n, eigenSolver.maximumValueElement(sigma));
+            components.try_emplace(
+                n, eigenSolver.maximumValueElement(deflatedCenteredX));
 
             if (n == 1)
             {
@@ -240,13 +241,15 @@ namespace Sparsepc
                 components.try_emplace(k, Component(n));
             }
 
+            const Matrix sigma =
+                deflatedCenteredX.transpose() * deflatedCenteredX;
             auto indices = sortMatrix(sigma);
             for (Index k = n - 1; k > 0; --k)
             {
                 indices.resize(k);
                 auto &component = components.at(k);
-                const auto subDimEigenElement =
-                    eigenSolver.maximumValueElement(sigma(indices, indices));
+                const auto subDimEigenElement = eigenSolver.maximumValueElement(
+                    deflatedCenteredX(Eigen::placeholders::all, indices));
                 component.value = subDimEigenElement.value;
                 component.vector(indices) = subDimEigenElement.vector;
 

@@ -24,13 +24,11 @@ int main()
         numberOfSamples, seed);
     const auto centeredX = sim.centered();
     {
-        const Matrix sigma = centeredX.transpose() * centeredX;
-
         const auto tic = std::chrono::high_resolution_clock::now();
-        auto gram = Sparsepc::EigenSolver<Scalar>{}.maximumValueElement(sigma);
+        auto gram = Sparsepc::EigenSolver<Scalar>{}.maximumValueElement(centeredX);
         const auto toc = std::chrono::high_resolution_clock::now();
         auto eigen =
-            Sparsepc::EigenLibEigenSolver<Scalar>{}.maximumValueElement(sigma);
+            Sparsepc::EigenLibEigenSolver<Scalar>{}.maximumValueElement(centeredX);
         const auto tac = std::chrono::high_resolution_clock::now();
 
         std::cout << "\nGram method Maximum eigenvalue: " << gram.value << "\n"

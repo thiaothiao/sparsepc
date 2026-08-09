@@ -99,22 +99,21 @@ namespace Sparsepc
             using Component = Component<Scalar>;
             using Matrix = Matrix<Scalar>;
 
-            const auto tmp = centeredX * B;
-            const Matrix sigma = tmp.transpose() * tmp;
+            const Matrix deflatedCenteredX = centeredX * B;
 
             const auto k = m_Param.k;
             const auto &eigenSolver = m_Param.eigenSolver;
 
-            const auto n = sigma.cols();
+            const auto n = deflatedCenteredX.cols();
             if (k >= n || k < static_cast<Index>(0))
             {
-                return eigenSolver.maximumValueElement(sigma);
+                return eigenSolver.maximumValueElement(deflatedCenteredX);
             }
 
             if (static_cast<Index>(1) == n)
             {
                 Component cmponent(n);
-                cmponent.value = sigma.value();
+                cmponent.value = deflatedCenteredX.col(0).squaredNorm();
                 cmponent.vector.setOnes();
 
                 return cmponent;
@@ -125,7 +124,8 @@ namespace Sparsepc
             Vectori sub = Vectori::LinSpaced(k, 0, k - 1);
             for (Index i = 0; i < n; ++i)
             {
-                const auto lambda = eigenSolver.maximumValue(sigma(sub, sub));
+                const auto lambda = eigenSolver.maximumValue(
+                    deflatedCenteredX(Eigen::placeholders::all, sub));
                 if (lambda > lambdaMax)
                 {
                     lambdaMax = lambda;
@@ -135,8 +135,8 @@ namespace Sparsepc
                 sub[std::div(i, k).rem] = std::div(k + i, n).rem;
             }
 
-            auto subDimEigenElement =
-                eigenSolver.maximumValueElement(sigma(subMax, subMax));
+            auto subDimEigenElement = eigenSolver.maximumValueElement(
+                deflatedCenteredX(Eigen::placeholders::all, subMax));
 
             Component component(n);
             component.vector(subMax) = subDimEigenElement.vector;
@@ -158,8 +158,7 @@ namespace Sparsepc
             using ComponentsContainer = ComponentsContainer<Component>;
             using Matrix = Matrix<Scalar>;
 
-            const auto tmp = centeredX * B;
-            const Matrix sigma = tmp.transpose() * tmp;
+            const Matrix deflatedCenteredX = centeredX * B;
 
             const auto &eigenSolver = param.eigenSolver;
             const auto k = param.k;
@@ -198,7 +197,8 @@ namespace Sparsepc
                 return components;
             }
 
-            components.try_emplace(n, eigenSolver.maximumValueElement(sigma));
+            components.try_emplace(
+                n, eigenSolver.maximumValueElement(deflatedCenteredX));
 
             if (n == 1)
             {

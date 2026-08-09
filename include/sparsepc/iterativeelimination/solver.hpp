@@ -127,17 +127,16 @@ namespace Sparsepc
             using Component = Component<Scalar>;
             using Matrix = Matrix<Scalar>;
 
-            const auto tmp = centeredX * B;
-            const Matrix sigma = tmp.transpose() * tmp;
+            const Matrix deflatedCenteredX = centeredX * B;
 
             const auto k = m_Param.k;
             const auto &eigenSolver = m_Param.eigenSolver;
             const auto &eliminationCriterion = m_Param.eliminationCriterion;
 
-            const auto n = sigma.cols();
+            const auto n = deflatedCenteredX.cols();
             if (k >= n || k < static_cast<Index>(0))
             {
-                return eigenSolver.maximumValueElement(sigma);
+                return eigenSolver.maximumValueElement(deflatedCenteredX);
             }
 
             Vectori choosenIndices = Vectori::LinSpaced(n, 0, n - 1);
@@ -146,8 +145,8 @@ namespace Sparsepc
             {
                 const auto candidateIndices = choosenIndices.tail(
                     static_cast<Index>(choosenIndices.size()) - j0);
-                const auto &subSigma =
-                    sigma(candidateIndices, candidateIndices);
+                const auto &subSigma = deflatedCenteredX(
+                    Eigen::placeholders::all, candidateIndices);
                 const auto subElement =
                     eigenSolver.maximumValueElement(subSigma);
 
@@ -176,7 +175,7 @@ namespace Sparsepc
 
             auto kFoundIndices = choosenIndices.tail(k);
             auto subDimEigenElement = eigenSolver.maximumValueElement(
-                sigma(kFoundIndices, kFoundIndices));
+                deflatedCenteredX(Eigen::placeholders::all, kFoundIndices));
 
             Component component(n);
             component.value = subDimEigenElement.value;
@@ -199,14 +198,13 @@ namespace Sparsepc
             using ComponentsContainer = ComponentsContainer<Component>;
             using Matrix = Matrix<Scalar>;
 
-            const auto tmp = centeredX * B;
-            const Matrix sigma = tmp.transpose() * tmp;
+            const auto deflatedCenteredX = centeredX * B;
 
             const auto k = param.k;
             const auto &eigenSolver = param.eigenSolver;
             const auto &eliminationCriterion = param.eliminationCriterion;
 
-            const auto n = sigma.cols();
+            const auto n = deflatedCenteredX.cols();
 
             ComponentsContainer components;
             components.reserve(n);
@@ -242,7 +240,8 @@ namespace Sparsepc
                 return components;
             }
 
-            components.try_emplace(n, eigenSolver.maximumValueElement(sigma));
+            components.try_emplace(
+                n, eigenSolver.maximumValueElement(deflatedCenteredX));
 
             if (n == static_cast<Index>(1))
             {
@@ -267,8 +266,8 @@ namespace Sparsepc
             {
                 const auto candidateIndices = choosenIndices.tail(
                     static_cast<Index>(choosenIndices.size()) - j0);
-                const auto &subSigma =
-                    sigma(candidateIndices, candidateIndices);
+                const auto &subSigma = deflatedCenteredX(
+                    Eigen::placeholders::all, candidateIndices);
                 const auto subElement =
                     eigenSolver.maximumValueElement(subSigma);
 
@@ -294,7 +293,7 @@ namespace Sparsepc
                 const auto kFoundIndices = choosenIndices.tail(kCurrent);
 
                 auto subDimEigenElement = eigenSolver.maximumValueElement(
-                    sigma(kFoundIndices, kFoundIndices));
+                    deflatedCenteredX(Eigen::placeholders::all, kFoundIndices));
 
                 auto &component = components.try_emplace(kCurrent, Component(n))
                                       .first->second;
@@ -331,13 +330,13 @@ namespace Sparsepc
           public:
             using Scalar = ScalarType;
             MAVCriterion() = default;
-            auto index(const Matrix<Scalar> &sigma,
+            auto index(const Matrix<Scalar> &centeredX,
                        const Component<Scalar> &component) const;
         };
 
         template <std::floating_point ScalarType>
         auto MAVCriterion<ScalarType>::index(
-            [[maybe_unused]] const Matrix<Scalar> &sigma,
+            [[maybe_unused]] const Matrix<Scalar> &centeredX,
             const Component<Scalar> &component) const
         {
             auto indexMin = static_cast<Index>(-1);
@@ -354,18 +353,20 @@ namespace Sparsepc
           public:
             using Scalar = ScalarType;
             AMVLCriterion() = default;
-            auto index(const Matrix<Scalar> &sigma,
+            auto index(const Matrix<Scalar> &centeredX,
                        const Component<Scalar> &component) const;
         };
 
         template <std::floating_point ScalarType>
         auto AMVLCriterion<ScalarType>::index(
-            const Matrix<Scalar> &sigma,
+            const Matrix<Scalar> &centeredX,
             const Component<Scalar> &component) const
         {
             auto indexMin = static_cast<Index>(-1);
             const auto &vSquared = component.vector.cwiseAbs2().array();
-            (vSquared * (sigma.diagonal().array() - component.value) /
+            (vSquared *
+             (centeredX.colwise().squaredNorm().transpose().array() -
+              component.value) /
              (vSquared - static_cast<Scalar>(1)))
                 .matrix()
                 .minCoeff(&indexMin);
