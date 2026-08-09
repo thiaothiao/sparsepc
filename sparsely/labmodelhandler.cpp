@@ -236,30 +236,32 @@ namespace
     // read operator
     QDataStream &operator>>(QDataStream &in, Sparsely::Nominees &user)
     {
-        in >> user.iWinner;
-        qint32 candidatesSize = -1;
-        in >> candidatesSize;
+        qint32 tmp = -1;
+        in >> tmp;
+        user.iWinner = tmp;
+
+        in >> tmp;
+        const qint32 candidatesSize = tmp;
         for (qint32 j = 0; j < candidatesSize; ++j)
         {
-            qint32 valInt = -1;
-            in >> valInt;
-            auto &component = user.candidates[valInt];
-            in >> valInt;
-            component.state = static_cast<Sparsepc::ComponentState>(valInt);
-            auto val = static_cast<double>(-1);
+            in >> tmp;
+            auto &component = user.candidates[tmp];
+            in >> tmp;
+            component.state = static_cast<Sparsepc::ComponentState>(tmp);
+            double val = -1.0;
             in >> val;
             component.value = val;
-            in >> valInt;
-            component.vector = Sparsepc::Vector<double>(valInt);
+            in >> tmp;
+            component.vector = Sparsepc::Vector<double>(tmp);
             in.readRawData(reinterpret_cast<char *>(component.vector.data()),
-                           valInt * sizeof(double));
+                           tmp * sizeof(double));
 
-            in >> valInt;
-            if (valInt != 0)
+            in >> tmp;
+            if (tmp != 0)
             {
-                component.q = Sparsepc::Vector<double>(valInt);
+                component.q = Sparsepc::Vector<double>(tmp);
                 in.readRawData(reinterpret_cast<char *>(component.q.data()),
-                               valInt * sizeof(double));
+                               tmp * sizeof(double));
             }
         }
 
@@ -331,6 +333,8 @@ namespace Sparsely
             return false;
         }
 
+        using Index = Sparsepc::Index;
+
         const auto &centeredX = m_Model.get().m_CenteredX;
         const auto m = centeredX.rows();
         const auto n = centeredX.cols();
@@ -342,22 +346,22 @@ namespace Sparsely
         QDataStream out(&file);
         out.setVersion(QDataStream::Qt_6_0);
 
-        out << magicNumber;
-        out << versionNumber;
+        out << static_cast<qint32>(magicNumber);
+        out << static_cast<qint32>(versionNumber);
         out << static_cast<qint32>(m);
         out << static_cast<qint32>(n);
         out.writeRawData(reinterpret_cast<const char *>(centeredX.data()),
                          m * n * sizeof(double));
         out << header;
-        const auto standardPCsSize = static_cast<qint32>(standardPCs.size());
-        out << standardPCsSize;
-        for (qint32 j = 0; j < standardPCsSize; ++j)
+        const Index numberOfStandardPCs = standardPCs.size();
+        out << static_cast<qint32>(numberOfStandardPCs);
+        for (Index j = 0; j < numberOfStandardPCs; ++j)
         {
             out << standardPCs[j];
         }
-        const auto sparsePCsSize = static_cast<qint32>(sparsePCs.size());
-        out << sparsePCsSize;
-        for (qint32 j = 0; j < sparsePCsSize; ++j)
+        const Index numberOfSparsePCs = sparsePCs.size();
+        out << static_cast<qint32>(numberOfSparsePCs);
+        for (Index j = 0; j < numberOfSparsePCs; ++j)
         {
             out << sparsePCs[j];
         }
@@ -376,6 +380,8 @@ namespace Sparsely
             return false;
         }
 
+        using Index = Sparsepc::Index;
+
         auto &n = m_Model.get().m_N;
         auto &trace = m_Model.get().m_Trace;
         auto &standardPCs = m_Model.get().m_StandardPCs;
@@ -385,8 +391,9 @@ namespace Sparsely
         // Deserialization
         QDataStream in(&file);
         in.setVersion(QDataStream::Qt_6_0);
-        qint32 magic = 0;
-        in >> magic;
+        qint32 tmp = 0;
+        in >> tmp;
+        const qint32 magic = tmp;
         if (magic != magicNumber)
         {
             qCritical() << "File version to old. Use old Sparsely version "
@@ -395,32 +402,39 @@ namespace Sparsely
             return false;
         }
 
-        qint32 version;
-        in >> version;
-        qint32 m;
-        in >> m;
-        in >> n;
+        in >> tmp;
+        [[maybe_unused]] const qint32 version = tmp;
+
+        in >> tmp;
+        const Index m = tmp;
+
+        in >> tmp;
+        n = tmp;
+
         auto &centeredX = m_Model.get().m_CenteredX;
         centeredX.resize(m, n);
         in.readRawData(reinterpret_cast<char *>(centeredX.data()),
                        m * n * sizeof(double));
         trace = centeredX.colwise().squaredNorm().sum();
+        qDebug() << "centeredX read ";
 
         in >> header;
         standardPCs.clear();
         standardPCs.reserve(n);
         sparsePCs.clear();
         sparsePCs.reserve(n);
-        qint32 intVal = -1;
-        in >> intVal;
-        for (qint32 j = 0; j < intVal; ++j)
+
+        in >> tmp;
+        const Index numberOfStandardPCs = tmp;
+        for (Index j = 0; j < numberOfStandardPCs; ++j)
         {
             Nominees Nominees;
             in >> Nominees;
             standardPCs.push_back(std::move(Nominees));
         }
-        in >> intVal;
-        for (qint32 j = 0; j < intVal; ++j)
+        in >> tmp;
+        const Index numberOfSparsePCs = tmp;
+        for (Index j = 0; j < numberOfSparsePCs; ++j)
         {
             Nominees Nominees;
             in >> Nominees;
