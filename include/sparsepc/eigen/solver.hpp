@@ -137,8 +137,6 @@ namespace Sparsepc
         const Matrix<Scalar> &centeredFeatureMatrix) const
     { // Gram iteration
         using Matrix = Matrix<Scalar>;
-        using Vector = Vector<Scalar>;
-        using Component = Component<Scalar>;
 
         Matrix G = centeredFeatureMatrix.transpose() *
                    centeredFeatureMatrix;
@@ -191,8 +189,6 @@ namespace Sparsepc
     auto EigenSolver<ScalarType>::maximumValueElement(
         const Matrix<Scalar> &centeredFeatureMatrix) const
     { // Power iteration
-        using Matrix = Matrix<Scalar>;
-        using Vector = Vector<Scalar>;
         using Component = Component<Scalar>;
 
         const auto n = centeredFeatureMatrix.cols();
@@ -279,7 +275,6 @@ namespace Sparsepc
         const Matrix<Scalar> &centeredFeatureMatrix) const
     {
         using Matrix = Matrix<Scalar>;
-        using Vector = Vector<Scalar>;
         using Component = Component<Scalar>;
 
         const auto n = centeredFeatureMatrix.cols();

@@ -148,7 +148,6 @@ namespace Sparsepc
         auto
         SparsePC<ImplementationType>::run(const Matrix<Scalar> &centeredX) const
         {
-            using Matrix = Matrix<Scalar>;
             using Component = Component<Scalar>;
 
             std::vector<Component> sparseSolutions;
