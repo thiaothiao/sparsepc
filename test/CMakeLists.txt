@@ -28,6 +28,20 @@ if(NOT TARGET Eigen3::Eigen)
     endif()
 endif()
 
+if(NOT TARGET Spectra::Spectra)
+    CPMAddPackage(
+		NAME Spectra
+		GITHUB_REPOSITORY yixuan/spectra
+		GIT_TAG v1.2.0
+		DOWNLOAD_ONLY YES
+    )
+
+    if(Spectra_ADDED)
+        add_library(Spectra::Spectra INTERFACE IMPORTED)
+        target_include_directories(Spectra::Spectra INTERFACE ${Spectra_SOURCE_DIR}/include)
+    endif()
+endif()
+
 enable_testing()
 
 if(NOT TARGET Sparsepc::Sparsepc)
@@ -51,7 +65,7 @@ endif()
 
 file(GLOB sources CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp)
 add_executable(${PROJECT_NAME} ${sources})
-target_link_libraries(${PROJECT_NAME} doctest::doctest Eigen3::Eigen Sparsepc::Sparsepc)
+target_link_libraries(${PROJECT_NAME} doctest::doctest Eigen3::Eigen Spectra::Spectra Sparsepc::Sparsepc)
 target_compile_definitions(${PROJECT_NAME} PUBLIC _CRT_SECURE_NO_WARNINGS)
 target_compile_definitions(${PROJECT_NAME} PUBLIC _SILENCE_ALL_CXX23_DEPRECATION_WARNINGS)
 

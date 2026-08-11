@@ -243,6 +243,6 @@ namespace Sparsepc
 
         template <std::floating_point ScalarType>
         using ContiguousFacetsFinder = SparsePC<
-            ContiguousSupportSolver<ScalarType, EigenSolver<ScalarType>>>;
+            ContiguousSupportSolver<ScalarType, SpectraLibEigenSolver<ScalarType>>>;
     } // namespace linearmodel
 } // namespace Sparsepc

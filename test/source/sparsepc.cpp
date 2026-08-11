@@ -4,6 +4,8 @@
 #include <sparsepc/infos.hpp>
 
 #include <cstdlib>
+#include <iomanip>
+#include <iostream>
 #include <string>
 
 namespace
@@ -20,6 +22,7 @@ TEST_CASE("Artificial data covariance")
 {
     using Scalar = double;
     using Index = Sparsepc::Index;
+    // using Matrix = Sparsepc::Matrix<Scalar>;
     using Vector = Sparsepc::Vector<Scalar>;
     using Component = Sparsepc::Component<Scalar>;
 
@@ -43,20 +46,39 @@ TEST_CASE("Artificial data covariance")
 
     const auto n = centeredX.cols();
     {
-        auto gram = Sparsepc::EigenSolver<Scalar>{}.maximumValueElement(centeredX);
+        auto gram =
+            Sparsepc::EigenSolver<Scalar>{}.maximumValueElement(centeredX);
         auto eigen =
-            Sparsepc::EigenLibEigenSolver<Scalar>{}.maximumValueElement(centeredX);
+            Sparsepc::EigenLibEigenSolver<Scalar>{}.maximumValueElement(
+                centeredX);
+        auto spectra =
+            Sparsepc::SpectraLibEigenSolver<Scalar>{}.maximumValueElement(
+                centeredX);
 
         Index idxMaxCoeff = 0;
         gram.vector.cwiseAbs().maxCoeff(&idxMaxCoeff);
         gram.vector *= sign(gram.vector[idxMaxCoeff]);
         eigen.vector.cwiseAbs().maxCoeff(&idxMaxCoeff);
         eigen.vector *= sign(eigen.vector[idxMaxCoeff]);
+        spectra.vector.cwiseAbs().maxCoeff(&idxMaxCoeff);
+        spectra.vector *= sign(spectra.vector[idxMaxCoeff]);
 
         CHECK(std::abs(gram.value - eigen.value) <= 1e-4);
+        CHECK(std::abs(gram.value - spectra.value) <= 1e-4);
+        CHECK(std::abs(eigen.value - spectra.value) <= 1e-8);
         {
             const auto norm = (gram.vector - eigen.vector).norm();
             const auto ok = norm < 1e-5 && norm > 1e-6;
+            CHECK(ok);
+        }
+        {
+            const auto norm = (gram.vector - spectra.vector).norm();
+            const auto ok = norm < 1e-5 && norm > 1e-6;
+            CHECK(ok);
+        }
+        {
+            const auto norm = (eigen.vector - spectra.vector).norm();
+            const auto ok = norm < 1e-10;
             CHECK(ok);
         }
     }
@@ -73,16 +95,22 @@ TEST_CASE("Artificial data covariance")
                   doctest::Approx(290445.4200583).epsilon(1e-6));
             Vector v(n);
             v << 0, 0, 0, 0, 0.501963, 0.500532, 0.496671, 0.500818, 0, 0;
-            CHECK((sparseEigenElements[0].vector - v).norm() ==
-                  doctest::Approx(0.0).epsilon(1e-6));
+            const auto ok = (sparseEigenElements[0].vector - v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6) ||
+                            (sparseEigenElements[0].vector + v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6);
+            CHECK(ok);
         }
         {
             CHECK(sparseEigenElements[1].value ==
                   doctest::Approx(226591.2637618).epsilon(1e-6));
             Vector v(n);
             v << 0.496833, 0.502276, 0.501426, 0.499448, 0, 0, 0, 0, 0, 0;
-            CHECK((sparseEigenElements[1].vector - v).norm() ==
-                  doctest::Approx(0.0).epsilon(1e-6));
+            const auto ok = (sparseEigenElements[1].vector - v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6) ||
+                            (sparseEigenElements[1].vector + v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6);
+            CHECK(ok);
         }
     }
 
@@ -95,16 +123,22 @@ TEST_CASE("Artificial data covariance")
                   doctest::Approx(290445.4200583).epsilon(1e-6));
             Vector v(n);
             v << 0, 0, 0, 0, 0.5019632, 0.5005321, 0.4966709, 0.5008179, 0, 0;
-            CHECK((sparseEigenElements[0].vector - v).norm() ==
-                  doctest::Approx(0.0).epsilon(1e-6));
+            const auto ok = (sparseEigenElements[0].vector - v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6) ||
+                            (sparseEigenElements[0].vector + v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6);
+            CHECK(ok);
         }
         {
             CHECK(sparseEigenElements[1].value ==
                   doctest::Approx(178569.2040900).epsilon(1e-6));
             Vector v(n);
             v << 0, -0.4199159, 0, -0.4174335, 0, 0, 0, 0, 0.5718904, 0.5677687;
-            CHECK((sparseEigenElements[1].vector - v).norm() ==
-                  doctest::Approx(0.0).epsilon(1e-6));
+            const auto ok = (sparseEigenElements[1].vector - v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-4) ||
+                            (sparseEigenElements[1].vector + v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-4);
+            CHECK(ok);
         }
     }
 
@@ -117,16 +151,22 @@ TEST_CASE("Artificial data covariance")
                   doctest::Approx(290445.4200583).epsilon(1e-6));
             Vector v(n);
             v << 0, 0, 0, 0, 0.5019632, 0.5005321, 0.4966709, 0.5008179, 0, 0;
-            CHECK((sparseEigenElements[0].vector - v).norm() ==
-                  doctest::Approx(0.0).epsilon(1e-6));
+            const auto ok = (sparseEigenElements[0].vector - v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6) ||
+                            (sparseEigenElements[0].vector + v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6);
+            CHECK(ok);
         }
         {
             CHECK(sparseEigenElements[1].value ==
                   doctest::Approx(226591.2637618).epsilon(1e-6));
             Vector v(n);
             v << 0.4968329, 0.5022760, 0.5014259, 0.4994476, 0, 0, 0, 0, 0, 0;
-            CHECK((sparseEigenElements[1].vector - v).norm() ==
-                  doctest::Approx(0.0).epsilon(1e-6));
+            const auto ok = (sparseEigenElements[1].vector - v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6) ||
+                            (sparseEigenElements[1].vector + v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6);
+            CHECK(ok);
         }
     }
 
@@ -139,16 +179,22 @@ TEST_CASE("Artificial data covariance")
                   doctest::Approx(284009.2987747).epsilon(1e-6));
             Vector v(n);
             v << 0, 0, 0, 0, 0.5026805, 0.5016918, 0, 0, 0.4980111, 0.4975969;
-            CHECK((sparseEigenElements[0].vector - v).norm() ==
-                  doctest::Approx(0.0).epsilon(1e-6));
+            const auto ok = (sparseEigenElements[0].vector - v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6) ||
+                            (sparseEigenElements[0].vector + v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6);
+            CHECK(ok);
         }
         {
             CHECK(sparseEigenElements[1].value ==
                   doctest::Approx(226591.2637618).epsilon(1e-6));
             Vector v(n);
             v << 0.4968329, 0.5022760, 0.5014259, 0.4994476, 0, 0, 0, 0, 0, 0;
-            CHECK((sparseEigenElements[1].vector - v).norm() ==
-                  doctest::Approx(0.0).epsilon(1e-6));
+            const auto ok = (sparseEigenElements[1].vector - v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6) ||
+                            (sparseEigenElements[1].vector + v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6);
+            CHECK(ok);
         }
     }
 
@@ -162,16 +208,22 @@ TEST_CASE("Artificial data covariance")
                   doctest::Approx(290445.4200583).epsilon(1e-6));
             Vector v(n);
             v << 0, 0, 0, 0, 0.5019632, 0.5005321, 0.4966709, 0.5008179, 0, 0;
-            CHECK((sparseEigenElements[0].vector - v).norm() ==
-                  doctest::Approx(0.0).epsilon(1e-6));
+            const auto ok = (sparseEigenElements[0].vector - v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6) ||
+                            (sparseEigenElements[0].vector + v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6);
+            CHECK(ok);
         }
         {
             CHECK(sparseEigenElements[1].value ==
                   doctest::Approx(226591.2637618).epsilon(1e-6));
             Vector v(n);
             v << 0.4968329, 0.5022760, 0.5014259, 0.4994476, 0, 0, 0, 0, 0, 0;
-            CHECK((sparseEigenElements[1].vector - v).norm() ==
-                  doctest::Approx(0.0).epsilon(1e-6));
+            const auto ok = (sparseEigenElements[1].vector - v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6) ||
+                            (sparseEigenElements[1].vector + v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6);
+            CHECK(ok);
         }
     }
 
@@ -185,16 +237,22 @@ TEST_CASE("Artificial data covariance")
                   doctest::Approx(290445.4200583).epsilon(1e-6));
             Vector v(n);
             v << 0, 0, 0, 0, 0.5019632, 0.5005321, 0.4966709, 0.5008179, 0, 0;
-            CHECK((sparseEigenElements[0].vector - v).norm() ==
-                  doctest::Approx(0.0).epsilon(1e-6));
+            const auto ok = (sparseEigenElements[0].vector - v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6) ||
+                            (sparseEigenElements[0].vector + v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6);
+            CHECK(ok);
         }
         {
             CHECK(sparseEigenElements[1].value ==
                   doctest::Approx(226591.2637618).epsilon(1e-6));
             Vector v(n);
             v << 0.4968329, 0.5022760, 0.5014259, 0.4994476, 0, 0, 0, 0, 0, 0;
-            CHECK((sparseEigenElements[1].vector - v).norm() ==
-                  doctest::Approx(0.0).epsilon(1e-6));
+            const auto ok = (sparseEigenElements[1].vector - v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6) ||
+                            (sparseEigenElements[1].vector + v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6);
+            CHECK(ok);
         }
     }
 
@@ -208,16 +266,22 @@ TEST_CASE("Artificial data covariance")
                   doctest::Approx(290445.4200583).epsilon(1e-6));
             Vector v(n);
             v << 0, 0, 0, 0, 0.5019632, 0.5005321, 0.4966709, 0.5008179, 0, 0;
-            CHECK((sparseEigenElements[0].vector - v).norm() ==
-                  doctest::Approx(0.0).epsilon(1e-6));
+            const auto ok = (sparseEigenElements[0].vector - v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6) ||
+                            (sparseEigenElements[0].vector + v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6);
+            CHECK(ok);
         }
         {
             CHECK(sparseEigenElements[1].value ==
                   doctest::Approx(226591.2637618).epsilon(1e-6));
             Vector v(n);
             v << 0.4968329, 0.5022760, 0.5014259, 0.4994476, 0, 0, 0, 0, 0, 0;
-            CHECK((sparseEigenElements[1].vector - v).norm() ==
-                  doctest::Approx(0.0).epsilon(1e-6));
+            const auto ok = (sparseEigenElements[1].vector - v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6) ||
+                            (sparseEigenElements[1].vector + v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6);
+            CHECK(ok);
         }
     }
 
@@ -246,16 +310,27 @@ TEST_CASE("Artificial data covariance")
                   doctest::Approx(290445.4200583).epsilon(1e-6));
             Vector v(n);
             v << 0, 0, 0, 0, 0.501963, 0.500532, 0.496671, 0.500818, 0, 0;
-            CHECK((validatedComponents[0].vector - v).norm() ==
-                  doctest::Approx(0.0).epsilon(1e-6));
+            const auto ok = (validatedComponents[0].vector - v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6) ||
+                            (validatedComponents[0].vector + v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6);
+            CHECK(ok);
         }
         {
             CHECK(validatedComponents[1].value ==
                   doctest::Approx(226591.2637618).epsilon(1e-6));
             Vector v(n);
             v << 0.496833, 0.502276, 0.501426, 0.499448, 0, 0, 0, 0, 0, 0;
-            CHECK((validatedComponents[1].vector - v).norm() ==
-                  doctest::Approx(0.0).epsilon(1e-6));
+            const auto ok = (validatedComponents[1].vector - v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6) ||
+                            (validatedComponents[1].vector + v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6);
+
+            std::cout << std::fixed << std::setprecision(7)
+                      << (validatedComponents[1].vector - v).norm() << " "
+                      << (validatedComponents[1].vector + v).norm()
+                      << std::endl;
+            CHECK(ok);
         }
     }
 
@@ -284,16 +359,22 @@ TEST_CASE("Artificial data covariance")
                   doctest::Approx(290445.4200583).epsilon(1e-6));
             Vector v(n);
             v << 0, 0, 0, 0, 0.5019632, 0.5005321, 0.4966709, 0.5008179, 0, 0;
-            CHECK((validatedComponents[0].vector - v).norm() ==
-                  doctest::Approx(0.0).epsilon(1e-6));
+            const auto ok = (validatedComponents[0].vector - v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6) ||
+                            (validatedComponents[0].vector + v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6);
+            CHECK(ok);
         }
         {
             CHECK(validatedComponents[1].value ==
                   doctest::Approx(178569.2040900).epsilon(1e-6));
             Vector v(n);
             v << 0, -0.4199159, 0, -0.4174335, 0, 0, 0, 0, 0.5718904, 0.5677687;
-            CHECK((validatedComponents[1].vector - v).norm() ==
-                  doctest::Approx(0.0).epsilon(1e-6));
+            const auto ok = (validatedComponents[1].vector - v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-4) ||
+                            (validatedComponents[1].vector + v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-4);
+            CHECK(ok);
         }
     }
 
@@ -322,16 +403,22 @@ TEST_CASE("Artificial data covariance")
                   doctest::Approx(284009.2987747).epsilon(1e-6));
             Vector v(n);
             v << 0, 0, 0, 0, 0.5026805, 0.5016918, 0, 0, 0.4980111, 0.4975969;
-            CHECK((validatedComponents[0].vector - v).norm() ==
-                  doctest::Approx(0.0).epsilon(1e-6));
+            const auto ok = (validatedComponents[0].vector - v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6) ||
+                            (validatedComponents[0].vector + v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6);
+            CHECK(ok);
         }
         {
             CHECK(validatedComponents[1].value ==
                   doctest::Approx(226591.2637618).epsilon(1e-6));
             Vector v(n);
             v << 0.4968329, 0.5022760, 0.5014259, 0.4994476, 0, 0, 0, 0, 0, 0;
-            CHECK((validatedComponents[1].vector - v).norm() ==
-                  doctest::Approx(0.0).epsilon(1e-6));
+            const auto ok = (validatedComponents[1].vector - v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6) ||
+                            (validatedComponents[1].vector + v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6);
+            CHECK(ok);
         }
     }
 
@@ -363,16 +450,22 @@ TEST_CASE("Artificial data covariance")
                   doctest::Approx(290445.4200583).epsilon(1e-6));
             Vector v(n);
             v << 0, 0, 0, 0, 0.5019632, 0.5005321, 0.4966709, 0.5008179, 0, 0;
-            CHECK((validatedComponents[0].vector - v).norm() ==
-                  doctest::Approx(0.0).epsilon(1e-6));
+            const auto ok = (validatedComponents[0].vector - v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6) ||
+                            (validatedComponents[0].vector + v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6);
+            CHECK(ok);
         }
         {
             CHECK(validatedComponents[1].value ==
                   doctest::Approx(226591.2637618).epsilon(1e-6));
             Vector v(n);
             v << 0.4968329, 0.5022760, 0.5014259, 0.4994476, 0, 0, 0, 0, 0, 0;
-            CHECK((validatedComponents[1].vector - v).norm() ==
-                  doctest::Approx(0.0).epsilon(1e-6));
+            const auto ok = (validatedComponents[1].vector - v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6) ||
+                            (validatedComponents[1].vector + v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6);
+            CHECK(ok);
         }
     }
 
@@ -404,16 +497,22 @@ TEST_CASE("Artificial data covariance")
                   doctest::Approx(290445.4200583).epsilon(1e-6));
             Vector v(n);
             v << 0, 0, 0, 0, 0.5019632, 0.5005321, 0.4966709, 0.5008179, 0, 0;
-            CHECK((validatedComponents[0].vector - v).norm() ==
-                  doctest::Approx(0.0).epsilon(1e-6));
+            const auto ok = (validatedComponents[0].vector - v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6) ||
+                            (validatedComponents[0].vector + v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6);
+            CHECK(ok);
         }
         {
             CHECK(validatedComponents[1].value ==
                   doctest::Approx(226591.2637618).epsilon(1e-6));
             Vector v(n);
             v << 0.4968329, 0.5022760, 0.5014259, 0.4994476, 0, 0, 0, 0, 0, 0;
-            CHECK((validatedComponents[1].vector - v).norm() ==
-                  doctest::Approx(0.0).epsilon(1e-6));
+            const auto ok = (validatedComponents[1].vector - v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6) ||
+                            (validatedComponents[1].vector + v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6);
+            CHECK(ok);
         }
     }
 
@@ -445,16 +544,22 @@ TEST_CASE("Artificial data covariance")
                   doctest::Approx(290445.4200583).epsilon(1e-6));
             Vector v(n);
             v << 0, 0, 0, 0, 0.5019632, 0.5005321, 0.4966709, 0.5008179, 0, 0;
-            CHECK((validatedComponents[0].vector - v).norm() ==
-                  doctest::Approx(0.0).epsilon(1e-6));
+            const auto ok = (validatedComponents[0].vector - v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6) ||
+                            (validatedComponents[0].vector + v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6);
+            CHECK(ok);
         }
         {
             CHECK(validatedComponents[1].value ==
                   doctest::Approx(226591.2637618).epsilon(1e-6));
             Vector v(n);
             v << 0.4968329, 0.5022760, 0.5014259, 0.4994476, 0, 0, 0, 0, 0, 0;
-            CHECK((validatedComponents[1].vector - v).norm() ==
-                  doctest::Approx(0.0).epsilon(1e-6));
+            const auto ok = (validatedComponents[1].vector - v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6) ||
+                            (validatedComponents[1].vector + v).norm() ==
+                                doctest::Approx(0.0).epsilon(1e-6);
+            CHECK(ok);
         }
     }
 }

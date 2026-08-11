@@ -25,16 +25,25 @@ int main()
     const auto centeredX = sim.centered();
     {
         const auto tic = std::chrono::high_resolution_clock::now();
-        auto gram = Sparsepc::EigenSolver<Scalar>{}.maximumValueElement(centeredX);
+        auto gram =
+            Sparsepc::EigenSolver<Scalar>{}.maximumValueElement(centeredX);
         const auto toc = std::chrono::high_resolution_clock::now();
         auto eigen =
-            Sparsepc::EigenLibEigenSolver<Scalar>{}.maximumValueElement(centeredX);
+            Sparsepc::EigenLibEigenSolver<Scalar>{}.maximumValueElement(
+                centeredX);
         const auto tac = std::chrono::high_resolution_clock::now();
+        auto spectra =
+            Sparsepc::SpectraLibEigenSolver<Scalar>{}.maximumValueElement(
+                centeredX);
+        const auto tuc = std::chrono::high_resolution_clock::now();
 
         std::cout << "\nGram method Maximum eigenvalue: " << gram.value << "\n"
                   << gram.vector.transpose() << "\n";
         std::cout << "\nEigen lib Maximum eigenvalue: " << eigen.value << "\n"
                   << eigen.vector.transpose() << "\n";
+        std::cout << "\nSpectra lib Maximum eigenvalue: " << spectra.value
+                  << "\n"
+                  << spectra.vector.transpose() << "\n";
 
         std::cout << "\nGram duration: "
                   << std::chrono::duration_cast<std::chrono::microseconds>(toc -
@@ -43,6 +52,10 @@ int main()
         std::cout << "\nEigen duration: "
                   << std::chrono::duration_cast<std::chrono::microseconds>(tac -
                                                                            toc)
+                  << "\n";
+        std::cout << "\nSpectra duration: "
+                  << std::chrono::duration_cast<std::chrono::microseconds>(tuc -
+                                                                           tac)
                   << "\n";
     }
 

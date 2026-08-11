@@ -25,6 +25,20 @@ if(NOT TARGET Eigen3::Eigen)
     endif()
 endif()
 
+if(NOT TARGET Spectra::Spectra)
+    CPMAddPackage(
+		NAME Spectra
+		GITHUB_REPOSITORY yixuan/spectra
+		GIT_TAG v1.2.0
+		DOWNLOAD_ONLY YES
+    )
+
+    if(Spectra_ADDED)
+        add_library(Spectra::Spectra INTERFACE IMPORTED)
+        target_include_directories(Spectra::Spectra INTERFACE ${Spectra_SOURCE_DIR}/include)
+    endif()
+endif()
+
 if(NOT TARGET Sparsepc::Sparsepc)
     CPMAddPackage(
 		NAME Sparsepc
@@ -41,4 +55,4 @@ endif()
 add_executable(${PROJECT_NAME} main.cpp)
 target_compile_definitions(${PROJECT_NAME} PUBLIC _CRT_SECURE_NO_WARNINGS)
 target_compile_definitions(${PROJECT_NAME} PUBLIC _SILENCE_ALL_CXX23_DEPRECATION_WARNINGS)
-target_link_libraries(${PROJECT_NAME} Eigen3::Eigen Sparsepc::Sparsepc)
+target_link_libraries(${PROJECT_NAME} Eigen3::Eigen Spectra::Spectra Sparsepc::Sparsepc)

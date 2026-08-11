@@ -7,6 +7,7 @@
 
 #include <Eigen/Dense>
 #include <Eigen/SVD>
+#include <Spectra/contrib/PartialSVDSolver.h>
 
 #include <sparsepc/utils/matrix.hpp>
 
@@ -92,6 +93,87 @@ namespace Sparsepc
                 Matrix<typename ImplementationType::Scalar>{})
         } -> std::convertible_to<typename ImplementationType::Scalar>;
     };
+
+    /**
+     * @brief A class that uses the C++ library Spectra for eigen elements
+     * computations.
+     */
+    template <std::floating_point ScalarType> class SpectraLibEigenSolver final
+    {
+      public:
+        using Scalar = ScalarType;
+
+        struct Param final
+        {
+            Param(Index ncvInput = static_cast<Index>(2)) : ncv{ncvInput} {}
+
+            Param(const Param &) = default;
+            Param &operator=(const Param &) = default;
+
+            Param(Param &&) = default;
+            Param &operator=(Param &&) = default;
+
+            const Index ncv;
+        };
+
+        SpectraLibEigenSolver(const Param &param = {}) : m_Param{param} {}
+
+        auto maximumValue(const Matrix<Scalar> &centeredFeatureMatrix) const;
+
+        auto
+        maximumValueElement(const Matrix<Scalar> &centeredFeatureMatrix) const;
+
+      private:
+        const Param m_Param;
+    };
+
+    template <std::floating_point ScalarType>
+    auto SpectraLibEigenSolver<ScalarType>::maximumValue(
+        const Matrix<Scalar> &centeredFeatureMatrix) const
+    {
+        using Matrix = Matrix<Scalar>;
+
+        if (centeredFeatureMatrix.cols() == static_cast<Index>(1))
+        {
+            return centeredFeatureMatrix.col(0).squaredNorm();
+        }
+        Spectra::PartialSVDSolver<Matrix> svds(centeredFeatureMatrix, 1,
+                                               m_Param.ncv);
+        if (svds.compute() == 1)
+        {
+            const auto maxSingularValue = svds.singular_values()[0];
+            return maxSingularValue * maxSingularValue;
+        }
+        return static_cast<Scalar>(-1);
+    }
+
+    template <std::floating_point ScalarType>
+    auto SpectraLibEigenSolver<ScalarType>::maximumValueElement(
+        const Matrix<Scalar> &centeredFeatureMatrix) const
+    {
+        using Matrix = Matrix<Scalar>;
+        const auto n = centeredFeatureMatrix.cols();
+
+        Component<Scalar> eigenElement(n);
+
+        if (n == static_cast<Index>(1))
+        {
+            eigenElement.value = centeredFeatureMatrix.col(0).squaredNorm();
+            eigenElement.vector.setOnes();
+            return eigenElement;
+        }
+
+        Spectra::PartialSVDSolver<Matrix> svds(centeredFeatureMatrix, 1,
+                                               m_Param.ncv);
+        if (svds.compute() == 1)
+        {
+            const auto maxSingularValue = svds.singular_values()[0];
+            eigenElement.value = maxSingularValue * maxSingularValue;
+            eigenElement.vector = svds.matrix_V(1).col(0);
+        }
+
+        return eigenElement;
+    }
 
     /**
      * @brief A class that uses custom Power and Gram methods for eigen elements

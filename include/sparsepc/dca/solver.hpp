@@ -686,6 +686,7 @@ namespace Sparsepc
         }
 
         template <std::floating_point ScalarType>
-        using Dca = SparsePC<DcaSolver<ScalarType, EigenSolver<ScalarType>>>;
+        using Dca =
+            SparsePC<DcaSolver<ScalarType, SpectraLibEigenSolver<ScalarType>>>;
     } // namespace linearmodel
 } // namespace Sparsepc

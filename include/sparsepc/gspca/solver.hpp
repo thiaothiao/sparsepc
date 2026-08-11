@@ -885,15 +885,15 @@ namespace Sparsepc
         }
 
         template <std::floating_point ScalarType>
-        using BackwardGspca =
-            SparsePC<BackwardGspcaSolver<ScalarType, EigenSolver<ScalarType>>>;
+        using BackwardGspca = SparsePC<
+            BackwardGspcaSolver<ScalarType, SpectraLibEigenSolver<ScalarType>>>;
 
         template <std::floating_point ScalarType>
-        using ForwardGspca =
-            SparsePC<ForwardGspcaSolver<ScalarType, EigenSolver<ScalarType>>>;
+        using ForwardGspca = SparsePC<
+            ForwardGspcaSolver<ScalarType, SpectraLibEigenSolver<ScalarType>>>;
 
         template <std::floating_point ScalarType>
-        using ParallelGspca =
-            SparsePC<ParallelGspcaSolver<ScalarType, EigenSolver<ScalarType>>>;
+        using ParallelGspca = SparsePC<
+            ParallelGspcaSolver<ScalarType, SpectraLibEigenSolver<ScalarType>>>;
     } // namespace linearmodel
 } // namespace Sparsepc
