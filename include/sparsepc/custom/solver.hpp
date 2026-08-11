@@ -107,23 +107,27 @@ namespace Sparsepc
             /**
              * @brief Computes the principal component associated with the
              * parameters.
-             * @param centeredX The featurewise centered matrix.
-             * @param B The complementary projection.
+             * @param featureMatrix The colwise feature matrix.
+             * @param complementaryProjectionMatrix The complementary
+             * projection.
              * @return The computed principal component.
              */
-            auto run(const Matrix<Scalar> &centeredX,
-                     const ComplementaryProjection<Scalar> &B) const;
+            auto run(const Matrix<Scalar> &featureMatrix,
+                     const ComplementaryProjection<Scalar>
+                         &complementaryProjectionMatrix) const;
 
             /**
              * @brief Computes a set of principal component candidates.
-             * @param centeredX The featurewise centered matrix.
-             * @param B The complementary projection.
+             * @param featureMatrix The colwise feature matrix.
+             * @param complementaryProjectionMatrix The complementary
+             * projection.
              * @param param The parameters to be used.
              * @param progressBar The computation progress reporter.
              * @return The computed candidates.
              */
-            static auto run(const Matrix<Scalar> &centeredX,
-                            const ComplementaryProjection<Scalar> &B,
+            static auto run(const Matrix<Scalar> &featureMatrix,
+                            const ComplementaryProjection<Scalar>
+                                &complementaryProjectionMatrix,
                             const Param &param, ProgressBar *progressBar);
 
           private:
@@ -134,36 +138,38 @@ namespace Sparsepc
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
         auto CustomSolver<ScalarType, EigenSolverType, ProgressBarType>::run(
-            const Matrix<Scalar> &centeredX,
-            const ComplementaryProjection<Scalar> &B) const
+            const Matrix<Scalar> &featureMatrix,
+            const ComplementaryProjection<Scalar>
+                &complementaryProjectionMatrix) const
         {
             using Component = Component<Scalar>;
             using Matrix = Matrix<Scalar>;
 
-            const Matrix deflatedCenteredX = centeredX * B;
+            const Matrix deflatedFeatureMatrix =
+                featureMatrix * complementaryProjectionMatrix;
 
             const auto k = m_Param.k;
             const auto &eigenSolver = m_Param.eigenSolver;
 
-            const auto n = deflatedCenteredX.cols();
+            const auto n = deflatedFeatureMatrix.cols();
             if (k >= n || k < static_cast<Index>(0))
             {
-                return eigenSolver.maximumValueElement(deflatedCenteredX);
+                return eigenSolver.maximumValueElement(deflatedFeatureMatrix);
             }
 
             if (static_cast<Index>(1) == n)
             {
                 Component cmponent(n);
-                cmponent.value = deflatedCenteredX.col(0).squaredNorm();
+                cmponent.value = deflatedFeatureMatrix.col(0).squaredNorm();
                 cmponent.vector.setOnes();
 
                 return cmponent;
             }
 
-            auto indices = sortMatrix(deflatedCenteredX);
+            auto indices = sortMatrix(deflatedFeatureMatrix);
             indices.resize(k);
             const auto subDimEigenElement = eigenSolver.maximumValueElement(
-                deflatedCenteredX(Eigen::placeholders::all, indices));
+                deflatedFeatureMatrix(Eigen::placeholders::all, indices));
 
             Component component(n);
             component.value = subDimEigenElement.value;
@@ -176,19 +182,20 @@ namespace Sparsepc
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
         auto CustomSolver<ScalarType, EigenSolverType, ProgressBarType>::run(
-            const Matrix<Scalar> &centeredX,
-            const ComplementaryProjection<Scalar> &B, const Param &param,
-            ProgressBar *progressBar)
+            const Matrix<Scalar> &featureMatrix,
+            const ComplementaryProjection<Scalar>
+                &complementaryProjectionMatrix,
+            const Param &param, ProgressBar *progressBar)
         {
             using Component = Component<Scalar>;
             using ComponentsContainer = ComponentsContainer<Component>;
-            using Matrix = Matrix<Scalar>;
 
-            const auto deflatedCenteredX = centeredX * B;
+            const auto deflatedFeatureMatrix =
+                featureMatrix * complementaryProjectionMatrix;
 
             const auto &eigenSolver = param.eigenSolver;
             const auto k = param.k;
-            const auto n = deflatedCenteredX.cols();
+            const auto n = deflatedFeatureMatrix.cols();
 
             ComponentsContainer components;
             components.reserve(n);
@@ -210,7 +217,7 @@ namespace Sparsepc
                 components.try_emplace(
                     std::min(k, n),
                     CustomSolver<Scalar, EigenSolver, ProgressBar>{param}.run(
-                        centeredX, B));
+                        featureMatrix, complementaryProjectionMatrix));
 
                 if (progressBar)
                 {
@@ -223,7 +230,7 @@ namespace Sparsepc
             }
 
             components.try_emplace(
-                n, eigenSolver.maximumValueElement(deflatedCenteredX));
+                n, eigenSolver.maximumValueElement(deflatedFeatureMatrix));
 
             if (n == 1)
             {
@@ -247,13 +254,13 @@ namespace Sparsepc
                 components.try_emplace(k, Component(n));
             }
 
-            auto indices = sortMatrix(deflatedCenteredX);
+            auto indices = sortMatrix(deflatedFeatureMatrix);
             for (Index k = n - 1; k > 0; --k)
             {
                 indices.resize(k);
                 auto &component = components.at(k);
                 const auto subDimEigenElement = eigenSolver.maximumValueElement(
-                    deflatedCenteredX(Eigen::placeholders::all, indices));
+                    deflatedFeatureMatrix(Eigen::placeholders::all, indices));
                 component.value = subDimEigenElement.value;
                 component.vector(indices) = subDimEigenElement.vector;
 

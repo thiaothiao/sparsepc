@@ -74,25 +74,29 @@ namespace Sparsepc
             /**
              * @brief Computes the principal component associated with the
              * parameters.
-             * @param centeredX The featurewise centered matrix.
-             * @param B The complementary projection.
+             * @param featureMatrix The colwise feature matrix.
+             * @param complementaryProjectionMatrix The complementary
+             * projection.
              * @param guess The starting point of Dca if nonempty.
              * @return The computed principal component.
              */
-            auto run(const Matrix<Scalar> &centeredX,
-                     const ComplementaryProjection<Scalar> &B,
+            auto run(const Matrix<Scalar> &featureMatrix,
+                     const ComplementaryProjection<Scalar>
+                         &complementaryProjectionMatrix,
                      const Component<Scalar> &guess = {}) const;
 
             /**
              * @brief Computes a set of principal component candidates.
-             * @param centeredX The featurewise centered matrix.
-             * @param B The complementary projection.
+             * @param featureMatrix The featurewise centered matrix.
+             * @param complementaryProjectionMatrix The complementary
+             * projection.
              * @param param The parameters to be used.
              * @param progressBar The computation progress reporter.
              * @return The computed candidates.
              */
-            static auto run(const Matrix<Scalar> &centeredX,
-                            const ComplementaryProjection<Scalar> &B,
+            static auto run(const Matrix<Scalar> &featureMatrix,
+                            const ComplementaryProjection<Scalar>
+                                &complementaryProjectionMatrix,
                             const Param &param, ProgressBar *progressBar);
 
             struct PrimalSolution
@@ -152,15 +156,15 @@ namespace Sparsepc
                 Vector<Scalar> y;
             };
 
-            auto objectiveValue(const Matrix<Scalar> &centeredX,
+            auto objectiveValue(const Matrix<Scalar> &featureMatrix,
                                 const PrimalSolution &solution, double t) const;
             auto kktCandidate(const Vector<Scalar> &q, const Vector<Scalar> &y,
                               Scalar r) const;
             auto computePhir(const Vector<Scalar> &y, Scalar r,
                              const PrimalSolution &solution) const;
-            auto dual(const Matrix<Scalar> &centeredX,
+            auto dual(const Matrix<Scalar> &featureMatrix,
                       const PrimalSolution &solution, double t) const;
-            auto primal([[maybe_unused]] const Matrix<Scalar> &centeredX,
+            auto primal([[maybe_unused]] const Matrix<Scalar> &featureMatrix,
                         const DualSolution &dualSolution) const;
 
             const Param m_Param;
@@ -171,10 +175,10 @@ namespace Sparsepc
                   ProgressBarLike ProgressBarType>
         inline auto
         DcaSolver<ScalarType, EigenSolverType, ProgressBarType>::objectiveValue(
-            const Matrix<Scalar> &centeredX, const PrimalSolution &solution,
+            const Matrix<Scalar> &featureMatrix, const PrimalSolution &solution,
             double t) const
         {
-            return -(centeredX * solution.x).squaredNorm() -
+            return -(featureMatrix * solution.x).squaredNorm() -
                    t * solution.u.squaredNorm();
         }
 
@@ -182,28 +186,30 @@ namespace Sparsepc
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
         auto DcaSolver<ScalarType, EigenSolverType, ProgressBarType>::run(
-            const Matrix<Scalar> &centeredX,
-            const ComplementaryProjection<Scalar> &B,
+            const Matrix<Scalar> &featureMatrix,
+            const ComplementaryProjection<Scalar>
+                &complementaryProjectionMatrix,
             const Component<Scalar> &guess) const
         {
             using Component = Component<Scalar>;
             using Matrix = Matrix<Scalar>;
 
-            const Matrix deflatedCenteredX = centeredX * B;
+            const Matrix deflatedFeatureMatrix =
+                featureMatrix * complementaryProjectionMatrix;
 
             const auto k = m_Param.k;
             const auto &eigenSolver = m_Param.eigenSolver;
 
-            const auto n = deflatedCenteredX.cols();
+            const auto n = deflatedFeatureMatrix.cols();
             if (k >= n || k < static_cast<Index>(0))
             {
-                return eigenSolver.maximumValueElement(deflatedCenteredX);
+                return eigenSolver.maximumValueElement(deflatedFeatureMatrix);
             }
 
             if (static_cast<Index>(1) == n)
             {
                 Component cmponent(n);
-                cmponent.value = deflatedCenteredX.col(0).squaredNorm();
+                cmponent.value = deflatedFeatureMatrix.col(0).squaredNorm();
                 cmponent.vector.setOnes();
 
                 return cmponent;
@@ -211,7 +217,7 @@ namespace Sparsepc
 
             Component component =
                 (guess.vector.size() == static_cast<Index>(0))
-                    ? eigenSolver.maximumValueElement(deflatedCenteredX)
+                    ? eigenSolver.maximumValueElement(deflatedFeatureMatrix)
                     : guess;
 
             PrimalSolution primalSsolution(n);
@@ -223,18 +229,19 @@ namespace Sparsepc
             while (t <= m_Param.t)
             {
                 auto previousObj =
-                    objectiveValue(deflatedCenteredX, primalSsolution, t);
+                    objectiveValue(deflatedFeatureMatrix, primalSsolution, t);
 
                 unsigned int count = 0U;
                 while (true)
                 {
                     auto dualSolution =
-                        dual(deflatedCenteredX, primalSsolution, t);
+                        dual(deflatedFeatureMatrix, primalSsolution, t);
 
-                    primalSsolution = primal(deflatedCenteredX, dualSolution);
+                    primalSsolution =
+                        primal(deflatedFeatureMatrix, dualSolution);
 
-                    auto obj =
-                        objectiveValue(deflatedCenteredX, primalSsolution, t);
+                    auto obj = objectiveValue(deflatedFeatureMatrix,
+                                              primalSsolution, t);
 
                     if (std::abs(previousObj - obj) <= m_Param.tolerance)
                     {
@@ -264,7 +271,7 @@ namespace Sparsepc
             component.vector.normalize();
 
             component.value =
-                (deflatedCenteredX * component.vector).squaredNorm();
+                (deflatedFeatureMatrix * component.vector).squaredNorm();
 
             return component;
         }
@@ -273,19 +280,21 @@ namespace Sparsepc
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
         auto DcaSolver<ScalarType, EigenSolverType, ProgressBarType>::run(
-            const Matrix<Scalar> &centeredX,
-            const ComplementaryProjection<Scalar> &B, const Param &param,
-            ProgressBar *progressBar)
+            const Matrix<Scalar> &featureMatrix,
+            const ComplementaryProjection<Scalar>
+                &complementaryProjectionMatrix,
+            const Param &param, ProgressBar *progressBar)
         {
             using Component = Component<Scalar>;
             using ComponentsContainer = ComponentsContainer<Component>;
             using Matrix = Matrix<Scalar>;
 
-            const Matrix deflatedCenteredX = centeredX * B;
+            const Matrix deflatedFeatureMatrix =
+                featureMatrix * complementaryProjectionMatrix;
 
             const auto &eigenSolver = param.eigenSolver;
             const auto k = param.k;
-            const auto n = deflatedCenteredX.cols();
+            const auto n = deflatedFeatureMatrix.cols();
 
             ComponentsContainer components;
             components.reserve(n);
@@ -307,7 +316,7 @@ namespace Sparsepc
                 components.try_emplace(
                     std::min(k, n),
                     DcaSolver<Scalar, EigenSolver, ProgressBar>{param}.run(
-                        centeredX, B));
+                        featureMatrix, complementaryProjectionMatrix));
 
                 if (progressBar)
                 {
@@ -321,8 +330,8 @@ namespace Sparsepc
 
             const auto &component =
                 components
-                    .try_emplace(
-                        n, eigenSolver.maximumValueElement(deflatedCenteredX))
+                    .try_emplace(n, eigenSolver.maximumValueElement(
+                                        deflatedFeatureMatrix))
                     .first->second;
 
             if (n == 1)
@@ -350,7 +359,8 @@ namespace Sparsepc
                     DcaSolver<Scalar, EigenSolver, ProgressBar>{
                         Param{k, param.eigenSolver, param.t, param.tolerance,
                               param.maximumNumberOfIterations, param.zero}}
-                        .run(centeredX, B, component));
+                        .run(featureMatrix, complementaryProjectionMatrix,
+                             component));
 
                 if (progressBar)
                 {
@@ -373,11 +383,11 @@ namespace Sparsepc
                   ProgressBarLike ProgressBarType>
         inline auto
         DcaSolver<ScalarType, EigenSolverType, ProgressBarType>::dual(
-            const Matrix<Scalar> &centeredX, const PrimalSolution &solution,
+            const Matrix<Scalar> &featureMatrix, const PrimalSolution &solution,
             double t) const
         {
-            return DualSolution{centeredX.transpose() *
-                                    (centeredX * solution.x),
+            return DualSolution{featureMatrix.transpose() *
+                                    (featureMatrix * solution.x),
                                 t * solution.u};
         }
 
@@ -477,7 +487,7 @@ namespace Sparsepc
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
         auto DcaSolver<ScalarType, EigenSolverType, ProgressBarType>::primal(
-            [[maybe_unused]] const Matrix<Scalar> &centeredX,
+            [[maybe_unused]] const Matrix<Scalar> &featureMatrix,
             const DualSolution &dualSolution) const
         {
             const auto zero = m_Param.zero;

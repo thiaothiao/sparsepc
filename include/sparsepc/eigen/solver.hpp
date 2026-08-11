@@ -111,8 +111,7 @@ namespace Sparsepc
 
         SpectraLibEigenSolver(const Param &param = {}) : m_Param{param} {}
 
-        auto
-        maximumValueElement(const Matrix<Scalar> &centeredFeatureMatrix) const;
+        auto maximumValueElement(const Matrix<Scalar> &featureMatrix) const;
 
       private:
         const Param m_Param;
@@ -120,22 +119,21 @@ namespace Sparsepc
 
     template <std::floating_point ScalarType>
     auto SpectraLibEigenSolver<ScalarType>::maximumValueElement(
-        const Matrix<Scalar> &centeredFeatureMatrix) const
+        const Matrix<Scalar> &featureMatrix) const
     {
         using Matrix = Matrix<Scalar>;
-        const auto n = centeredFeatureMatrix.cols();
+        const auto n = featureMatrix.cols();
 
         Component<Scalar> eigenElement(n);
 
         if (n == static_cast<Index>(1))
         {
-            eigenElement.value = centeredFeatureMatrix.col(0).squaredNorm();
+            eigenElement.value = featureMatrix.col(0).squaredNorm();
             eigenElement.vector.setOnes();
             return eigenElement;
         }
 
-        Spectra::PartialSVDSolver<Matrix> svds(centeredFeatureMatrix, 1,
-                                               m_Param.ncv);
+        Spectra::PartialSVDSolver<Matrix> svds(featureMatrix, 1, m_Param.ncv);
         if (svds.compute() == 1)
         {
             const auto maxSingularValue = svds.singular_values()[0];
@@ -173,8 +171,7 @@ namespace Sparsepc
 
         EigenLibEigenSolver(const Param &param = {}) : m_Param{param} {}
 
-        auto
-        maximumValueElement(const Matrix<Scalar> &centeredFeatureMatrix) const;
+        auto maximumValueElement(const Matrix<Scalar> &featureMatrix) const;
 
       private:
         const Param m_Param;
@@ -182,25 +179,24 @@ namespace Sparsepc
 
     template <std::floating_point ScalarType>
     auto EigenLibEigenSolver<ScalarType>::maximumValueElement(
-        const Matrix<Scalar> &centeredFeatureMatrix) const
+        const Matrix<Scalar> &featureMatrix) const
     {
         using Matrix = Matrix<Scalar>;
         using Component = Component<Scalar>;
 
-        const auto n = centeredFeatureMatrix.cols();
+        const auto n = featureMatrix.cols();
         Component eigenElement(n);
 
         if (n == static_cast<Index>(1))
         {
-            eigenElement.value = centeredFeatureMatrix.col(0).squaredNorm();
+            eigenElement.value = featureMatrix.col(0).squaredNorm();
             eigenElement.vector.setOnes();
             return eigenElement;
         }
 
         if (m_Param.useJacobiSVD)
         {
-            Eigen::JacobiSVD<Matrix, Eigen::ComputeThinV> svd(
-                centeredFeatureMatrix);
+            Eigen::JacobiSVD<Matrix, Eigen::ComputeThinV> svd(featureMatrix);
 
             const auto maxSingularValue = svd.singularValues()[0];
             eigenElement.value = maxSingularValue * maxSingularValue;
@@ -208,8 +204,7 @@ namespace Sparsepc
         }
         else
         {
-            Eigen::BDCSVD<Matrix, Eigen::ComputeThinV> svd(
-                centeredFeatureMatrix);
+            Eigen::BDCSVD<Matrix, Eigen::ComputeThinV> svd(featureMatrix);
 
             const auto maxSingularValue = svd.singularValues()[0];
             eigenElement.value = maxSingularValue * maxSingularValue;

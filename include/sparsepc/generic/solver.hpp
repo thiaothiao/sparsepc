@@ -104,15 +104,15 @@ namespace Sparsepc
              * parameters.
              * @details The components are computed sequentially, deflating the
              * covariance matrix with the previously found components.
-             * @param centeredX The featurewise centered matrix.
+             * @param featureMatrix The colwise feature matrix.
              * @return The computed principal components.
              */
-            auto run(const Matrix<Scalar> &centeredX) const;
+            auto run(const Matrix<Scalar> &featureMatrix) const;
 
             /**
              * @brief Computes a set of candidates for the next round principal
              * component.
-             * @param centeredX The featurewise centered matrix.
+             * @param featureMatrix The colwise feature matrix.
              * @param param The parameters to be used during the computations.
              * @param validatedComponents The previous rounds validated
              * components.
@@ -121,7 +121,7 @@ namespace Sparsepc
              */
             template <class ComponentType>
             static auto computeNextComponentCandidates(
-                const Matrix<Scalar> &centeredX,
+                const Matrix<Scalar> &featureMatrix,
                 const ImplementationParam &param,
                 const std::vector<ComponentType> &validatedComponents,
                 ProgressBar *progressBar);
@@ -131,8 +131,8 @@ namespace Sparsepc
         };
 
         template <SparsePCSolverLike ImplementationType>
-        auto
-        SparsePC<ImplementationType>::run(const Matrix<Scalar> &centeredX) const
+        auto SparsePC<ImplementationType>::run(
+            const Matrix<Scalar> &featureMatrix) const
         {
             using Component = Component<Scalar>;
             using Vector = Vector<Scalar>;
@@ -140,20 +140,22 @@ namespace Sparsepc
             std::vector<Component> sparseSolutions;
             sparseSolutions.reserve(m_Param.nbComponents);
 
-            auto B = ComplementaryProjection<Scalar>();
+            auto complementaryProjectionMatrix =
+                ComplementaryProjection<Scalar>();
 
             for (Index j = 0; j < m_Param.nbComponents; ++j)
             {
                 sparseSolutions.push_back(
                     ImplementationType{m_Param.implementationParams[j]}.run(
-                        centeredX, B));
+                        featureMatrix, complementaryProjectionMatrix));
 
-                const Vector q = B * sparseSolutions.back().vector;
+                const Vector q = complementaryProjectionMatrix *
+                                 sparseSolutions.back().vector;
 
                 sparseSolutions.back().value =
-                    (centeredX * q).squaredNorm() / q.squaredNorm();
+                    (featureMatrix * q).squaredNorm() / q.squaredNorm();
 
-                B.add(q);
+                complementaryProjectionMatrix.add(q);
             }
 
             return sparseSolutions;
@@ -162,32 +164,34 @@ namespace Sparsepc
         template <SparsePCSolverLike ImplementationType>
         template <class ComponentType>
         auto SparsePC<ImplementationType>::computeNextComponentCandidates(
-            const Matrix<Scalar> &centeredX, const ImplementationParam &param,
+            const Matrix<Scalar> &featureMatrix,
+            const ImplementationParam &param,
             const std::vector<ComponentType> &validatedComponents,
             ProgressBar *progressBar)
         {
             using ComplementaryProjection = ComplementaryProjection<Scalar>;
             using Component = Component<Scalar>;
 
-            auto B = ComplementaryProjection();
+            auto complementaryProjectionMatrix = ComplementaryProjection();
 
             for (const Component &validatedComponent : validatedComponents)
             {
                 const auto &q = validatedComponent.q;
 
-                B.add(q);
+                complementaryProjectionMatrix.add(q);
             }
 
-            auto candidates =
-                ImplementationType::run(centeredX, B, param, progressBar);
+            auto candidates = ImplementationType::run(
+                featureMatrix, complementaryProjectionMatrix, param,
+                progressBar);
 
             // update explained variances
             for (auto &[i, cpnt] : candidates)
             {
-                cpnt.q = B * cpnt.vector;
+                cpnt.q = complementaryProjectionMatrix * cpnt.vector;
 
-                cpnt.value =
-                    (centeredX * cpnt.q).squaredNorm() / cpnt.q.squaredNorm();
+                cpnt.value = (featureMatrix * cpnt.q).squaredNorm() /
+                             cpnt.q.squaredNorm();
             }
 
             return candidates;

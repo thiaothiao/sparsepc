@@ -70,24 +70,27 @@ namespace Sparsepc
             /**
              * @brief Computes the principal component associated with the
              * parameters by calling the addon interface.
-             * @param centeredX The featurewise centered matrix.
-             * @param B The complementary projection.
+             * @param featureMatrix The colwise feature matrix.
+             * @param complementaryProjectionMatrix The complementary
+             * projection.
              * @return The computed principal component.
              */
-            auto run(const Matrix<Scalar> &centeredX,
+            auto run(const Matrix<Scalar> &featureMatrix,
                      const ComplementaryProjection<Scalar> &B) const;
 
             /**
              * @brief Computes a set of principal component candidates by
              * several calls to the addon function.
-             * @param centeredX The featurewise centered matrix.
-             * @param B The complementary projection.
+             * @param featureMatrix The colwise feature matrix.
+             * @param complementaryProjectionMatrix The complementary
+             * projection.
              * @param param The parameters to be used.
              * @param progressBar The computation progress reporter.
              * @return The computed candidates.
              */
-            static auto run(const Matrix<Scalar> &centeredX,
-                            const ComplementaryProjection<Scalar> &B,
+            static auto run(const Matrix<Scalar> &featureMatrix,
+                            const ComplementaryProjection<Scalar>
+                                &complementaryProjectionMatrix,
                             const Param &param, ProgressBar *progressBar);
 
           private:
@@ -99,27 +102,29 @@ namespace Sparsepc
                   ProgressBarLike ProgressBarType>
         auto
         DynamicLibSolver<ScalarType, EigenSolverType, ProgressBarType>::run(
-            const Matrix<Scalar> &centeredX,
-            const ComplementaryProjection<Scalar> &B) const
+            const Matrix<Scalar> &featureMatrix,
+            const ComplementaryProjection<Scalar>
+                &complementaryProjectionMatrix) const
         {
             using Component = Component<Scalar>;
             using Matrix = Matrix<Scalar>;
 
-            const Matrix deflatedCenteredX = centeredX * B;
+            const Matrix deflatedFeatureMatrix =
+                featureMatrix * complementaryProjectionMatrix;
 
             const auto k = m_Param.k;
             const auto &eigenSolver = m_Param.eigenSolver;
 
-            const auto n = deflatedCenteredX.cols();
+            const auto n = deflatedFeatureMatrix.cols();
             if (k >= n || k < static_cast<Index>(0))
             {
-                return eigenSolver.maximumValueElement(deflatedCenteredX);
+                return eigenSolver.maximumValueElement(deflatedFeatureMatrix);
             }
 
             if (static_cast<Index>(1) == n)
             {
                 Component cmponent(n);
-                cmponent.value = deflatedCenteredX.col(0).squaredNorm();
+                cmponent.value = deflatedFeatureMatrix.col(0).squaredNorm();
                 cmponent.vector.setOnes();
 
                 return cmponent;
@@ -128,13 +133,13 @@ namespace Sparsepc
             Component component(n);
             if (m_Param.computeSparseEigenVector)
             {
-                m_Param.computeSparseEigenVector(deflatedCenteredX.data(), n, k,
-                                                 component.vector.data());
+                m_Param.computeSparseEigenVector(deflatedFeatureMatrix.data(),
+                                                 n, k, component.vector.data());
 
                 component.vector.normalize();
 
                 component.value =
-                    (deflatedCenteredX * component.vector).squaredNorm();
+                    (deflatedFeatureMatrix * component.vector).squaredNorm();
             }
 
             return component;
@@ -145,19 +150,21 @@ namespace Sparsepc
                   ProgressBarLike ProgressBarType>
         auto
         DynamicLibSolver<ScalarType, EigenSolverType, ProgressBarType>::run(
-            const Matrix<Scalar> &centeredX,
-            const ComplementaryProjection<Scalar> &B, const Param &param,
-            ProgressBar *progressBar)
+            const Matrix<Scalar> &featureMatrix,
+            const ComplementaryProjection<Scalar>
+                &complementaryProjectionMatrix,
+            const Param &param, ProgressBar *progressBar)
         {
             using Component = Component<Scalar>;
             using ComponentsContainer = ComponentsContainer<Component>;
             using Matrix = Matrix<Scalar>;
 
-            const Matrix deflatedCenteredX = centeredX * B;
+            const Matrix deflatedFeatureMatrix =
+                featureMatrix * complementaryProjectionMatrix;
 
             const auto &eigenSolver = param.eigenSolver;
             const auto k = param.k;
-            const auto n = deflatedCenteredX.cols();
+            const auto n = deflatedFeatureMatrix.cols();
 
             ComponentsContainer components;
             components.reserve(n);
@@ -179,7 +186,7 @@ namespace Sparsepc
                 components.try_emplace(
                     std::min(k, n),
                     DynamicLibSolver<Scalar, EigenSolver, ProgressBar>{param}
-                        .run(centeredX, B));
+                        .run(featureMatrix, complementaryProjectionMatrix));
 
                 if (progressBar)
                 {
@@ -192,7 +199,7 @@ namespace Sparsepc
             }
 
             components.try_emplace(
-                n, eigenSolver.maximumValueElement(deflatedCenteredX));
+                n, eigenSolver.maximumValueElement(deflatedFeatureMatrix));
 
             if (n == 1)
             {
@@ -221,11 +228,12 @@ namespace Sparsepc
                 for (Index k = 1; k < n; ++k)
                 {
                     auto &component = components.at(k);
-                    param.computeSparseEigenVector(deflatedCenteredX.data(), n,
-                                                   k, component.vector.data());
+                    param.computeSparseEigenVector(deflatedFeatureMatrix.data(),
+                                                   n, k,
+                                                   component.vector.data());
                     component.vector.normalize();
-                    component.value =
-                        (deflatedCenteredX * component.vector).squaredNorm();
+                    component.value = (deflatedFeatureMatrix * component.vector)
+                                          .squaredNorm();
 
                     if (progressBar)
                     {
