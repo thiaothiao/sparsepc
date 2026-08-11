@@ -1,5 +1,8 @@
 #pragma once
 
+#include <set>
+#include <vector>
+
 #include <Eigen/Dense>
 
 namespace Sparsepc
@@ -75,5 +78,35 @@ namespace Sparsepc
 
         std::vector<Vector<Scalar>> qs;
     };
+
+    template <std::floating_point ScalarType>
+    auto sort(const Vector<ScalarType> &v)
+    {
+        using Scalar = ScalarType;
+
+        auto comparePairsLambda = [](const std::pair<Index, Scalar> &lhs,
+                                     const std::pair<Index, Scalar> &rhs) {
+            return lhs.second < rhs.second;
+        };
+
+        // Declare std::set using decltype for the comparator type
+        std::multiset<std::pair<Index, Scalar>, decltype(comparePairsLambda)>
+            ss(comparePairsLambda);
+        const Index n = v.size();
+        for (Index i = 0; i < n; ++i)
+        {
+            ss.insert(std::pair{i, v[i]});
+        }
+
+        std::vector<Index> indices;
+        indices.reserve(v.size());
+
+        for (const auto &s : ss)
+        {
+            indices.push_back(s.first);
+        }
+
+        return indices;
+    }
 
 } // namespace Sparsepc
