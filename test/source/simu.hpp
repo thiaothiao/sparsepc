@@ -35,8 +35,8 @@ namespace Sparsepc
 
             Matrix<ScalarType> covariance() const
             {
-                const auto centered = centered();
-                return (centered.transpose() * centered);// /static_cast<ScalarType>(n - 1);
+                const auto X = centered();
+                return (X.transpose() * X); // /static_cast<ScalarType>(n - 1);
             }
 
             Matrix<ScalarType> theoretical_covariance() const
