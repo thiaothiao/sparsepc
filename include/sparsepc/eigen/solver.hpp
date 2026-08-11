@@ -155,10 +155,29 @@ namespace Sparsepc
       public:
         using Scalar = ScalarType;
 
-        EigenLibEigenSolver() {}
+        struct Param final
+        {
+            Param(bool useJacobiSVDInput = false)
+                : useJacobiSVD{useJacobiSVDInput}
+            {
+            }
+
+            Param(const Param &) = default;
+            Param &operator=(const Param &) = default;
+
+            Param(Param &&) = default;
+            Param &operator=(Param &&) = default;
+
+            const bool useJacobiSVD;
+        };
+
+        EigenLibEigenSolver(const Param &param = {}) : m_Param{param} {}
 
         auto
         maximumValueElement(const Matrix<Scalar> &centeredFeatureMatrix) const;
+
+      private:
+        const Param m_Param;
     };
 
     template <std::floating_point ScalarType>
@@ -178,12 +197,24 @@ namespace Sparsepc
             return eigenElement;
         }
 
-        Eigen::JacobiSVD<Matrix> svd(centeredFeatureMatrix,
-                                     Eigen::ComputeThinV);
+        if (m_Param.useJacobiSVD)
+        {
+            Eigen::JacobiSVD<Matrix, Eigen::ComputeThinV> svd(
+                centeredFeatureMatrix);
 
-        const auto maxSingularValue = svd.singularValues()(0);
-        eigenElement.value = maxSingularValue * maxSingularValue;
-        eigenElement.vector = svd.matrixV().col(0);
+            const auto maxSingularValue = svd.singularValues()[0];
+            eigenElement.value = maxSingularValue * maxSingularValue;
+            eigenElement.vector = svd.matrixV().col(0);
+        }
+        else
+        {
+            Eigen::BDCSVD<Matrix, Eigen::ComputeThinV> svd(
+                centeredFeatureMatrix);
+
+            const auto maxSingularValue = svd.singularValues()[0];
+            eigenElement.value = maxSingularValue * maxSingularValue;
+            eigenElement.vector = svd.matrixV().col(0);
+        }
 
         // preferring non negative max values. <<rectify>> u s signs
         auto &u = eigenElement.vector;
