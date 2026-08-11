@@ -149,30 +149,25 @@ namespace Sparsepc
         SparsePC<ImplementationType>::run(const Matrix<Scalar> &centeredX) const
         {
             using Component = Component<Scalar>;
+            using Vector = Vector<Scalar>;
 
             std::vector<Component> sparseSolutions;
             sparseSolutions.reserve(m_Param.nbComponents);
 
-            sparseSolutions.push_back(
-                ImplementationType{m_Param.implementationParams[0]}.run(
-                    centeredX, {}));
-
             auto B = ComplementaryProjection<Scalar>();
 
-            auto q = sparseSolutions.back().vector;
-
-            for (Index j = 1; j < m_Param.nbComponents; ++j)
+            for (Index j = 0; j < m_Param.nbComponents; ++j)
             {
-                B.add(q);
-
                 sparseSolutions.push_back(
                     ImplementationType{m_Param.implementationParams[j]}.run(
                         centeredX, B));
 
-                q = B * sparseSolutions.back().vector;
+                const Vector q = B * sparseSolutions.back().vector;
 
                 sparseSolutions.back().value =
                     (centeredX * q).squaredNorm() / q.squaredNorm();
+
+                B.add(q);
             }
 
             return sparseSolutions;
