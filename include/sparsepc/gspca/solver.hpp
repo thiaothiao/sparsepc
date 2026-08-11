@@ -292,8 +292,10 @@ namespace Sparsepc
                             static_cast<Index>(choosenIndices.size()) - j0 - 1);
 
                         const auto lambdaMaxSub =
-                            eigenSolver.maximumValue(deflatedCenteredX(
-                                Eigen::placeholders::all, candidateIndices));
+                            eigenSolver
+                                .maximumValueElement(deflatedCenteredX(
+                                    Eigen::placeholders::all, candidateIndices))
+                                .value;
                         if (lambdaMaxSub > lambdaMax)
                         {
                             lambdaMax = lambdaMaxSub;
@@ -430,8 +432,10 @@ namespace Sparsepc
                             static_cast<Index>(choosenIndices.size()) - j0 - 1);
 
                         const auto lambdaMaxSub =
-                            eigenSolver.maximumValue(delatedCenteredX(
-                                Eigen::placeholders::all, candidateIndices));
+                            eigenSolver
+                                .maximumValueElement(delatedCenteredX(
+                                    Eigen::placeholders::all, candidateIndices))
+                                .value;
                         if (lambdaMaxSub > lambdaMax)
                         {
                             lambdaMax = lambdaMaxSub;
@@ -535,8 +539,10 @@ namespace Sparsepc
                         const auto candidateIndices =
                             reserveIndices.head(j0 + 1);
                         const auto lambdaMaxSub =
-                            eigenSolver.maximumValue(deflatedCenteredX(
-                                Eigen::placeholders::all, candidateIndices));
+                            eigenSolver
+                                .maximumValueElement(deflatedCenteredX(
+                                    Eigen::placeholders::all, candidateIndices))
+                                .value;
                         if (lambdaMaxSub > lambdaMax)
                         {
                             lambdaMax = lambdaMaxSub;
@@ -673,8 +679,10 @@ namespace Sparsepc
                         const auto candidateIndices =
                             reserveIndices.head(j0 + 1);
                         const auto lambdaMaxSub =
-                            eigenSolver.maximumValue(deflatedCenteredX(
-                                Eigen::placeholders::all, candidateIndices));
+                            eigenSolver
+                                .maximumValueElement(deflatedCenteredX(
+                                    Eigen::placeholders::all, candidateIndices))
+                                .value;
                         if (lambdaMaxSub > lambdaMax)
                         {
                             lambdaMax = lambdaMaxSub;

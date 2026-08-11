@@ -87,11 +87,6 @@ namespace Sparsepc
                 Matrix<typename ImplementationType::Scalar>{})
         }
         -> std::convertible_to<Component<typename ImplementationType::Scalar>>;
-
-        {
-            std::as_const(impl).maximumValue(
-                Matrix<typename ImplementationType::Scalar>{})
-        } -> std::convertible_to<typename ImplementationType::Scalar>;
     };
 
     /**
@@ -118,34 +113,12 @@ namespace Sparsepc
 
         SpectraLibEigenSolver(const Param &param = {}) : m_Param{param} {}
 
-        auto maximumValue(const Matrix<Scalar> &centeredFeatureMatrix) const;
-
         auto
         maximumValueElement(const Matrix<Scalar> &centeredFeatureMatrix) const;
 
       private:
         const Param m_Param;
     };
-
-    template <std::floating_point ScalarType>
-    auto SpectraLibEigenSolver<ScalarType>::maximumValue(
-        const Matrix<Scalar> &centeredFeatureMatrix) const
-    {
-        using Matrix = Matrix<Scalar>;
-
-        if (centeredFeatureMatrix.cols() == static_cast<Index>(1))
-        {
-            return centeredFeatureMatrix.col(0).squaredNorm();
-        }
-        Spectra::PartialSVDSolver<Matrix> svds(centeredFeatureMatrix, 1,
-                                               m_Param.ncv);
-        if (svds.compute() == 1)
-        {
-            const auto maxSingularValue = svds.singular_values()[0];
-            return maxSingularValue * maxSingularValue;
-        }
-        return static_cast<Scalar>(-1);
-    }
 
     template <std::floating_point ScalarType>
     auto SpectraLibEigenSolver<ScalarType>::maximumValueElement(
@@ -186,23 +159,9 @@ namespace Sparsepc
 
         EigenLibEigenSolver() {}
 
-        auto maximumValue(const Matrix<Scalar> &centeredFeatureMatrix) const;
-
         auto
         maximumValueElement(const Matrix<Scalar> &centeredFeatureMatrix) const;
     };
-
-    template <std::floating_point ScalarType>
-    inline auto EigenLibEigenSolver<ScalarType>::maximumValue(
-        const Matrix<Scalar> &centeredFeatureMatrix) const
-    {
-        return (centeredFeatureMatrix.cols() == static_cast<Index>(1))
-                   ? centeredFeatureMatrix.col(0).squaredNorm()
-                   : std::pow(
-                         Eigen::JacobiSVD<Matrix<Scalar>>(centeredFeatureMatrix)
-                             .singularValues()(0),
-                         2);
-    }
 
     template <std::floating_point ScalarType>
     auto EigenLibEigenSolver<ScalarType>::maximumValueElement(

@@ -124,8 +124,10 @@ namespace Sparsepc
             Vectori sub = Vectori::LinSpaced(k, 0, k - 1);
             for (Index i = 0; i < n; ++i)
             {
-                const auto lambda = eigenSolver.maximumValue(
-                    deflatedCenteredX(Eigen::placeholders::all, sub));
+                const auto lambda = eigenSolver
+                                        .maximumValueElement(deflatedCenteredX(
+                                            Eigen::placeholders::all, sub))
+                                        .value;
                 if (lambda > lambdaMax)
                 {
                     lambdaMax = lambda;
