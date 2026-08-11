@@ -216,16 +216,6 @@ namespace Sparsepc
             eigenElement.vector = svd.matrixV().col(0);
         }
 
-        // preferring non negative max values. <<rectify>> u s signs
-        auto &u = eigenElement.vector;
-        Index idx = static_cast<Index>(-1);
-        u.cwiseAbs().maxCoeff(&idx);
-
-        if (u[idx] < static_cast<Scalar>(0))
-        {
-            u *= static_cast<Scalar>(-1);
-        }
-
         return eigenElement;
     }
 } // namespace Sparsepc
