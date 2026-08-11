@@ -128,20 +128,6 @@ namespace Sparsepc
 
           private:
             const Param m_Param;
-
-            /**
-             * @brief Computes a set of candidates. Does not know about rounds.
-             * @param centeredX The featurewise centered matrix.
-             * @param param The parameters to be used during the computations.
-             * @param B The complementary projection.
-             * @param progressBar The computation progress reporter.
-             * @return The computed next round candidates.
-             */
-            static auto
-            computeComponentCandidates(const Matrix<Scalar> &centeredX,
-                                       const ImplementationParam &param,
-                                       const ComplementaryProjection<Scalar> &B,
-                                       ProgressBar *progressBar);
         };
 
         template <SparsePCSolverLike ImplementationType>
@@ -192,18 +178,10 @@ namespace Sparsepc
                 B.add(q);
             }
 
-            return SparsePC::computeComponentCandidates(centeredX, param, B,
-                                                        progressBar);
-        }
-
-        template <SparsePCSolverLike ImplementationType>
-        auto SparsePC<ImplementationType>::computeComponentCandidates(
-            const Matrix<Scalar> &centeredX, const ImplementationParam &param,
-            const ComplementaryProjection<Scalar> &B, ProgressBar *progressBar)
-        {
             auto candidates =
                 ImplementationType::run(centeredX, B, param, progressBar);
 
+            // update explained variances
             for (auto &[i, cpnt] : candidates)
             {
                 cpnt.q = B * cpnt.vector;
