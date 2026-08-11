@@ -179,40 +179,6 @@ namespace Sparsepc
         }
 
         template <SparsePCSolverLike ImplementationType>
-        auto SparsePC<ImplementationType>::computeComponentCandidates(
-            const Matrix<Scalar> &centeredX, const ImplementationParam &param,
-            const ComplementaryProjection<Scalar> &B, ProgressBar *progressBar)
-        {
-            if (B.isIdentity())
-            { // TODO should put the check inside run
-                auto candidates =
-                    ImplementationType::run(centeredX, {}, param, progressBar);
-
-                for (auto &[i, cpnt] : candidates)
-                {
-                    cpnt.q = cpnt.vector;
-                }
-
-                return candidates;
-            }
-            else
-            {
-                auto candidates =
-                    ImplementationType::run(centeredX, B, param, progressBar);
-
-                for (auto &[i, cpnt] : candidates)
-                {
-                    cpnt.q = B * cpnt.vector;
-
-                    cpnt.value = (centeredX * cpnt.q).squaredNorm() /
-                                 cpnt.q.squaredNorm();
-                }
-
-                return candidates;
-            }
-        }
-
-        template <SparsePCSolverLike ImplementationType>
         template <class ComponentType>
         auto SparsePC<ImplementationType>::computeNextComponentCandidates(
             const Matrix<Scalar> &centeredX, const ImplementationParam &param,
@@ -221,12 +187,6 @@ namespace Sparsepc
         {
             using ComplementaryProjection = ComplementaryProjection<Scalar>;
             using Component = Component<Scalar>;
-
-            if (validatedComponents.empty())
-            {
-                return SparsePC::computeComponentCandidates(centeredX, param,
-                                                            {}, progressBar);
-            }
 
             auto B = ComplementaryProjection();
 
@@ -239,6 +199,25 @@ namespace Sparsepc
 
             return SparsePC::computeComponentCandidates(centeredX, param, B,
                                                         progressBar);
+        }
+
+        template <SparsePCSolverLike ImplementationType>
+        auto SparsePC<ImplementationType>::computeComponentCandidates(
+            const Matrix<Scalar> &centeredX, const ImplementationParam &param,
+            const ComplementaryProjection<Scalar> &B, ProgressBar *progressBar)
+        {
+            auto candidates =
+                ImplementationType::run(centeredX, B, param, progressBar);
+
+            for (auto &[i, cpnt] : candidates)
+            {
+                cpnt.q = B * cpnt.vector;
+
+                cpnt.value =
+                    (centeredX * cpnt.q).squaredNorm() / cpnt.q.squaredNorm();
+            }
+
+            return candidates;
         }
     } // namespace linearmodel
 } // namespace Sparsepc
