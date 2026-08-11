@@ -283,25 +283,26 @@ namespace Sparsely
         if (newProject)
         {
             auto &n = m_Model.get().m_N;
-            auto &centeredX = m_Model.get().m_CenteredX;
+            auto &featureMatrix = m_Model.get().m_FeatureMatrix;
             auto &trace = m_Model.get().m_Trace;
             auto &standardPCs = m_Model.get().m_StandardPCs;
             auto &sparsePCs = m_Model.get().m_SparsePCs;
             auto &validatedComponents = m_Model.get().m_ValidatedComponents;
             auto &header = m_Model.get().m_Header;
 
-            const Sparsepc::Matrix<double> X =
+            const Sparsepc::Matrix<double> rawFeatureMatrix =
                 openData<double>(fileName.toStdString(), header);
 
-            if (X.rows() <= 1)
+            if (rawFeatureMatrix.rows() <= 1)
             {
                 qCritical() << "Load data as matrix failed:" << fileName;
                 return false;
             }
 
-            centeredX = X.rowwise() - X.colwise().mean();
-            n = centeredX.cols();
-            trace = centeredX.colwise().squaredNorm().sum();
+            featureMatrix =
+                rawFeatureMatrix.rowwise() - rawFeatureMatrix.colwise().mean();
+            n = featureMatrix.cols();
+            trace = featureMatrix.colwise().squaredNorm().sum();
 
             standardPCs.clear();
             standardPCs.reserve(n);
@@ -335,9 +336,9 @@ namespace Sparsely
 
         using Index = Sparsepc::Index;
 
-        const auto &centeredX = m_Model.get().m_CenteredX;
-        const auto m = centeredX.rows();
-        const auto n = centeredX.cols();
+        const auto &featureMatrix = m_Model.get().m_FeatureMatrix;
+        const auto m = featureMatrix.rows();
+        const auto n = featureMatrix.cols();
         const auto &standardPCs = m_Model.get().m_StandardPCs;
         const auto &sparsePCs = m_Model.get().m_SparsePCs;
         const auto &header = m_Model.get().m_Header;
@@ -350,7 +351,7 @@ namespace Sparsely
         out << static_cast<qint32>(versionNumber);
         out << static_cast<qint32>(m);
         out << static_cast<qint32>(n);
-        out.writeRawData(reinterpret_cast<const char *>(centeredX.data()),
+        out.writeRawData(reinterpret_cast<const char *>(featureMatrix.data()),
                          m * n * sizeof(double));
         out << header;
         const Index numberOfStandardPCs = standardPCs.size();
@@ -411,12 +412,12 @@ namespace Sparsely
         in >> tmp;
         n = tmp;
 
-        auto &centeredX = m_Model.get().m_CenteredX;
-        centeredX.resize(m, n);
-        in.readRawData(reinterpret_cast<char *>(centeredX.data()),
+        auto &featureMatrix = m_Model.get().m_FeatureMatrix;
+        featureMatrix.resize(m, n);
+        in.readRawData(reinterpret_cast<char *>(featureMatrix.data()),
                        m * n * sizeof(double));
-        trace = centeredX.colwise().squaredNorm().sum();
-        qDebug() << "centeredX read ";
+        trace = featureMatrix.colwise().squaredNorm().sum();
+        qDebug() << "featureMatrix read ";
 
         in >> header;
         standardPCs.clear();

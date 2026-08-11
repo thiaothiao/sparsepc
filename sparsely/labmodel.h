@@ -83,7 +83,7 @@ namespace Sparsely
       private:
         auto getStandardComponents() const;
 
-        Sparsepc::Matrix<double> m_CenteredX;
+        Sparsepc::Matrix<double> m_FeatureMatrix;
         Sparsepc::Index m_N;
         double m_Trace;
         std::vector<std::unique_ptr<QLibrary>> m_DynamicLibSolverLoaders;

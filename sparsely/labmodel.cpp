@@ -56,7 +56,7 @@ namespace
 namespace Sparsely
 {
     LabModel::LabModel()
-        : m_CenteredX{}, m_ValidatedComponents{}, m_SparsePCs{},
+        : m_FeatureMatrix{}, m_ValidatedComponents{}, m_SparsePCs{},
           m_StandardPCs{}, m_N{0}, m_Trace{0.0}
     {
     }
@@ -83,7 +83,7 @@ namespace Sparsely
         auto &standardPC = m_StandardPCs.emplace_back();
         standardPC.iWinner = m_N;
         standardPC.candidates = DCA::computeNextComponentCandidates(
-            m_CenteredX,
+            m_FeatureMatrix,
             DCA::ImplementationParam{static_cast<Sparsepc::Index>(m_N)},
             standardComponents, progressBar);
 
@@ -114,41 +114,42 @@ namespace Sparsely
         {
         case Enums::Method::DCA:
             sparsePC.candidates = DCA::computeNextComponentCandidates(
-                m_CenteredX, DCA::ImplementationParam{}, m_ValidatedComponents,
-                progressBar);
+                m_FeatureMatrix, DCA::ImplementationParam{},
+                m_ValidatedComponents, progressBar);
             break;
         case Enums::Method::BGSPCA:
             sparsePC.candidates = BackwardGSPA::computeNextComponentCandidates(
-                m_CenteredX, BackwardGSPA::ImplementationParam{},
+                m_FeatureMatrix, BackwardGSPA::ImplementationParam{},
                 m_ValidatedComponents, progressBar);
             break;
         case Enums::Method::FGSPCA:
             sparsePC.candidates = ForwardGSPCA::computeNextComponentCandidates(
-                m_CenteredX, ForwardGSPCA::ImplementationParam{},
+                m_FeatureMatrix, ForwardGSPCA::ImplementationParam{},
                 m_ValidatedComponents, progressBar);
             break;
         case Enums::Method::CUSTOM:
             sparsePC.candidates = CustomSolver::computeNextComponentCandidates(
-                m_CenteredX, CustomSolver::ImplementationParam{},
+                m_FeatureMatrix, CustomSolver::ImplementationParam{},
                 m_ValidatedComponents, progressBar);
             break;
         case Enums::Method::CONTIGUOUSSUPPORT:
             sparsePC.candidates =
                 ContiguousSupportSolver::computeNextComponentCandidates(
-                    m_CenteredX, ContiguousSupportSolver::ImplementationParam{},
+                    m_FeatureMatrix,
+                    ContiguousSupportSolver::ImplementationParam{},
                     m_ValidatedComponents, progressBar);
             break;
         case Enums::Method::MAVIEA:
             sparsePC.candidates =
                 MavIterativeEliminationSolver::computeNextComponentCandidates(
-                    m_CenteredX,
+                    m_FeatureMatrix,
                     MavIterativeEliminationSolver::ImplementationParam{},
                     m_ValidatedComponents, progressBar);
             break;
         case Enums::Method::AMVLIEA:
             sparsePC.candidates =
                 AmvlIterativeEliminationSolver::computeNextComponentCandidates(
-                    m_CenteredX,
+                    m_FeatureMatrix,
                     AmvlIterativeEliminationSolver::ImplementationParam{},
                     m_ValidatedComponents, progressBar);
             break;
@@ -163,7 +164,7 @@ namespace Sparsely
                 {
                     sparsePC.candidates =
                         DynamicLibSolver::computeNextComponentCandidates(
-                            m_CenteredX,
+                            m_FeatureMatrix,
                             DynamicLibSolver::ImplementationParam{
                                 computeSparseEigenVector},
                             m_ValidatedComponents, progressBar);
@@ -173,8 +174,8 @@ namespace Sparsely
         }
         default:
             sparsePC.candidates = DCA::computeNextComponentCandidates(
-                m_CenteredX, DCA::ImplementationParam{}, m_ValidatedComponents,
-                progressBar);
+                m_FeatureMatrix, DCA::ImplementationParam{},
+                m_ValidatedComponents, progressBar);
             break;
         }
 
