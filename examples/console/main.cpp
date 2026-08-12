@@ -20,18 +20,18 @@ int main()
     const Index numberOfSamples = 200;
     const std::atomic_uint32_t seed = 1234;
 
-    const auto sim = Sparsepc::linearmodel::generate_simulation<Scalar>(
-        numberOfSamples, seed);
-    const auto centeredX = sim.centered();
+    const auto sim =
+        Sparsepc::linearmodel::simulation<Scalar>(numberOfSamples, seed);
+    const auto featureMatrix = Sparsepc::standardScale(sim.observed);
     {
         const auto tic = std::chrono::high_resolution_clock::now();
         auto eigen =
             Sparsepc::EigenLibEigenSolver<Scalar>{}.maximumValueElement(
-                centeredX);
+                featureMatrix);
         const auto toc = std::chrono::high_resolution_clock::now();
         auto spectra =
             Sparsepc::SpectraLibEigenSolver<Scalar>{}.maximumValueElement(
-                centeredX);
+                featureMatrix);
         const auto tac = std::chrono::high_resolution_clock::now();
 
         std::cout << "\nEigen lib Maximum eigenvalue: " << eigen.value << "\n"
@@ -61,7 +61,8 @@ int main()
 
         const BackwardGspca::Param param{{k0, k1}};
 
-        const auto sparseEigenElements = BackwardGspca{param}.run(centeredX);
+        const auto sparseEigenElements =
+            BackwardGspca{param}.run(featureMatrix);
 
         const auto stop = std::chrono::high_resolution_clock::now();
 
@@ -86,7 +87,7 @@ int main()
 
         const ForwardGspca::Param param{{k0, k1}};
 
-        const auto sparseEigenElements = ForwardGspca{param}.run(centeredX);
+        const auto sparseEigenElements = ForwardGspca{param}.run(featureMatrix);
 
         const auto stop = std::chrono::high_resolution_clock::now();
 
@@ -110,7 +111,8 @@ int main()
 
         const ParallelGspca::Param param{{k0, k1}};
 
-        const auto sparseEigenElements = ParallelGspca{param}.run(centeredX);
+        const auto sparseEigenElements =
+            ParallelGspca{param}.run(featureMatrix);
 
         const auto stop = std::chrono::high_resolution_clock::now();
 
@@ -134,7 +136,7 @@ int main()
 
         const Dca::Param param{{k0, k1}};
 
-        const auto sparseEigenElements = Dca{param}.run(centeredX);
+        const auto sparseEigenElements = Dca{param}.run(featureMatrix);
 
         const auto stop = std::chrono::high_resolution_clock::now();
 
@@ -160,7 +162,7 @@ int main()
         const ContiguousFacetsFinder::Param param{{k0, k1}};
 
         const auto sparseEigenElements =
-            ContiguousFacetsFinder{param}.run(centeredX);
+            ContiguousFacetsFinder{param}.run(featureMatrix);
 
         const auto stop = std::chrono::high_resolution_clock::now();
 
@@ -186,7 +188,7 @@ int main()
         const MavIterativeElimination::Param param{{k0, k1}};
 
         const auto sparseEigenElements =
-            MavIterativeElimination{param}.run(centeredX);
+            MavIterativeElimination{param}.run(featureMatrix);
 
         const auto stop = std::chrono::high_resolution_clock::now();
 
@@ -212,7 +214,7 @@ int main()
         const AmvlIterativeElimination::Param param{{k0, k1}};
 
         const auto sparseEigenElements =
-            AmvlIterativeElimination{param}.run(centeredX);
+            AmvlIterativeElimination{param}.run(featureMatrix);
 
         const auto stop = std::chrono::high_resolution_clock::now();
 
