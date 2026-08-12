@@ -109,4 +109,19 @@ namespace Sparsepc
         return indices;
     }
 
+    template <std::floating_point ScalarType>
+    Matrix<ScalarType> standardScale(const Matrix<ScalarType> &mat)
+    {
+        const auto mean = mat.colwise().mean();
+
+        const double eps = 1e-8; // avoid division by zero
+        const auto standardDeviation =
+            ((mat.rowwise() - mean).array().square().colwise().sum() /
+             (mat.rows() - 1))
+                .sqrt();
+
+        return (mat.rowwise() - mean).array().rowwise() /
+               (standardDeviation.array() + eps);
+    }
+
 } // namespace Sparsepc

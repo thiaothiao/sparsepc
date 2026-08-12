@@ -299,8 +299,7 @@ namespace Sparsely
                 return false;
             }
 
-            featureMatrix =
-                rawFeatureMatrix.rowwise() - rawFeatureMatrix.colwise().mean();
+            featureMatrix = Sparsepc::standardScale(rawFeatureMatrix);
             n = featureMatrix.cols();
             trace = featureMatrix.colwise().squaredNorm().sum();
 

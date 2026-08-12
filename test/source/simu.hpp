@@ -39,7 +39,7 @@ namespace Sparsepc
                 return (X.transpose() * X); // /static_cast<ScalarType>(n - 1);
             }
 
-            Matrix<ScalarType> theoretical_covariance() const
+            Matrix<ScalarType> theoreticalCovariance() const
             {
                 constexpr ScalarType varV1 = static_cast<ScalarType>(290);
                 constexpr ScalarType varV2 = static_cast<ScalarType>(300);
@@ -65,7 +65,7 @@ namespace Sparsepc
         };
 
         template <std::floating_point ScalarType>
-        auto generate_simulation(Index nSamples = 200,
+        auto simulation(Index nSamples = 200,
                                            std::uint32_t seed = 42)
             -> SimulationData<ScalarType>
         {
