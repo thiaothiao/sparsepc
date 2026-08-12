@@ -91,20 +91,28 @@ namespace Sparsepc
             /**
              * @brief Computes the principal component associated with the
              * parameters.
-             * @param sigma The covariance matrix.
+             * @param featureMatrix The colwise feature matrix.
+             * @param complementaryProjectionMatrix The complementary
+             * projection.
              * @return The computed principal component.
              */
-            auto run(const Matrix<Scalar> &sigma) const;
+            auto run(const Matrix<Scalar> &featureMatrix,
+                     const ComplementaryProjection<Scalar>
+                         &complementaryProjectionMatrix) const;
 
             /**
              * @brief Computes a set of principal component candidates.
-             * @param sigma The covariance matrix.
+             * @param featureMatrix The colwise feature matrix.
+             * @param complementaryProjectionMatrix The complementary
+             * projection.
              * @param param The parameters to be used.
              * @param progressBar The computation progress reporter.
              * @return The computed candidates.
              */
-            static auto run(const Matrix<Scalar> &sigma, const Param &param,
-                            ProgressBar *progressBar);
+            static auto run(const Matrix<Scalar> &featureMatrix,
+                            const ComplementaryProjection<Scalar>
+                                &complementaryProjectionMatrix,
+                            const Param &param, ProgressBar *progressBar);
 
           private:
             const Param m_Param;
@@ -116,18 +124,24 @@ namespace Sparsepc
                   ProgressBarLike ProgressBarType>
         auto IterativeEliminationSolver<
             ScalarType, EigenSolverType, EliminationCriterionType,
-            ProgressBarType>::run(const Matrix<Scalar> &sigma) const
+            ProgressBarType>::run(const Matrix<Scalar> &featureMatrix,
+                                  const ComplementaryProjection<Scalar>
+                                      &complementaryProjectionMatrix) const
         {
             using Component = Component<Scalar>;
+            using Matrix = Matrix<Scalar>;
+
+            const Matrix deflatedFeatureMatrix =
+                featureMatrix * complementaryProjectionMatrix;
 
             const auto k = m_Param.k;
             const auto &eigenSolver = m_Param.eigenSolver;
             const auto &eliminationCriterion = m_Param.eliminationCriterion;
 
-            const auto n = sigma.cols();
+            const auto n = deflatedFeatureMatrix.cols();
             if (k >= n || k < static_cast<Index>(0))
             {
-                return eigenSolver.maximumValueElement(sigma);
+                return eigenSolver.maximumValueElement(deflatedFeatureMatrix);
             }
 
             Vectori choosenIndices = Vectori::LinSpaced(n, 0, n - 1);
@@ -136,8 +150,8 @@ namespace Sparsepc
             {
                 const auto candidateIndices = choosenIndices.tail(
                     static_cast<Index>(choosenIndices.size()) - j0);
-                const auto &subSigma =
-                    sigma(candidateIndices, candidateIndices);
+                const auto &subSigma = deflatedFeatureMatrix(
+                    Eigen::placeholders::all, candidateIndices);
                 const auto subElement =
                     eigenSolver.maximumValueElement(subSigma);
 
@@ -166,7 +180,7 @@ namespace Sparsepc
 
             auto kFoundIndices = choosenIndices.tail(k);
             auto subDimEigenElement = eigenSolver.maximumValueElement(
-                sigma(kFoundIndices, kFoundIndices));
+                deflatedFeatureMatrix(Eigen::placeholders::all, kFoundIndices));
 
             Component component(n);
             component.value = subDimEigenElement.value;
@@ -181,17 +195,22 @@ namespace Sparsepc
                   ProgressBarLike ProgressBarType>
         auto IterativeEliminationSolver<
             ScalarType, EigenSolverType, EliminationCriterionType,
-            ProgressBarType>::run(const Matrix<Scalar> &sigma,
+            ProgressBarType>::run(const Matrix<Scalar> &featureMatrix,
+                                  const ComplementaryProjection<Scalar>
+                                      &complementaryProjectionMatrix,
                                   const Param &param, ProgressBar *progressBar)
         {
             using Component = Component<Scalar>;
             using ComponentsContainer = ComponentsContainer<Component>;
 
+            const auto deflatedFeatureMatrix =
+                featureMatrix * complementaryProjectionMatrix;
+
             const auto k = param.k;
             const auto &eigenSolver = param.eigenSolver;
             const auto &eliminationCriterion = param.eliminationCriterion;
 
-            const auto n = sigma.cols();
+            const auto n = deflatedFeatureMatrix.cols();
 
             ComponentsContainer components;
             components.reserve(n);
@@ -215,7 +234,7 @@ namespace Sparsepc
                     IterativeEliminationSolver<
                         Scalar, EigenSolver, EliminationCriterion, ProgressBar>{
                         param}
-                        .run(sigma));
+                        .run(featureMatrix, complementaryProjectionMatrix));
 
                 if (progressBar)
                 {
@@ -227,7 +246,8 @@ namespace Sparsepc
                 return components;
             }
 
-            components.try_emplace(n, eigenSolver.maximumValueElement(sigma));
+            components.try_emplace(
+                n, eigenSolver.maximumValueElement(deflatedFeatureMatrix));
 
             if (n == static_cast<Index>(1))
             {
@@ -252,8 +272,8 @@ namespace Sparsepc
             {
                 const auto candidateIndices = choosenIndices.tail(
                     static_cast<Index>(choosenIndices.size()) - j0);
-                const auto &subSigma =
-                    sigma(candidateIndices, candidateIndices);
+                const auto &subSigma = deflatedFeatureMatrix(
+                    Eigen::placeholders::all, candidateIndices);
                 const auto subElement =
                     eigenSolver.maximumValueElement(subSigma);
 
@@ -278,8 +298,9 @@ namespace Sparsepc
                     static_cast<Index>(choosenIndices.size()) - j0;
                 const auto kFoundIndices = choosenIndices.tail(kCurrent);
 
-                auto subDimEigenElement = eigenSolver.maximumValueElement(
-                    sigma(kFoundIndices, kFoundIndices));
+                auto subDimEigenElement =
+                    eigenSolver.maximumValueElement(deflatedFeatureMatrix(
+                        Eigen::placeholders::all, kFoundIndices));
 
                 auto &component = components.try_emplace(kCurrent, Component(n))
                                       .first->second;
@@ -316,13 +337,13 @@ namespace Sparsepc
           public:
             using Scalar = ScalarType;
             MAVCriterion() = default;
-            auto index(const Matrix<Scalar> &sigma,
+            auto index(const Matrix<Scalar> &featureMatrix,
                        const Component<Scalar> &component) const;
         };
 
         template <std::floating_point ScalarType>
         auto MAVCriterion<ScalarType>::index(
-            [[maybe_unused]] const Matrix<Scalar> &sigma,
+            [[maybe_unused]] const Matrix<Scalar> &featureMatrix,
             const Component<Scalar> &component) const
         {
             auto indexMin = static_cast<Index>(-1);
@@ -339,18 +360,20 @@ namespace Sparsepc
           public:
             using Scalar = ScalarType;
             AMVLCriterion() = default;
-            auto index(const Matrix<Scalar> &sigma,
+            auto index(const Matrix<Scalar> &featureMatrix,
                        const Component<Scalar> &component) const;
         };
 
         template <std::floating_point ScalarType>
         auto AMVLCriterion<ScalarType>::index(
-            const Matrix<Scalar> &sigma,
+            const Matrix<Scalar> &featureMatrix,
             const Component<Scalar> &component) const
         {
             auto indexMin = static_cast<Index>(-1);
             const auto &vSquared = component.vector.cwiseAbs2().array();
-            (vSquared * (sigma.diagonal().array() - component.value) /
+            (vSquared *
+             (featureMatrix.colwise().squaredNorm().transpose().array() -
+              component.value) /
              (vSquared - static_cast<Scalar>(1)))
                 .matrix()
                 .minCoeff(&indexMin);
@@ -366,8 +389,8 @@ namespace Sparsepc
                                        ProgressBarType>;
 
         template <std::floating_point ScalarType>
-        using MavIterativeElimination = SparsePC<
-            MavIterativeEliminationSolver<ScalarType, EigenSolver<ScalarType>>>;
+        using MavIterativeElimination = SparsePC<MavIterativeEliminationSolver<
+            ScalarType, SpectraLibEigenSolver<ScalarType>>>;
 
         template <std::floating_point ScalarType,
                   EigenSolverLike EigenSolverType,
@@ -379,7 +402,7 @@ namespace Sparsepc
 
         template <std::floating_point ScalarType>
         using AmvlIterativeElimination =
-            SparsePC<AmvlIterativeEliminationSolver<ScalarType,
-                                                    EigenSolver<ScalarType>>>;
+            SparsePC<AmvlIterativeEliminationSolver<
+                ScalarType, SpectraLibEigenSolver<ScalarType>>>;
     } // namespace linearmodel
 } // namespace Sparsepc

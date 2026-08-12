@@ -66,20 +66,28 @@ namespace Sparsepc
             /**
              * @brief Computes the principal component associated with the
              * parameters.
-             * @param sigma The covariance matrix.
+             * @param featureMatrix The colwise feature matrix.
+             * @param complementaryProjectionMatrix The complementary
+             * projection.
              * @return The computed principal component.
              */
-            auto run(const Matrix<Scalar> &sigma) const;
+            auto run(const Matrix<Scalar> &featureMatrix,
+                     const ComplementaryProjection<Scalar>
+                         &complementaryProjectionMatrix) const;
 
             /**
              * @brief Computes a set of principal component candidates.
-             * @param sigma The covariance matrix.
+             * @param featureMatrix The colwise feature matrix.
+             * @param complementaryProjectionMatrix The complementary
+             * projection.
              * @param param The parameters to be used.
              * @param progressBar The computation progress reporter.
              * @return The computed candidates.
              */
-            static auto run(const Matrix<Scalar> &sigma, const Param &param,
-                            ProgressBar *progressBar);
+            static auto run(const Matrix<Scalar> &featureMatrix,
+                            const ComplementaryProjection<Scalar>
+                                &complementaryProjectionMatrix,
+                            const Param &param, ProgressBar *progressBar);
 
           private:
             const Param m_Param;
@@ -138,21 +146,29 @@ namespace Sparsepc
             /**
              * @brief Computes the principal component associated with the
              * parameters.
-             * @param sigma The covariance matrix.
+             * @param featureMatrix The colwise feature matrix.
+             * @param complementaryProjectionMatrix The complementary
+             * projection.
              * @return The computed principal component.
              */
-            Component<Scalar> run(const Matrix<Scalar> &sigma) const;
+            Component<Scalar> run(const Matrix<Scalar> &featureMatrix,
+                                  const ComplementaryProjection<Scalar>
+                                      &complementaryProjectionMatrix) const;
 
             /**
              * @brief Computes a set of principal component candidates.
-             * @param sigma The covariance matrix.
+             * @param featureMatrix The colwise feature matrix.
+             * @param complementaryProjectionMatrix The complementary
+             * projection.
              * @param param The parameters to be used.
              * @param progressBar The computation progress reporter.
              * @return The computed candidates.
              */
             static ComponentsContainer<Component<Scalar>>
-            run(const Matrix<Scalar> &sigma, const Param &param,
-                ProgressBar *progressBar);
+            run(const Matrix<Scalar> &featureMatrix,
+                const ComplementaryProjection<Scalar>
+                    &complementaryProjectionMatrix,
+                const Param &param, ProgressBar *progressBar);
 
           private:
             const Param m_Param;
@@ -223,20 +239,28 @@ namespace Sparsepc
             /**
              * @brief Computes the principal component associated with the
              * parameters.
-             * @param sigma The covariance matrix.
+             * @param featureMatrix The colwise feature matrix.
+             * @param complementaryProjectionMatrix The complementary
+             * projection.
              * @return The computed principal component.
              */
-            auto run(const Matrix<Scalar> &sigma) const;
+            auto run(const Matrix<Scalar> &featureMatrix,
+                     const ComplementaryProjection<Scalar>
+                         &complementaryProjectionMatrix) const;
 
             /**
              * @brief Computes a set of principal component candidates.
-             * @param sigma The covariance matrix.
+             * @param featureMatrix The colwise feature matrix.
+             * @param complementaryProjectionMatrix The complementary
+             * projection.
              * @param param The parameters to be used.
              * @param progressBar The computation progress reporter.
              * @return The computed candidates.
              */
-            static auto run(const Matrix<Scalar> &sigma, const Param &param,
-                            ProgressBar *progressBar);
+            static auto run(const Matrix<Scalar> &featureMatrix,
+                            const ComplementaryProjection<Scalar>
+                                &complementaryProjectionMatrix,
+                            const Param &param, ProgressBar *progressBar);
 
           private:
             const Param m_Param;
@@ -247,17 +271,23 @@ namespace Sparsepc
                   ProgressBarLike ProgressBarType>
         auto
         BackwardGspcaSolver<ScalarType, EigenSolverType, ProgressBarType>::run(
-            const Matrix<Scalar> &sigma) const
+            const Matrix<Scalar> &featureMatrix,
+            const ComplementaryProjection<Scalar>
+                &complementaryProjectionMatrix) const
         {
             using Component = Component<Scalar>;
+            using Matrix = Matrix<Scalar>;
+
+            const Matrix deflatedFeatureMatrix =
+                featureMatrix * complementaryProjectionMatrix;
 
             const auto k = m_Param.k;
             const auto &eigenSolver = m_Param.eigenSolver;
 
-            const auto n = sigma.cols();
+            const auto n = deflatedFeatureMatrix.cols();
             if (k >= n || k < static_cast<Index>(0))
             {
-                return eigenSolver.maximumValueElement(sigma);
+                return eigenSolver.maximumValueElement(deflatedFeatureMatrix);
             }
 
             Vectori choosenIndices = Vectori::LinSpaced(n, 0, n - 1);
@@ -274,8 +304,11 @@ namespace Sparsepc
                         const auto candidateIndices = choosenIndices.tail(
                             static_cast<Index>(choosenIndices.size()) - j0 - 1);
 
-                        const auto lambdaMaxSub = eigenSolver.maximumValue(
-                            sigma(candidateIndices, candidateIndices));
+                        const auto lambdaMaxSub =
+                            eigenSolver
+                                .maximumValueElement(deflatedFeatureMatrix(
+                                    Eigen::placeholders::all, candidateIndices))
+                                .value;
                         if (lambdaMaxSub > lambdaMax)
                         {
                             lambdaMax = lambdaMaxSub;
@@ -317,7 +350,7 @@ namespace Sparsepc
 
             auto kFoundIndices = choosenIndices.tail(k);
             auto subDimEigenElement = eigenSolver.maximumValueElement(
-                sigma(kFoundIndices, kFoundIndices));
+                deflatedFeatureMatrix(Eigen::placeholders::all, kFoundIndices));
 
             Component component(n);
             component.value = subDimEigenElement.value;
@@ -331,15 +364,20 @@ namespace Sparsepc
                   ProgressBarLike ProgressBarType>
         auto
         BackwardGspcaSolver<ScalarType, EigenSolverType, ProgressBarType>::run(
-            const Matrix<Scalar> &sigma, const Param &param,
-            ProgressBar *progressBar)
+            const Matrix<Scalar> &featureMatrix,
+            const ComplementaryProjection<Scalar>
+                &complementaryProjectionMatrix,
+            const Param &param, ProgressBar *progressBar)
         {
             using Component = Component<Scalar>;
             using ComponentsContainer = ComponentsContainer<Component>;
 
+            const auto deflatedFeatureMatrix =
+                featureMatrix * complementaryProjectionMatrix;
+
             const auto &eigenSolver = param.eigenSolver;
             const auto k = param.k;
-            const auto n = sigma.cols();
+            const auto n = deflatedFeatureMatrix.cols();
 
             ComponentsContainer components;
             components.reserve(n);
@@ -361,7 +399,7 @@ namespace Sparsepc
                 components.try_emplace(
                     std::min(k, n),
                     BackwardGspcaSolver<Scalar, EigenSolver, ProgressBar>{param}
-                        .run(sigma));
+                        .run(featureMatrix, complementaryProjectionMatrix));
 
                 if (progressBar)
                 {
@@ -373,7 +411,8 @@ namespace Sparsepc
                 return components;
             }
 
-            components.try_emplace(n, eigenSolver.maximumValueElement(sigma));
+            components.try_emplace(
+                n, eigenSolver.maximumValueElement(deflatedFeatureMatrix));
 
             if (n == static_cast<Index>(1))
             {
@@ -406,8 +445,11 @@ namespace Sparsepc
                         const auto candidateIndices = choosenIndices.tail(
                             static_cast<Index>(choosenIndices.size()) - j0 - 1);
 
-                        const auto lambdaMaxSub = eigenSolver.maximumValue(
-                            sigma(candidateIndices, candidateIndices));
+                        const auto lambdaMaxSub =
+                            eigenSolver
+                                .maximumValueElement(deflatedFeatureMatrix(
+                                    Eigen::placeholders::all, candidateIndices))
+                                .value;
                         if (lambdaMaxSub > lambdaMax)
                         {
                             lambdaMax = lambdaMaxSub;
@@ -445,8 +487,9 @@ namespace Sparsepc
                     static_cast<Index>(choosenIndices.size()) - j0;
                 const auto kFoundIndices = choosenIndices.tail(kCurrent);
 
-                auto subDimEigenElement = eigenSolver.maximumValueElement(
-                    sigma(kFoundIndices, kFoundIndices));
+                auto subDimEigenElement =
+                    eigenSolver.maximumValueElement(deflatedFeatureMatrix(
+                        Eigen::placeholders::all, kFoundIndices));
 
                 auto &component =
                     components.try_emplace(kCurrent, Component(n)).first->second;
@@ -480,17 +523,23 @@ namespace Sparsepc
         Component<typename ForwardGspcaSolver<ScalarType, EigenSolverType,
                                               ProgressBarType>::Scalar>
         ForwardGspcaSolver<ScalarType, EigenSolverType, ProgressBarType>::run(
-            const Matrix<Scalar> &sigma) const
+            const Matrix<Scalar> &featureMatrix,
+            const ComplementaryProjection<Scalar>
+                &complementaryProjectionMatrix) const
         {
             using Component = Component<Scalar>;
+            using Matrix = Matrix<Scalar>;
+
+            const Matrix deflatedFeatureMatrix =
+                featureMatrix * complementaryProjectionMatrix;
 
             const auto k = m_Param.k;
             const auto &eigenSolver = m_Param.eigenSolver;
 
-            const auto n = sigma.cols();
+            const auto n = deflatedFeatureMatrix.cols();
             if (k >= n || k < static_cast<Index>(0))
             {
-                return eigenSolver.maximumValueElement(sigma);
+                return eigenSolver.maximumValueElement(deflatedFeatureMatrix);
             }
 
             Vectori reserveIndices = Vectori::LinSpaced(n, 0, n - 1);
@@ -506,8 +555,11 @@ namespace Sparsepc
                     {
                         const auto candidateIndices =
                             reserveIndices.head(j0 + 1);
-                        const auto lambdaMaxSub = eigenSolver.maximumValue(
-                            sigma(candidateIndices, candidateIndices));
+                        const auto lambdaMaxSub =
+                            eigenSolver
+                                .maximumValueElement(deflatedFeatureMatrix(
+                                    Eigen::placeholders::all, candidateIndices))
+                                .value;
                         if (lambdaMaxSub > lambdaMax)
                         {
                             lambdaMax = lambdaMaxSub;
@@ -549,7 +601,7 @@ namespace Sparsepc
 
             const auto kFoundIndices = reserveIndices.head(k);
             auto subDimEigenElement = eigenSolver.maximumValueElement(
-                sigma(kFoundIndices, kFoundIndices));
+                deflatedFeatureMatrix(Eigen::placeholders::all, kFoundIndices));
 
             Component component(n);
             component.value = subDimEigenElement.value;
@@ -564,15 +616,21 @@ namespace Sparsepc
         ComponentsContainer<Component<typename ForwardGspcaSolver<
             ScalarType, EigenSolverType, ProgressBarType>::Scalar>>
         ForwardGspcaSolver<ScalarType, EigenSolverType, ProgressBarType>::run(
-            const Matrix<Scalar> &sigma, const Param &param,
-            ProgressBar *progressBar)
+            const Matrix<Scalar> &featureMatrix,
+            const ComplementaryProjection<Scalar>
+                &complementaryProjectionMatrix,
+            const Param &param, ProgressBar *progressBar)
         {
             using Component = Component<Scalar>;
             using ComponentsContainer = ComponentsContainer<Component>;
+            using Matrix = Matrix<Scalar>;
+
+            const Matrix deflatedFeatureMatrix =
+                featureMatrix * complementaryProjectionMatrix;
 
             const auto &eigenSolver = param.eigenSolver;
             const auto k = param.k;
-            const auto n = sigma.cols();
+            const auto n = deflatedFeatureMatrix.cols();
 
             ComponentsContainer components;
             components.reserve(n);
@@ -594,7 +652,7 @@ namespace Sparsepc
                 components.try_emplace(
                     std::min(k, n),
                     ForwardGspcaSolver<Scalar, EigenSolver, ProgressBar>{param}
-                        .run(sigma));
+                        .run(featureMatrix, complementaryProjectionMatrix));
 
                 if (progressBar)
                 {
@@ -606,7 +664,8 @@ namespace Sparsepc
                 return components;
             }
 
-            components.try_emplace(n, eigenSolver.maximumValueElement(sigma));
+            components.try_emplace(
+                n, eigenSolver.maximumValueElement(deflatedFeatureMatrix));
 
             if (n == static_cast<Index>(1))
             {
@@ -638,8 +697,11 @@ namespace Sparsepc
                     {
                         const auto candidateIndices =
                             reserveIndices.head(j0 + 1);
-                        const auto lambdaMaxSub = eigenSolver.maximumValue(
-                            sigma(candidateIndices, candidateIndices));
+                        const auto lambdaMaxSub =
+                            eigenSolver
+                                .maximumValueElement(deflatedFeatureMatrix(
+                                    Eigen::placeholders::all, candidateIndices))
+                                .value;
                         if (lambdaMaxSub > lambdaMax)
                         {
                             lambdaMax = lambdaMaxSub;
@@ -675,8 +737,9 @@ namespace Sparsepc
 
                 const auto kCurrent = j0;
                 const auto kFoundIndices = reserveIndices.head(kCurrent);
-                auto subDimEigenElement = eigenSolver.maximumValueElement(
-                    sigma(kFoundIndices, kFoundIndices));
+                auto subDimEigenElement =
+                    eigenSolver.maximumValueElement(deflatedFeatureMatrix(
+                        Eigen::placeholders::all, kFoundIndices));
 
                 auto &component =
                     components.try_emplace(kCurrent, Component(n)).first->second;
@@ -709,21 +772,27 @@ namespace Sparsepc
                   ProgressBarLike ProgressBarType>
         auto
         ParallelGspcaSolver<ScalarType, EigenSolverType, ProgressBarType>::run(
-            const Matrix<Scalar> &sigma) const
+            const Matrix<Scalar> &featureMatrix,
+            const ComplementaryProjection<Scalar>
+                &complementaryProjectionMatrix) const
         {
             using Component = Component<Scalar>;
             using Matrix = Matrix<Scalar>;
+            using ComplementaryProjection = ComplementaryProjection<Scalar>;
+
+            const Matrix deflatedFeatureMatrix =
+                featureMatrix * complementaryProjectionMatrix;
 
             const auto k = m_Param.k;
             const auto &forwardSolver = m_Param.eigenSolverForForward;
             const auto &backwardSolver = m_Param.eigenSolverForBackward;
             const auto zero = m_Param.zero;
 
-            const auto n = sigma.cols();
+            const auto n = deflatedFeatureMatrix.cols();
 
             if (k >= n || k < static_cast<Index>(0))
             {
-                return forwardSolver.maximumValueElement(sigma);
+                return forwardSolver.maximumValueElement(deflatedFeatureMatrix);
             }
 
             const typename ForwardGspcaSolver::Param forwardParam{
@@ -734,14 +803,15 @@ namespace Sparsepc
                 k, backwardSolver, zero};
             const BackwardGspcaSolver backwardGspca{backwardParam};
 
-            auto forwardSolutionFuture =
-                std::async(std::launch::async,
-                           static_cast<Component (ForwardGspcaSolver::*)(
-                               const Matrix &) const>(&ForwardGspcaSolver::run),
-                           &forwardGspca, sigma);
+            auto forwardSolutionFuture = std::async(
+                std::launch::async,
+                static_cast<Component (ForwardGspcaSolver::*)(
+                    const Matrix &, const ComplementaryProjection &) const>(
+                    &ForwardGspcaSolver::run),
+                &forwardGspca, featureMatrix, complementaryProjectionMatrix);
 
             Component backwardSolutionSparseEigenElement =
-                backwardGspca.run(sigma);
+                backwardGspca.run(featureMatrix, complementaryProjectionMatrix);
 
             Component forwardSolutionSparseEigenElement =
                 forwardSolutionFuture.get();
@@ -762,18 +832,24 @@ namespace Sparsepc
                   ProgressBarLike ProgressBarType>
         auto
         ParallelGspcaSolver<ScalarType, EigenSolverType, ProgressBarType>::run(
-            const Matrix<Scalar> &sigma, const Param &param,
-            ProgressBar *progressBar)
+            const Matrix<Scalar> &featureMatrix,
+            const ComplementaryProjection<Scalar>
+                &complementaryProjectionMatrix,
+            const Param &param, ProgressBar *progressBar)
         {
             using Matrix = Matrix<Scalar>;
             using Component = Component<Scalar>;
             using ComponentsContainer = ComponentsContainer<Component>;
+            using ComplementaryProjection = ComplementaryProjection<Scalar>;
+
+            const Matrix deflatedFeatureMatrix =
+                featureMatrix * complementaryProjectionMatrix;
 
             const auto k = param.k;
             const auto &forwardSolver = param.eigenSolverForForward;
             const auto &backwardSolver = param.eigenSolverForBackward;
             const auto zero = param.zero;
-            const auto n = sigma.cols();
+            const auto n = deflatedFeatureMatrix.cols();
 
             if (k > static_cast<Index>(0))
             {
@@ -795,7 +871,7 @@ namespace Sparsepc
                 components.try_emplace(
                     std::min(k, n),
                     ParallelGspcaSolver<Scalar, EigenSolver, ProgressBar>{param}
-                        .run(sigma));
+                        .run(featureMatrix, complementaryProjectionMatrix));
 
                 if (progressBar)
                 {
@@ -815,12 +891,16 @@ namespace Sparsepc
             auto forwardSolutionFuture = std::async(
                 std::launch::async,
                 static_cast<ComponentsContainer (*)(
-                    const Matrix &, const typename ForwardGspcaSolver::Param &,
-                    ProgressBar *)>(&ForwardGspcaSolver::run),
-                sigma, forwardParam, nullptr);
+                    const Matrix &, const ComplementaryProjection &,
+                    const typename ForwardGspcaSolver::Param &, ProgressBar *)>(
+                    &ForwardGspcaSolver::run),
+                featureMatrix, complementaryProjectionMatrix, forwardParam,
+                nullptr);
 
             ComponentsContainer backwardSolutionSparseEigenElement =
-                BackwardGspcaSolver::run(sigma, backwardParam, progressBar);
+                BackwardGspcaSolver::run(featureMatrix,
+                                         complementaryProjectionMatrix,
+                                         backwardParam, progressBar);
 
             ComponentsContainer forwardSolutionSparseEigenElement =
                 forwardSolutionFuture.get();
@@ -839,15 +919,15 @@ namespace Sparsepc
         }
 
         template <std::floating_point ScalarType>
-        using BackwardGspca =
-            SparsePC<BackwardGspcaSolver<ScalarType, EigenSolver<ScalarType>>>;
+        using BackwardGspca = SparsePC<
+            BackwardGspcaSolver<ScalarType, SpectraLibEigenSolver<ScalarType>>>;
 
         template <std::floating_point ScalarType>
-        using ForwardGspca =
-            SparsePC<ForwardGspcaSolver<ScalarType, EigenSolver<ScalarType>>>;
+        using ForwardGspca = SparsePC<
+            ForwardGspcaSolver<ScalarType, SpectraLibEigenSolver<ScalarType>>>;
 
         template <std::floating_point ScalarType>
-        using ParallelGspca =
-            SparsePC<ParallelGspcaSolver<ScalarType, EigenSolver<ScalarType>>>;
+        using ParallelGspca = SparsePC<
+            ParallelGspcaSolver<ScalarType, SpectraLibEigenSolver<ScalarType>>>;
     } // namespace linearmodel
 } // namespace Sparsepc

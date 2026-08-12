@@ -20,7 +20,7 @@ namespace Sparsepc
             Matrix<ScalarType> observed;
             Matrix<ScalarType> featureMatrix;
 
-            Matrix<ScalarType> covariance() const
+            Matrix<ScalarType> centered() const
             {
                 const auto n = observed.rows();
                 if (n <= 1)
@@ -30,11 +30,16 @@ namespace Sparsepc
                 }
 
                 const auto mean = observed.colwise().mean();
-                const auto centered = observed.rowwise() - mean;
-                return (centered.transpose() * centered);// /static_cast<ScalarType>(n - 1);
+                return observed.rowwise() - mean;
             }
 
-            Matrix<ScalarType> theoretical_covariance() const
+            Matrix<ScalarType> covariance() const
+            {
+                const auto X = centered();
+                return (X.transpose() * X); // /static_cast<ScalarType>(n - 1);
+            }
+
+            Matrix<ScalarType> theoreticalCovariance() const
             {
                 constexpr ScalarType varV1 = static_cast<ScalarType>(290);
                 constexpr ScalarType varV2 = static_cast<ScalarType>(300);
@@ -60,7 +65,7 @@ namespace Sparsepc
         };
 
         template <std::floating_point ScalarType>
-        auto generate_simulation(Index nSamples = 200,
+        auto simulation(Index nSamples = 200,
                                            std::uint32_t seed = 42)
             -> SimulationData<ScalarType>
         {

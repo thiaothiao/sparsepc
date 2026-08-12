@@ -36,9 +36,17 @@ namespace
     }
 
     template <std::floating_point ScalarType>
-    auto sortMatrix(const Sparsepc::Matrix<ScalarType> &sigma)
+    auto sortMatrix(const Sparsepc::Matrix<ScalarType> &X)
     {
-        return sortVector<ScalarType>(sigma.cwiseAbs().colwise().sum().eval());
+        using Index = Sparsepc::Index;
+        using Vector = Sparsepc::Vector<ScalarType>;
+        const auto n = X.cols();
+        Vector v(n);
+        for (Index i = 0; i < n; ++i)
+        {
+            v[i] = (X.transpose() * X.col(i)).cwiseAbs().sum();
+        }
+        return sortVector<ScalarType>(v);
     }
 } // namespace
 
@@ -99,20 +107,28 @@ namespace Sparsepc
             /**
              * @brief Computes the principal component associated with the
              * parameters.
-             * @param sigma The covariance matrix.
+             * @param featureMatrix The colwise feature matrix.
+             * @param complementaryProjectionMatrix The complementary
+             * projection.
              * @return The computed principal component.
              */
-            auto run(const Matrix<Scalar> &sigma) const;
+            auto run(const Matrix<Scalar> &featureMatrix,
+                     const ComplementaryProjection<Scalar>
+                         &complementaryProjectionMatrix) const;
 
             /**
              * @brief Computes a set of principal component candidates.
-             * @param sigma The covariance matrix.
+             * @param featureMatrix The colwise feature matrix.
+             * @param complementaryProjectionMatrix The complementary
+             * projection.
              * @param param The parameters to be used.
              * @param progressBar The computation progress reporter.
              * @return The computed candidates.
              */
-            static auto run(const Matrix<Scalar> &sigma, const Param &param,
-                            ProgressBar *progressBar);
+            static auto run(const Matrix<Scalar> &featureMatrix,
+                            const ComplementaryProjection<Scalar>
+                                &complementaryProjectionMatrix,
+                            const Param &param, ProgressBar *progressBar);
 
           private:
             const Param m_Param;
@@ -121,34 +137,39 @@ namespace Sparsepc
         template <std::floating_point ScalarType,
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
-        auto
-        CustomSolver<ScalarType, EigenSolverType, ProgressBarType>::run(
-            const Matrix<Scalar> &sigma) const
+        auto CustomSolver<ScalarType, EigenSolverType, ProgressBarType>::run(
+            const Matrix<Scalar> &featureMatrix,
+            const ComplementaryProjection<Scalar>
+                &complementaryProjectionMatrix) const
         {
             using Component = Component<Scalar>;
+            using Matrix = Matrix<Scalar>;
+
+            const Matrix deflatedFeatureMatrix =
+                featureMatrix * complementaryProjectionMatrix;
 
             const auto k = m_Param.k;
             const auto &eigenSolver = m_Param.eigenSolver;
 
-            const auto n = sigma.cols();
+            const auto n = deflatedFeatureMatrix.cols();
             if (k >= n || k < static_cast<Index>(0))
             {
-                return eigenSolver.maximumValueElement(sigma);
+                return eigenSolver.maximumValueElement(deflatedFeatureMatrix);
             }
 
             if (static_cast<Index>(1) == n)
             {
                 Component cmponent(n);
-                cmponent.value = sigma.value();
+                cmponent.value = deflatedFeatureMatrix.col(0).squaredNorm();
                 cmponent.vector.setOnes();
 
                 return cmponent;
             }
 
-            auto indices = sortMatrix(sigma);
+            auto indices = sortMatrix(deflatedFeatureMatrix);
             indices.resize(k);
-            const auto subDimEigenElement =
-                eigenSolver.maximumValueElement(sigma(indices, indices));
+            const auto subDimEigenElement = eigenSolver.maximumValueElement(
+                deflatedFeatureMatrix(Eigen::placeholders::all, indices));
 
             Component component(n);
             component.value = subDimEigenElement.value;
@@ -160,17 +181,21 @@ namespace Sparsepc
         template <std::floating_point ScalarType,
                   EigenSolverLike EigenSolverType,
                   ProgressBarLike ProgressBarType>
-        auto
-        CustomSolver<ScalarType, EigenSolverType, ProgressBarType>::run(
-            const Matrix<Scalar> &sigma, const Param &param,
-            ProgressBar *progressBar)
+        auto CustomSolver<ScalarType, EigenSolverType, ProgressBarType>::run(
+            const Matrix<Scalar> &featureMatrix,
+            const ComplementaryProjection<Scalar>
+                &complementaryProjectionMatrix,
+            const Param &param, ProgressBar *progressBar)
         {
             using Component = Component<Scalar>;
             using ComponentsContainer = ComponentsContainer<Component>;
 
+            const auto deflatedFeatureMatrix =
+                featureMatrix * complementaryProjectionMatrix;
+
             const auto &eigenSolver = param.eigenSolver;
             const auto k = param.k;
-            const auto n = sigma.cols();
+            const auto n = deflatedFeatureMatrix.cols();
 
             ComponentsContainer components;
             components.reserve(n);
@@ -191,8 +216,8 @@ namespace Sparsepc
 
                 components.try_emplace(
                     std::min(k, n),
-                    CustomSolver<Scalar, EigenSolver, ProgressBar>{param}
-                        .run(sigma));
+                    CustomSolver<Scalar, EigenSolver, ProgressBar>{param}.run(
+                        featureMatrix, complementaryProjectionMatrix));
 
                 if (progressBar)
                 {
@@ -204,7 +229,8 @@ namespace Sparsepc
                 return components;
             }
 
-            components.try_emplace(n, eigenSolver.maximumValueElement(sigma));
+            components.try_emplace(
+                n, eigenSolver.maximumValueElement(deflatedFeatureMatrix));
 
             if (n == 1)
             {
@@ -228,13 +254,13 @@ namespace Sparsepc
                 components.try_emplace(k, Component(n));
             }
 
-            auto indices = sortMatrix(sigma);
+            auto indices = sortMatrix(deflatedFeatureMatrix);
             for (Index k = n - 1; k > 0; --k)
             {
                 indices.resize(k);
                 auto &component = components.at(k);
-                const auto subDimEigenElement =
-                    eigenSolver.maximumValueElement(sigma(indices, indices));
+                const auto subDimEigenElement = eigenSolver.maximumValueElement(
+                    deflatedFeatureMatrix(Eigen::placeholders::all, indices));
                 component.value = subDimEigenElement.value;
                 component.vector(indices) = subDimEigenElement.vector;
 

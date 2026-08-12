@@ -23,6 +23,9 @@
 
 namespace
 {
+    constexpr qint32 magicNumber = -1;
+    constexpr qint32 versionNumber = 1;
+
     auto getPluginList(const QString &path)
     {
         const QDir dir(path);
@@ -233,30 +236,32 @@ namespace
     // read operator
     QDataStream &operator>>(QDataStream &in, Sparsely::Nominees &user)
     {
-        in >> user.iWinner;
-        qint32 candidatesSize = -1;
-        in >> candidatesSize;
+        qint32 tmp = -1;
+        in >> tmp;
+        user.iWinner = tmp;
+
+        in >> tmp;
+        const qint32 candidatesSize = tmp;
         for (qint32 j = 0; j < candidatesSize; ++j)
         {
-            qint32 valInt = -1;
-            in >> valInt;
-            auto &component = user.candidates[valInt];
-            in >> valInt;
-            component.state = static_cast<Sparsepc::ComponentState>(valInt);
-            auto val = static_cast<double>(-1);
+            in >> tmp;
+            auto &component = user.candidates[tmp];
+            in >> tmp;
+            component.state = static_cast<Sparsepc::ComponentState>(tmp);
+            double val = -1.0;
             in >> val;
             component.value = val;
-            in >> valInt;
-            component.vector = Sparsepc::Vector<double>(valInt);
+            in >> tmp;
+            component.vector = Sparsepc::Vector<double>(tmp);
             in.readRawData(reinterpret_cast<char *>(component.vector.data()),
-                           valInt * sizeof(double));
+                           tmp * sizeof(double));
 
-            in >> valInt;
-            if (valInt != 0)
+            in >> tmp;
+            if (tmp != 0)
             {
-                component.q = Sparsepc::Vector<double>(valInt);
+                component.q = Sparsepc::Vector<double>(tmp);
                 in.readRawData(reinterpret_cast<char *>(component.q.data()),
-                               valInt * sizeof(double));
+                               tmp * sizeof(double));
             }
         }
 
@@ -276,33 +281,28 @@ namespace Sparsely
         qDebug() << "Initializing model handler...";
 
         if (newProject)
-        { // TODO improve covariance computations
+        {
             auto &n = m_Model.get().m_N;
-            auto &sigma = m_Model.get().m_Sigma;
+            auto &featureMatrix = m_Model.get().m_FeatureMatrix;
             auto &trace = m_Model.get().m_Trace;
             auto &standardPCs = m_Model.get().m_StandardPCs;
             auto &sparsePCs = m_Model.get().m_SparsePCs;
             auto &validatedComponents = m_Model.get().m_ValidatedComponents;
             auto &header = m_Model.get().m_Header;
 
-            const Sparsepc::Matrix<double> X =
+            const Sparsepc::Matrix<double> rawFeatureMatrix =
                 openData<double>(fileName.toStdString(), header);
 
-            if (X.rows() <= 1)
+            if (rawFeatureMatrix.rows() <= 1)
             {
                 qCritical() << "Load data as matrix failed:" << fileName;
                 return false;
             }
 
-            const Sparsepc::Matrix<double> centeredX =
-                X.rowwise() - X.colwise().mean();
+            featureMatrix = Sparsepc::standardScale(rawFeatureMatrix);
+            n = featureMatrix.cols();
+            trace = featureMatrix.colwise().squaredNorm().sum();
 
-            // sample covariance formula
-            sigma = (centeredX.adjoint() * centeredX) /
-                    static_cast<double>(X.rows() - 1);
-
-            n = sigma.cols();
-            trace = sigma.trace();
             standardPCs.clear();
             standardPCs.reserve(n);
             sparsePCs.clear();
@@ -312,7 +312,11 @@ namespace Sparsely
         }
         else
         {
-            loadProject(fileName);
+            if (!loadProject(fileName))
+            {
+                qDebug() << "...model handler not initialized";
+                return false;
+            }
         }
 
         qDebug() << "...model handler initialized";
@@ -329,29 +333,35 @@ namespace Sparsely
             return false;
         }
 
-        const auto &n = m_Model.get().m_N;
-        const auto &sigma = m_Model.get().m_Sigma;
+        using Index = Sparsepc::Index;
+
+        const auto &featureMatrix = m_Model.get().m_FeatureMatrix;
+        const auto m = featureMatrix.rows();
+        const auto n = featureMatrix.cols();
         const auto &standardPCs = m_Model.get().m_StandardPCs;
         const auto &sparsePCs = m_Model.get().m_SparsePCs;
         const auto &header = m_Model.get().m_Header;
 
         // Serialization
         QDataStream out(&file);
-        out.setVersion(QDataStream::Qt_6_0); // version for forward/backward
-                                             // compatibility
+        out.setVersion(QDataStream::Qt_6_0);
+
+        out << static_cast<qint32>(magicNumber);
+        out << static_cast<qint32>(versionNumber);
+        out << static_cast<qint32>(m);
         out << static_cast<qint32>(n);
-        out.writeRawData(reinterpret_cast<const char *>(sigma.data()),
-                         n * n * sizeof(double));
+        out.writeRawData(reinterpret_cast<const char *>(featureMatrix.data()),
+                         m * n * sizeof(double));
         out << header;
-        const auto standardPCsSize = static_cast<qint32>(standardPCs.size());
-        out << standardPCsSize;
-        for (qint32 j = 0; j < standardPCsSize; ++j)
+        const Index numberOfStandardPCs = standardPCs.size();
+        out << static_cast<qint32>(numberOfStandardPCs);
+        for (Index j = 0; j < numberOfStandardPCs; ++j)
         {
             out << standardPCs[j];
         }
-        const auto sparsePCsSize = static_cast<qint32>(sparsePCs.size());
-        out << sparsePCsSize;
-        for (qint32 j = 0; j < sparsePCsSize; ++j)
+        const Index numberOfSparsePCs = sparsePCs.size();
+        out << static_cast<qint32>(numberOfSparsePCs);
+        for (Index j = 0; j < numberOfSparsePCs; ++j)
         {
             out << sparsePCs[j];
         }
@@ -370,8 +380,9 @@ namespace Sparsely
             return false;
         }
 
+        using Index = Sparsepc::Index;
+
         auto &n = m_Model.get().m_N;
-        auto &sigma = m_Model.get().m_Sigma;
         auto &trace = m_Model.get().m_Trace;
         auto &standardPCs = m_Model.get().m_StandardPCs;
         auto &sparsePCs = m_Model.get().m_SparsePCs;
@@ -380,27 +391,50 @@ namespace Sparsely
         // Deserialization
         QDataStream in(&file);
         in.setVersion(QDataStream::Qt_6_0);
-        qint32 intVal = -1;
-        in >> intVal;
-        n = intVal;
-        sigma.resize(n, n);
-        in.readRawData(reinterpret_cast<char *>(sigma.data()),
-                       n * n * sizeof(double));
-        trace = sigma.trace();
+        qint32 tmp = 0;
+        in >> tmp;
+        const qint32 magic = tmp;
+        if (magic != magicNumber)
+        {
+            qCritical() << "File version to old. Use old Sparsely version "
+                           "0.1.0 or 0.2.0 or 0.3.0:"
+                        << fileName;
+            return false;
+        }
+
+        in >> tmp;
+        [[maybe_unused]] const qint32 version = tmp;
+
+        in >> tmp;
+        const Index m = tmp;
+
+        in >> tmp;
+        n = tmp;
+
+        auto &featureMatrix = m_Model.get().m_FeatureMatrix;
+        featureMatrix.resize(m, n);
+        in.readRawData(reinterpret_cast<char *>(featureMatrix.data()),
+                       m * n * sizeof(double));
+        trace = featureMatrix.colwise().squaredNorm().sum();
+        qDebug() << "featureMatrix read ";
+
         in >> header;
         standardPCs.clear();
         standardPCs.reserve(n);
         sparsePCs.clear();
         sparsePCs.reserve(n);
-        in >> intVal;
-        for (qint32 j = 0; j < intVal; ++j)
+
+        in >> tmp;
+        const Index numberOfStandardPCs = tmp;
+        for (Index j = 0; j < numberOfStandardPCs; ++j)
         {
             Nominees Nominees;
             in >> Nominees;
             standardPCs.push_back(std::move(Nominees));
         }
-        in >> intVal;
-        for (qint32 j = 0; j < intVal; ++j)
+        in >> tmp;
+        const Index numberOfSparsePCs = tmp;
+        for (Index j = 0; j < numberOfSparsePCs; ++j)
         {
             Nominees Nominees;
             in >> Nominees;

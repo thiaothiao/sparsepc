@@ -8,7 +8,7 @@
 #endif
 
 extern "C" {
-MY_EXPORT void computeSparseEigenVector(const double* sigmaData,int n, int k, double* sparseEigenVectorData);
+MY_EXPORT void computeSparseEigenVector(const double* featureMatrixData,int n, int k, double* sparseEigenVectorData);
 }
 
 // clang-format on
