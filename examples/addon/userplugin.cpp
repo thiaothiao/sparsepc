@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cmath>
 
-void computeSparseEigenVector(const double *sigmaData, int n, int k,
+void computeSparseEigenVector(const double *featureMatrixData, int n, int k,
                               double *sparseEigenVectorData)
 {
     // assuming sparseEigenVectorData correctly allocated and 0 <= k <= n.
